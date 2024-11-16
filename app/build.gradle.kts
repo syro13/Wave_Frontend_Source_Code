@@ -38,4 +38,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation("com.google.android.material:material:1.9.0")
+    implementation("com.airbnb.android:lottie:5.2.0")
+    implementation("androidx.core:core-ktx:1.10.1")
+
 }

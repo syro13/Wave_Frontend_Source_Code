@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Wave</string>
+    <string name="slide_image">Your Image Description Here</string>
+
 </resources>
