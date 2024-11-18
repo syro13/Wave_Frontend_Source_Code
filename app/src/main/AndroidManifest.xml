@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.wave">
-
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -14,6 +14,7 @@
         android:theme="@style/Theme.Wave"
         tools:targetApi="31">
 
+
         <!-- MainActivity: Set as the launcher and main entry point of the app -->
         <activity
             android:name=".MainActivity"
@@ -23,6 +24,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
 
         <!-- OnboardingActivity: Separate onboarding screen without launcher intent -->
         <activity

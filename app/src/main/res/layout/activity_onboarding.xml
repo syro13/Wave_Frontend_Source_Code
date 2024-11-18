@@ -1,27 +1,53 @@
-<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Top Image -->
-    <ImageView
-        android:id="@+id/topImage"
+    <FrameLayout
+        android:id="@+id/wave_container"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:scaleType="fitXY"
-        android:src="@drawable/wave" />
+        android:layout_height="230dp"
+        android:layout_marginTop="-60dp"
+        android:layout_marginBottom="0dp"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <ImageView
+            android:id="@+id/wave1"
+            android:layout_width="850dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/wave_shape"
+            android:scaleType="centerCrop" />
+
+        <ImageView
+            android:id="@+id/wave2"
+            android:layout_width="850dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/wave_shape2"
+            android:scaleType="centerCrop"
+            android:alpha="0.9" />
+
+        <ImageView
+            android:id="@+id/wave3"
+            android:layout_width="850dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/wave_shape3"
+            android:scaleType="centerCrop"
+            android:alpha="0.6" />
+    </FrameLayout>
 
     <!-- Skip Button -->
     <TextView
         android:id="@+id/skipButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@id/wave_container"
         android:text="SKIP"
-        android:layout_below="@id/topImage"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="0dp"
         android:textColor="@android:color/black"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:fontFamily="@font/lato" />
 
     <!-- ViewPager2 for Slides -->
     <androidx.viewpager2.widget.ViewPager2
@@ -29,7 +55,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/skipButton"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="5dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_centerHorizontal="true" />
@@ -74,34 +100,34 @@
             android:background="@drawable/indicator_dot" />
     </LinearLayout>
 
-    <!-- Back and Next Buttons at the bottom -->
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- Back Button aligned to the far left -->
+    <Button
+        android:id="@+id/backButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
+        android:text="BACK"
+        android:background="@android:color/transparent"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="32dp">
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center" />
 
-        <!-- Back Button with no background or border -->
-        <Button
-            android:id="@+id/backButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="BACK"
-            android:background="@android:color/transparent"
-            android:textColor="@android:color/black"
-            android:visibility="visible" />
-
-        <!-- Next Button with custom background color -->
-        <Button
-            android:id="@+id/nextButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="NEXT"
-            android:backgroundTint="#005DFF"
-            android:textColor="@android:color/white" />
-    </LinearLayout>
+    <!-- Next Button aligned to the far right with rounded background -->
+    <Button
+        android:id="@+id/nextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="NEXT"
+        android:background="@drawable/rounded_button_background"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        app:backgroundTint="@null" />
 </RelativeLayout>

@@ -3,8 +3,10 @@ package com.example.wave;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +14,9 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.view.View;
+
+
 
 public class OnboardingActivity extends AppCompatActivity {
 
@@ -23,6 +28,9 @@ public class OnboardingActivity extends AppCompatActivity {
 
     // Indicator Views
     private View indicator1, indicator2, indicator3;
+
+    // Wave Views
+    private ImageView wave1, wave2, wave3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,10 +48,35 @@ public class OnboardingActivity extends AppCompatActivity {
         indicator2 = findViewById(R.id.dot2);
         indicator3 = findViewById(R.id.dot3);
 
+        // Initialize wave views
+        wave1 = findViewById(R.id.wave1);
+        wave2 = findViewById(R.id.wave2);
+        wave3 = findViewById(R.id.wave3);
+
+        // Start wave animations
+        animateWave1();
+        animateWave2();
+        animateWave3();
+
         setupOnboardingSlides();
         setupListeners();
         setupAutoSlide();
         updateIndicators(0); // Set initial indicator
+    }
+
+    private void animateWave1() {
+        Animation wave1Animation = AnimationUtils.loadAnimation(this, R.anim.wave1_animator);
+        wave1.startAnimation(wave1Animation);
+    }
+
+    private void animateWave2() {
+        Animation wave2Animation = AnimationUtils.loadAnimation(this, R.anim.wave2_animator);
+        wave2.startAnimation(wave2Animation);
+    }
+
+    private void animateWave3() {
+        Animation wave3Animation = AnimationUtils.loadAnimation(this, R.anim.wave3_animator);
+        wave3.startAnimation(wave3Animation);
     }
 
     private void setupOnboardingSlides() {

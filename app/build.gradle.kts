@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = "com.example.wave"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.wave"
@@ -32,14 +32,17 @@ android {
 }
 
 dependencies {
-
     implementation(libs.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    implementation("com.google.android.material:material:1.9.0")
-    implementation("com.airbnb.android:lottie:5.2.0")
-    implementation("androidx.core:core-ktx:1.10.1")
+    implementation(libs.material.v190)
+    implementation(libs.core.ktx)
+
+
+
+
+
 
 }

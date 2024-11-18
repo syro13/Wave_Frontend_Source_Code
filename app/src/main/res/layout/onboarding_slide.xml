@@ -8,8 +8,8 @@
     <!-- Image for each slide -->
     <ImageView
         android:id="@+id/slideImage"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
         android:layout_gravity="center"
         android:contentDescription="@string/slide_image" />
 
@@ -19,11 +19,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Title"
-        android:textSize="20sp"
+        android:textSize="30sp"
         android:textColor="@android:color/black"
         android:layout_marginTop="16dp"
         android:textStyle="bold"
-        android:gravity="center" />
+        android:gravity="center"
+        android:fontFamily="@font/lato" />
 
     <!-- Description for each slide -->
     <TextView
@@ -31,8 +32,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Description"
-        android:textSize="16sp"
+        android:textSize="20sp"
         android:gravity="center"
         android:textColor="@android:color/black"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/lato" />
 </LinearLayout>
