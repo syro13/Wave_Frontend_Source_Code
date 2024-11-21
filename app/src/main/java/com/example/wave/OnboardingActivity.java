@@ -103,8 +103,10 @@ public class OnboardingActivity extends AppCompatActivity {
     private void setupListeners() {
         // Action for Back button
         backButton.setOnClickListener(v -> {
-            // Define action for Back button, e.g., navigate to a previous screen
-            finish(); // Example: close the activity or navigate back
+            int currentItem = viewPager.getCurrentItem();
+            if (currentItem > 0) {
+                viewPager.setCurrentItem(currentItem - 1, true); // Navigate to the previous slide
+            }
         });
 
         // Action for Next button
@@ -113,10 +115,14 @@ public class OnboardingActivity extends AppCompatActivity {
             startActivity(new Intent(OnboardingActivity.this, SignupActivity.class));
         });
 
-        // Action for Skip button to finish onboarding
-        skipButton.setOnClickListener(v -> finishOnboarding());
+        // Action for Skip button
+        skipButton.setOnClickListener(v -> {
+            int currentItem = viewPager.getCurrentItem();
+            if (currentItem < onboardingAdapter.getItemCount() - 1) {
+                viewPager.setCurrentItem(currentItem + 1, true); // Jump to the next slide
+            }
+        });
     }
-
 
     private void setupAutoSlide() {
         // Start auto-slide
