@@ -120,6 +120,8 @@ public class OnboardingActivity extends AppCompatActivity {
             int currentItem = viewPager.getCurrentItem();
             if (currentItem < onboardingAdapter.getItemCount() - 1) {
                 viewPager.setCurrentItem(currentItem + 1, true); // Jump to the next slide
+            } else {
+                viewPager.setCurrentItem(0, true); // Cycle back to the first slide
             }
         });
     }
