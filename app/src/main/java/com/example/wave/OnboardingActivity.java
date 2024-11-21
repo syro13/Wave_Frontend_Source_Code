@@ -101,21 +101,22 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-        // Independent action for Back button
+        // Action for Back button
         backButton.setOnClickListener(v -> {
             // Define action for Back button, e.g., navigate to a previous screen
             finish(); // Example: close the activity or navigate back
         });
 
-        // Independent action for Next button
+        // Action for Next button
         nextButton.setOnClickListener(v -> {
-            // Define action for Next button, e.g., navigate to the main activity or another screen
-            startActivity(new Intent(OnboardingActivity.this, MainActivity.class));
+            // Navigate to SignupActivity
+            startActivity(new Intent(OnboardingActivity.this, SignupActivity.class));
         });
 
         // Action for Skip button to finish onboarding
         skipButton.setOnClickListener(v -> finishOnboarding());
     }
+
 
     private void setupAutoSlide() {
         // Start auto-slide

@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">Wave</string>
     <string name="slide_image">Your Image Description Here</string>
+    <string name="enter_your_password">Enter your password</string>
+    <string name="enter_your_email">Enter your email</string>
+    <string name="enter_your_name">Enter your name</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="or_sign_up_with">Or Sign Up with</string>
 
 </resources>
