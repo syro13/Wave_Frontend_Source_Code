@@ -55,12 +55,12 @@ public class LaunchActivity extends AppCompatActivity {
                     mediaPlayer.setVolume(currentVolume, currentVolume);
                     handler.postDelayed(this, FADE_INTERVAL);
                 } else {
-                    
+
                     mediaPlayer.stop();
                     mediaPlayer.release();
 
                     // Transition to MainActivity
-                    Intent intent = new Intent(LaunchActivity.this, MainActivity.class);
+                    Intent intent = new Intent(LaunchActivity.this, IntroActivity.class);
                     startActivity(intent);
                     overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                     finish();
