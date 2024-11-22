@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Wave</string>
+    <string name="welcome_to_wave">Welcome to Wave!</string>
+    <string name="tagline">Budget Smarter\nStudy Better\nLive Healthier</string>
+    <string name="get_started">Get Started</string>
+    <string name="app_logo_description">"App logo "</string>
 </resources>
