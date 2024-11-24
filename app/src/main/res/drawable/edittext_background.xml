@@ -1,0 +1,16 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Transparent background -->
+    <item>
+        <shape>
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+
+    <!-- Bottom underline -->
+    <item android:top="48dp">
+        <shape>
+            <size android:height="2dp" />
+            <solid android:color="#AEEFFF" /> <!-- Light blue underline color -->
+        </shape>
+    </item>
+</layer-list>
