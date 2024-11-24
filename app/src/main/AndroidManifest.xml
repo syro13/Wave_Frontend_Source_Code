@@ -18,18 +18,19 @@
         <!-- MainActivity: Set as the launcher and main entry point of the app -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.Wave">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-
         <!-- OnboardingActivity: Separate onboarding screen without launcher intent -->
         <activity
             android:name=".OnboardingActivity"
             android:exported="true" />
+        <activity android:name=".SignupActivity" />
 
     </application>
 </manifest>

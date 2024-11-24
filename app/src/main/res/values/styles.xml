@@ -1,0 +1,11 @@
+<resources>
+
+    <!-- Custom Style for TextInputLayout -->
+    <style name="CustomTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/light_blue</item> <!-- Blue underline -->
+        <item name="boxStrokeWidth">0dp</item> <!-- No border -->
+        <item name="boxBackgroundMode">none</item> <!-- Only underline -->
+        <item name="hintTextColor">@color/light_blue</item> <!-- Blue hint color -->
+        <item name="android:textColorHint">@android:color/darker_gray</item> <!-- Gray hint text -->
+    </style>
+</resources>
