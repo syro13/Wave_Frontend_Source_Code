@@ -53,7 +53,7 @@ public class LoginSignUpActivity extends AppCompatActivity {
      */
     public void showSignupFragment() {
         if (isLoginFragmentActive) { // Only switch if not already active
-            loadFragment(new SignupFragment());
+            loadFragment(new SignUpFragment());
             isLoginFragmentActive = false;
         }
     }
