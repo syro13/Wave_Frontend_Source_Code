@@ -1,20 +1,25 @@
 package com.example.wave;
 
 import android.os.Bundle;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class LoginSignUpActivity extends AppCompatActivity {
 
     private boolean isLoginFragmentActive = true; // To track the active fragment
+    private FirebaseAuth mAuth; // Firebase Authentication instance
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_sign_up); // Assuming a layout exists for this Activity
+
+        // Initialize Firebase Authentication
+        mAuth = FirebaseAuth.getInstance();
 
         // Load the LoginFragment by default
         if (savedInstanceState == null) {
