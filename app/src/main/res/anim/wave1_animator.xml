@@ -1,0 +1,16 @@
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <translate
+        android:duration="4000"
+        android:fromXDelta="-5%"
+        android:toXDelta="0%"
+        android:repeatCount="infinite"
+        android:repeatMode="reverse"
+        android:startOffset="0" />
+
+    <translate
+        android:duration="4000"
+        android:fromYDelta="0%"
+        android:toYDelta="10%"
+        android:repeatCount="infinite"
+        android:repeatMode="reverse" />
+</set>

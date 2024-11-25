@@ -1,0 +1,17 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="720dp"
+    android:height="100dp"
+    android:viewportWidth="720"
+    android:viewportHeight="200">
+
+    <!-- One shape with a wave-like top and a differently curved bottom -->
+    <path
+        android:fillColor="#29B6F6"
+        android:pathData="M0,60
+                         C120,100 240,40 360,80
+                         C480,120 600,60 720,100
+                         L720,150
+                         C600,180 500,190 400,170
+                         C300,150 120,170 0,160
+                         L0,60 Z" />
+</vector>
