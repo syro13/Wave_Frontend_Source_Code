@@ -10,7 +10,8 @@
     <item android:top="48dp">
         <shape>
             <size android:height="2dp" />
-            <solid android:color="#AEEFFF" /> <!-- Light blue underline color -->
+            <!-- Light blue underline color -->
+            <solid android:color="#AEEFFF" />
         </shape>
     </item>
 </layer-list>
