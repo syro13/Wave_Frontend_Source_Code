@@ -24,9 +24,8 @@
             </intent-filter>
         </activity>
         <!-- OnboardingActivity: Separate onboarding screen without launcher intent -->
-        <activity
-            android:name=".OnboardingActivity"
-            android:exported="true" />
+        <activity android:name=".OnboardingActivity" android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:exported="true"/>
 
         <activity android:name=".LoginSignUpActivity"
             android:exported="true"/>

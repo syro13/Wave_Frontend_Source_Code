@@ -1,24 +1,36 @@
 package com.example.wave;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.app.Activity;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.GoogleAuthProvider;
 
 public class LoginFragment extends Fragment {
 
     private FirebaseAuth mAuth; // Firebase Authentication instance
+    private GoogleSignInClient googleSignInClient; // Google Sign-In client
     private EditText emailInput, passwordInput;
 
     @Nullable
@@ -29,21 +41,26 @@ public class LoginFragment extends Fragment {
         // Initialize Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
 
+        // Configure Google Sign-In
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id)) // Use your Web Client ID
+                .requestEmail()
+                .build();
+        googleSignInClient = GoogleSignIn.getClient(requireContext(), gso);
+
         // Bind inputs and buttons
         emailInput = view.findViewById(R.id.emailInput);
         passwordInput = view.findViewById(R.id.passwordInput);
         Button loginSubmitButton = view.findViewById(R.id.loginSubmitButton);
         TextView loginButton = view.findViewById(R.id.loginButton);
         TextView signupButton = view.findViewById(R.id.signupButton);
+        ImageView googleSignInButton = view.findViewById(R.id.googleIcon); // Google sign-in button (ImageView)
 
         // Set initial active state
         setActiveButton(loginButton, signupButton);
 
         // Handle Login Button Click
-        loginButton.setOnClickListener(v -> {
-            // No action for login since it's already active, but update styles
-            setActiveButton(loginButton, signupButton);
-        });
+        loginButton.setOnClickListener(v -> setActiveButton(loginButton, signupButton));
 
         // Handle Sign Up Button Click
         signupButton.setOnClickListener(v -> {
@@ -56,12 +73,59 @@ public class LoginFragment extends Fragment {
         // Handle Login Submit Button Click
         loginSubmitButton.setOnClickListener(v -> loginUser());
 
+        // Handle Google Sign-In Button Click
+        googleSignInButton.setOnClickListener(v -> signInWithGoogle());
+
         return view;
     }
 
-    /**
-     * Logs in the user with Firebase Authentication.
-     */
+    private final ActivityResultLauncher<Intent> googleSignInLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    GoogleSignIn.getSignedInAccountFromIntent(result.getData())
+                            .addOnCompleteListener(task -> {
+                                if (task.isSuccessful()) {
+                                    GoogleSignInAccount account = task.getResult();
+                                    authenticateWithFirebase(account);
+                                } else {
+                                    Toast.makeText(getContext(), "Google Sign-In failed", Toast.LENGTH_LONG).show();
+                                }
+                            });
+                } else {
+                    Toast.makeText(getContext(), "Google Sign-In cancelled", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+    private void signInWithGoogle() {
+        Intent signInIntent = googleSignInClient.getSignInIntent();
+        googleSignInLauncher.launch(signInIntent);
+    }
+
+    private void authenticateWithFirebase(GoogleSignInAccount account) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(getContext(), "Google Sign-In successful!", Toast.LENGTH_SHORT).show();
+                        // Navigate to MainActivity
+                        if (getActivity() != null) {
+                            getActivity().finish();
+                            startActivity(new Intent(getActivity(), MainActivity.class));
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void setActiveButton(TextView activeButton, TextView inactiveButton) {
+        activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
+        activeButton.setTextColor(getResources().getColor(android.R.color.white));
+
+        inactiveButton.setBackgroundResource(R.drawable.toggle_button_unselected);
+        inactiveButton.setTextColor(getResources().getColor(R.color.dark_blue));
+    }
+
     private void loginUser() {
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
@@ -80,30 +144,13 @@ public class LoginFragment extends Fragment {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_SHORT).show();
-                        // Navigate to MainActivity or other dashboard activity
                         if (getActivity() != null) {
-                            getActivity().finish(); // Close LoginSignUpActivity
-                            startActivity(new android.content.Intent(getActivity(), MainActivity.class));
+                            getActivity().finish();
+                            startActivity(new Intent(getActivity(), MainActivity.class));
                         }
                     } else {
                         Toast.makeText(getContext(), "Login failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
-    }
-
-    /**
-     * Updates the styles of the toggle buttons to show which one is active.
-     *
-     * @param activeButton   The button to mark as active
-     * @param inactiveButton The button to mark as inactive
-     */
-    private void setActiveButton(TextView activeButton, TextView inactiveButton) {
-        // Set active button style
-        activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
-        activeButton.setTextColor(getResources().getColor(android.R.color.white));
-
-        // Set inactive button style
-        inactiveButton.setBackgroundResource(R.drawable.toggle_button_unselected);
-        inactiveButton.setTextColor(getResources().getColor(R.color.dark_blue));
     }
 }
