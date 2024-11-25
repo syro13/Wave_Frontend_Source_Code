@@ -111,9 +111,10 @@ public class OnboardingActivity extends AppCompatActivity {
 
         // Action for Next button
         nextButton.setOnClickListener(v -> {
-            // Navigate to SignupActivity
-            startActivity(new Intent(OnboardingActivity.this, SignupActivity.class));
+            Intent intent = new Intent(OnboardingActivity.this, LoginSignUpActivity.class);
+            startActivity(intent);
         });
+
 
         // Action for Skip button
         skipButton.setOnClickListener(v -> {

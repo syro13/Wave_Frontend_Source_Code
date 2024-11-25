@@ -27,7 +27,9 @@
         <activity
             android:name=".OnboardingActivity"
             android:exported="true" />
-        <activity android:name=".SignupActivity" />
+
+        <activity android:name=".LoginSignUpActivity"
+            android:exported="true"/>
 
         <activity android:name=".IntroActivity"
             android:exported="true"/>

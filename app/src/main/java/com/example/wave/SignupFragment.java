@@ -10,12 +10,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-public class LoginFragment extends Fragment {
+public class SignupFragment extends Fragment {
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_login, container, false);
+        View view = inflater.inflate(R.layout.fragment_sign_up, container, false);
 
         // Bind toggle buttons
         TextView loginButton = view.findViewById(R.id.loginButton);
@@ -24,27 +24,20 @@ public class LoginFragment extends Fragment {
         // Set active button style for Login
         setActiveButton(loginButton, signupButton);
 
-        // Handle Login Button Click (no action since already on LoginFragment)
+        // Handle Login Button Click
         loginButton.setOnClickListener(v -> {
-            // Do nothing, already on LoginFragment
+            if (getActivity() instanceof LoginSignUpActivity) {
+                ((LoginSignUpActivity) getActivity()).showLoginFragment();
+            }
         });
 
-        // Handle Sign Up Button Click
+        // Handle Sign Up Button Click (no action since already on SignupFragment)
         signupButton.setOnClickListener(v -> {
-            if (getActivity() instanceof LoginSignUpActivity) {
-                ((LoginSignUpActivity) getActivity()).showSignupFragment();
-            }
+            // Do nothing, already on SignupFragment
         });
 
         return view;
     }
-
-    /**
-     * Updates the styles of the toggle buttons to show which one is active.
-     *
-     * @param activeButton   The button to mark as active
-     * @param inactiveButton The button to mark as inactive
-     */
     private void setActiveButton(TextView activeButton, TextView inactiveButton) {
         // Active button style
         activeButton.setBackgroundResource(R.drawable.toggle_button_background);
