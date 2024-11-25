@@ -21,12 +21,13 @@ public class LoginFragment extends Fragment {
         TextView loginButton = view.findViewById(R.id.loginButton);
         TextView signupButton = view.findViewById(R.id.signupButton);
 
-        // Set active button style for Login
+        // Set initial active state
         setActiveButton(loginButton, signupButton);
 
-        // Handle Login Button Click (no action since already on LoginFragment)
+        // Handle Login Button Click
         loginButton.setOnClickListener(v -> {
-            // Do nothing, already on LoginFragment
+            // No action for login since it's already active, but update styles
+            setActiveButton(loginButton, signupButton);
         });
 
         // Handle Sign Up Button Click
@@ -34,6 +35,7 @@ public class LoginFragment extends Fragment {
             if (getActivity() instanceof LoginSignUpActivity) {
                 ((LoginSignUpActivity) getActivity()).showSignupFragment();
             }
+            setActiveButton(signupButton, loginButton); // Update styles
         });
 
         return view;
@@ -46,12 +48,12 @@ public class LoginFragment extends Fragment {
      * @param inactiveButton The button to mark as inactive
      */
     private void setActiveButton(TextView activeButton, TextView inactiveButton) {
-        // Active button style
-        activeButton.setBackgroundResource(R.drawable.toggle_button_background);
+        // Set active button style
+        activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
         activeButton.setTextColor(getResources().getColor(android.R.color.white));
 
-        // Inactive button style
-        inactiveButton.setBackgroundResource(R.drawable.toggle_button_background);
-        inactiveButton.setTextColor(getResources().getColor(R.color.blue));
+        // Set inactive button style
+        inactiveButton.setBackgroundResource(R.drawable.toggle_button_unselected);
+        inactiveButton.setTextColor(getResources().getColor(R.color.dark_blue));
     }
 }
