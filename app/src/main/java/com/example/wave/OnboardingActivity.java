@@ -80,7 +80,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private void setupAutoSlide() {
         // Start auto-slide
-        slideHandler.postDelayed(slideRunnable, 6000);
+        slideHandler.postDelayed(slideRunnable, 8000);
 
         // Reset auto-slide timing on manual swipe
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -98,7 +98,7 @@ public class OnboardingActivity extends AppCompatActivity {
         public void run() {
             int nextSlide = (viewPager.getCurrentItem() + 1) % onboardingAdapter.getItemCount();
             viewPager.setCurrentItem(nextSlide, true);
-            slideHandler.postDelayed(this, 6000);
+            slideHandler.postDelayed(this, 8000);
         }
     };
 
@@ -154,7 +154,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private void setupOnboardingSlides() {
         List<OnboardingSlide> slides = new ArrayList<>();
-        slides.add(new OnboardingSlide(R.drawable.image1, "Manage your tasks", "Easily organize and keep track of all your school and house tasks with Wave."));
+        slides.add(new OnboardingSlide(R.drawable.image1, "Manage your tasks", "Easily organize and keep track of all your school and household tasks with Wave."));
         slides.add(new OnboardingSlide(R.drawable.image2, "Track Your Budget", "Set weekly budgets and monitor your expenses effortlessly with our budget tracker."));
         slides.add(new OnboardingSlide(R.drawable.image3, "Focus on Well-being", "Access tools and resources for a balanced, stress-free life while you study."));
 
