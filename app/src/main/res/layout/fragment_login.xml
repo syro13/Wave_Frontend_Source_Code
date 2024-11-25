@@ -187,7 +187,7 @@
                     android:background="@drawable/circle_background_light_blue"
                     android:padding="14dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/Facebook" />
+                    android:src="@drawable/facebook" />
 
                 <!-- Google Icon -->
                 <ImageView
@@ -198,7 +198,7 @@
                     android:background="@drawable/circle_background_light_blue"
                     android:padding="14dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/Google" />
+                    android:src="@drawable/google" />
 
                 <!-- Twitter Icon -->
                 <ImageView
@@ -208,7 +208,7 @@
                     android:background="@drawable/circle_background_light_blue"
                     android:padding="14dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/Twitter_X" />
+                    android:src="@drawable/twitter_x" />
             </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>

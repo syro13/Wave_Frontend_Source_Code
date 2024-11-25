@@ -28,7 +28,11 @@
             android:name=".OnboardingActivity"
             android:exported="true" />
         <activity android:name=".SignupActivity" />
-        <activity android:name=".IntroActivity" />
-        <activity android:name=".MainActivity" />
+
+        <activity android:name=".IntroActivity"
+            android:exported="true"/>
+
+        <activity android:name=".MainActivity"
+            android:exported="true"/>
     </application>
 </manifest>
