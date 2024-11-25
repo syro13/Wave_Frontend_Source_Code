@@ -16,8 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import android.view.View;
 
-
-
 public class OnboardingActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
@@ -48,12 +46,11 @@ public class OnboardingActivity extends AppCompatActivity {
         indicator2 = findViewById(R.id.dot2);
         indicator3 = findViewById(R.id.dot3);
 
-        // Initialize wave views
+        // Initialize wave animations
         wave1 = findViewById(R.id.wave1);
         wave2 = findViewById(R.id.wave2);
         wave3 = findViewById(R.id.wave3);
 
-        // Start wave animations
         animateWave1();
         animateWave2();
         animateWave3();
@@ -64,71 +61,36 @@ public class OnboardingActivity extends AppCompatActivity {
         updateIndicators(0); // Set initial indicator
     }
 
-    private void animateWave1() {
-        Animation wave1Animation = AnimationUtils.loadAnimation(this, R.anim.wave1_animator);
-        wave1.startAnimation(wave1Animation);
-    }
-
-    private void animateWave2() {
-        Animation wave2Animation = AnimationUtils.loadAnimation(this, R.anim.wave2_animator);
-        wave2.startAnimation(wave2Animation);
-    }
-
-    private void animateWave3() {
-        Animation wave3Animation = AnimationUtils.loadAnimation(this, R.anim.wave3_animator);
-        wave3.startAnimation(wave3Animation);
-    }
-
-    private void setupOnboardingSlides() {
-        List<OnboardingSlide> slides = new ArrayList<>();
-        slides.add(new OnboardingSlide(R.drawable.image1, "Manage your tasks", "Easily organize and keep track of all your school and house tasks with Wave."));
-        slides.add(new OnboardingSlide(R.drawable.image2, "Track Your Budget", "Set weekly budgets and monitor your expenses effortlessly with our budget tracker."));
-        slides.add(new OnboardingSlide(R.drawable.image3, "Focus on Well-being", "Access tools and resources for a balanced, stress-free life while you study."));
-
-        onboardingAdapter = new OnboardingAdapter(slides);
-        viewPager.setAdapter(onboardingAdapter);
-
-        // Update indicators when the page changes
-        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                updateIndicators(position); // Update indicator based on position
-                // Reset auto-slide when user manually swipes
-                slideHandler.removeCallbacks(slideRunnable);
-                slideHandler.postDelayed(slideRunnable, 6000); // 6-second auto-slide
-            }
-        });
-    }
-
     private void setupListeners() {
-        // Action for Back button
-        backButton.setOnClickListener(v -> {
-            int currentItem = viewPager.getCurrentItem();
-            if (currentItem > 0) {
-                viewPager.setCurrentItem(currentItem - 1, true); // Navigate to the previous slide
-            }
-        });
-
         // Action for Next button
         nextButton.setOnClickListener(v -> {
-            // Navigate to SignupActivity
-            startActivity(new Intent(OnboardingActivity.this, SignupActivity.class));
+            int currentItem = viewPager.getCurrentItem();
+            if (currentItem < onboardingAdapter.getItemCount() - 1) {
+                viewPager.setCurrentItem(currentItem + 1, true); // Move to the next slide
+            } else {
+                finishOnboarding(); // Navigate to main activity on the last slide
+            }
         });
 
         // Action for Skip button
         skipButton.setOnClickListener(v -> {
-            int currentItem = viewPager.getCurrentItem();
-            if (currentItem < onboardingAdapter.getItemCount() - 1) {
-                viewPager.setCurrentItem(currentItem + 1, true); // Jump to the next slide
-            } else {
-                viewPager.setCurrentItem(0, true); // Cycle back to the first slide
-            }
+            finishOnboarding(); // Immediately skip to main activity
         });
     }
 
     private void setupAutoSlide() {
         // Start auto-slide
-        slideHandler.postDelayed(slideRunnable, 6000);
+        slideHandler.postDelayed(slideRunnable, 8000);
+
+        // Reset auto-slide timing on manual swipe
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                updateIndicators(position); // Update indicators
+                slideHandler.removeCallbacks(slideRunnable);
+                slideHandler.postDelayed(slideRunnable, 6000); // Reset auto-slide
+            }
+        });
     }
 
     private Runnable slideRunnable = new Runnable() {
@@ -136,7 +98,7 @@ public class OnboardingActivity extends AppCompatActivity {
         public void run() {
             int nextSlide = (viewPager.getCurrentItem() + 1) % onboardingAdapter.getItemCount();
             viewPager.setCurrentItem(nextSlide, true);
-            slideHandler.postDelayed(this, 6000);
+            slideHandler.postDelayed(this, 8000);
         }
     };
 
@@ -158,12 +120,53 @@ public class OnboardingActivity extends AppCompatActivity {
                 indicator3.setBackgroundTintList(getResources().getColorStateList(R.color.dark_blue, null));
                 break;
         }
+
+        // Update Next button text on the last slide
+        if (position == onboardingAdapter.getItemCount() - 1) {
+            nextButton.setText("Get me started!");
+        } else {
+            nextButton.setText("Next");
+        }
     }
 
     private void finishOnboarding() {
-        // Navigate to main activity or dashboard
-        startActivity(new Intent(OnboardingActivity.this, MainActivity.class));
-        finish();
+        // Navigate to LoginSignUpActivity
+        Intent intent = new Intent(OnboardingActivity.this, LoginSignUpActivity.class);
+        startActivity(intent);
+        finish(); // Close OnboardingActivity
+    }
+
+
+    private void animateWave1() {
+        Animation wave1Animation = AnimationUtils.loadAnimation(this, R.anim.wave1_animator);
+        wave1.startAnimation(wave1Animation);
+    }
+
+    private void animateWave2() {
+        Animation wave2Animation = AnimationUtils.loadAnimation(this, R.anim.wave2_animator);
+        wave2.startAnimation(wave2Animation);
+    }
+
+    private void animateWave3() {
+        Animation wave3Animation = AnimationUtils.loadAnimation(this, R.anim.wave3_animator);
+        wave3.startAnimation(wave3Animation);
+    }
+
+    private void setupOnboardingSlides() {
+        List<OnboardingSlide> slides = new ArrayList<>();
+        slides.add(new OnboardingSlide(R.drawable.image1, "Manage your tasks", "Easily organize and keep track of all your school and household tasks with Wave."));
+        slides.add(new OnboardingSlide(R.drawable.image2, "Track Your Budget", "Set weekly budgets and monitor your expenses effortlessly with our budget tracker."));
+        slides.add(new OnboardingSlide(R.drawable.image3, "Focus on Well-being", "Access tools and resources for a balanced, stress-free life while you study."));
+
+        onboardingAdapter = new OnboardingAdapter(slides);
+        viewPager.setAdapter(onboardingAdapter);
+
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                updateIndicators(position);
+            }
+        });
     }
 
     @Override

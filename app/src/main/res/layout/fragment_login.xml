@@ -21,10 +21,11 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/whiteCard"
         android:layout_width="314dp"
-        android:layout_height="647dp"
+        android:layout_height="547dp"
         android:background="#CCFFFFFF"
         app:cardCornerRadius="30dp"
         app:cardElevation="5dp"
+        app:cardBackgroundColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent="0.6"
@@ -57,10 +58,10 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="@drawable/toggle_button_background"
+                    android:background="@drawable/toggle_button_selected"
                     android:gravity="center"
                     android:text="Log In"
-                    android:textColor="@color/white"
+                    android:textColor="@color/dark_blue"
                     android:textStyle="bold"
                     android:fontFamily="@font/archivo_medium"
                     android:textAllCaps="false"
@@ -73,10 +74,10 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="@drawable/toggle_button_background"
+                    android:background="@drawable/toggle_button_unselected"
                     android:gravity="center"
                     android:text="Sign Up"
-                    android:textColor="@color/blue"
+                    android:textColor="@color/white"
                     android:textStyle="bold"
                     android:fontFamily="@font/archivo_medium"
                     android:textAllCaps="false"
@@ -91,7 +92,8 @@
                 android:layout_marginTop="32dp"
                 android:background="@drawable/edittext_background"
                 android:fontFamily="@font/archivo_medium"
-                android:hint="Email or Username"
+                android:hint="@string/email_or_username"
+                android:textColorHint="@color/gray"
                 android:inputType="textEmailAddress"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
@@ -109,7 +111,8 @@
                 android:layout_marginTop="12dp"
                 android:background="@drawable/edittext_background"
                 android:fontFamily="@font/archivo_medium"
-                android:hint="Password"
+                android:hint="@string/password"
+                android:textColorHint="@color/gray"
                 android:inputType="textPassword"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
@@ -155,7 +158,7 @@
                 android:id="@+id/orLoginWithText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="120dp"
+                android:layout_marginTop="50dp"
                 android:fontFamily="@font/archivo_medium"
                 android:text="Or Log In with"
                 android:textColor="@color/gray"
@@ -170,7 +173,7 @@
                 android:id="@+id/socialMediaContainer"
                 android:layout_width="245dp"
                 android:layout_height="71dp"
-                android:layout_marginTop="40dp"
+                android:layout_marginTop="10dp"
                 android:gravity="center"
                 android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -187,7 +190,7 @@
                     android:background="@drawable/circle_background_light_blue"
                     android:padding="14dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/Facebook" />
+                    android:src="@drawable/facebook" />
 
                 <!-- Google Icon -->
                 <ImageView
@@ -198,7 +201,7 @@
                     android:background="@drawable/circle_background_light_blue"
                     android:padding="14dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/Google" />
+                    android:src="@drawable/google" />
 
                 <!-- Twitter Icon -->
                 <ImageView
@@ -208,7 +211,7 @@
                     android:background="@drawable/circle_background_light_blue"
                     android:padding="14dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/Twitter_X" />
+                    android:src="@drawable/twitter_x" />
             </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
