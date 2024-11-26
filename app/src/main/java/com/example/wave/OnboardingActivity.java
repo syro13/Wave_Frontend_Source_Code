@@ -61,6 +61,14 @@ public class OnboardingActivity extends AppCompatActivity {
             }
         });
 
+        // Action for Back button
+        backButton.setOnClickListener(v -> {
+            int currentItem = viewPager.getCurrentItem();
+            if (currentItem > 0) {
+                viewPager.setCurrentItem(currentItem - 1, true); // Move to the previous slide
+            }
+        });
+
         // Action for Skip button
         skipButton.setOnClickListener(v -> {
             finishOnboarding(); // Immediately skip to main activity
@@ -116,6 +124,8 @@ public class OnboardingActivity extends AppCompatActivity {
         } else {
             nextButton.setText("Next");
         }
+
+        backButton.setVisibility(position == 0 ? View.INVISIBLE : View.VISIBLE);
     }
 
     private void finishOnboarding() {
