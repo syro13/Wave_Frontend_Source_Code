@@ -27,8 +27,6 @@ public class OnboardingActivity extends AppCompatActivity {
     // Indicator Views
     private View indicator1, indicator2, indicator3;
 
-    // Wave Views
-    private ImageView wave1, wave2, wave3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,15 +44,6 @@ public class OnboardingActivity extends AppCompatActivity {
         indicator2 = findViewById(R.id.dot2);
         indicator3 = findViewById(R.id.dot3);
 
-        // Initialize wave animations
-        wave1 = findViewById(R.id.wave1);
-        wave2 = findViewById(R.id.wave2);
-        wave3 = findViewById(R.id.wave3);
-
-        animateWave1();
-        animateWave2();
-        animateWave3();
-
         setupOnboardingSlides();
         setupListeners();
         setupAutoSlide();
@@ -69,6 +58,14 @@ public class OnboardingActivity extends AppCompatActivity {
                 viewPager.setCurrentItem(currentItem + 1, true); // Move to the next slide
             } else {
                 finishOnboarding(); // Navigate to main activity on the last slide
+            }
+        });
+
+        // Action for Back button
+        backButton.setOnClickListener(v -> {
+            int currentItem = viewPager.getCurrentItem();
+            if (currentItem > 0) {
+                viewPager.setCurrentItem(currentItem - 1, true); // Move to the previous slide
             }
         });
 
@@ -127,6 +124,8 @@ public class OnboardingActivity extends AppCompatActivity {
         } else {
             nextButton.setText("Next");
         }
+
+        backButton.setVisibility(position == 0 ? View.INVISIBLE : View.VISIBLE);
     }
 
     private void finishOnboarding() {
@@ -134,22 +133,6 @@ public class OnboardingActivity extends AppCompatActivity {
         Intent intent = new Intent(OnboardingActivity.this, LoginSignUpActivity.class);
         startActivity(intent);
         finish(); // Close OnboardingActivity
-    }
-
-
-    private void animateWave1() {
-        Animation wave1Animation = AnimationUtils.loadAnimation(this, R.anim.wave1_animator);
-        wave1.startAnimation(wave1Animation);
-    }
-
-    private void animateWave2() {
-        Animation wave2Animation = AnimationUtils.loadAnimation(this, R.anim.wave2_animator);
-        wave2.startAnimation(wave2Animation);
-    }
-
-    private void animateWave3() {
-        Animation wave3Animation = AnimationUtils.loadAnimation(this, R.anim.wave3_animator);
-        wave3.startAnimation(wave3Animation);
     }
 
     private void setupOnboardingSlides() {

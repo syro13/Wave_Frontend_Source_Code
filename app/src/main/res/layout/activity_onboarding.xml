@@ -3,60 +3,37 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <FrameLayout
-        android:id="@+id/wave_container"
+    <!-- Lottie Animation as Background -->
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/onboardingAnimation"
         android:layout_width="match_parent"
-        android:layout_height="230dp"
-        android:layout_marginTop="-60dp"
-        android:layout_marginBottom="0dp"
-        android:clipChildren="false"
-        android:clipToPadding="false">
-
-        <ImageView
-            android:id="@+id/wave1"
-            android:layout_width="850dp"
-            android:layout_height="wrap_content"
-            android:src="@drawable/wave_shape"
-            android:scaleType="centerCrop" />
-
-        <ImageView
-            android:id="@+id/wave2"
-            android:layout_width="850dp"
-            android:layout_height="wrap_content"
-            android:src="@drawable/wave_shape2"
-            android:scaleType="centerCrop"
-            android:alpha="0.9" />
-
-        <ImageView
-            android:id="@+id/wave3"
-            android:layout_width="850dp"
-            android:layout_height="wrap_content"
-            android:src="@drawable/wave_shape3"
-            android:scaleType="centerCrop"
-            android:alpha="0.6" />
-    </FrameLayout>
+        android:layout_height="match_parent"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/onboarding_animation"
+        android:scaleType="centerCrop" />
 
     <!-- Skip Button -->
     <TextView
         android:id="@+id/skipButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/wave_container"
         android:text="SKIP"
+        android:layout_alignTop="@id/viewPager"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="-20dp"
+        android:layout_marginTop="8dp"
         android:textColor="@android:color/black"
         android:textStyle="bold"
         android:textSize="16sp"
-        android:fontFamily="@font/lato" />
+        android:fontFamily="@font/lato"
+        android:elevation="10dp"/>
 
     <!-- ViewPager2 for Slides -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/skipButton"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="200dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_centerHorizontal="true" />
@@ -71,7 +48,8 @@
         android:layout_below="@id/viewPager"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="16dp"
+        android:elevation="10dp">
 
         <!-- Dot 1 -->
         <View
@@ -114,7 +92,7 @@
         android:layout_alignParentBottom="true"
         android:textSize="15sp"
         android:layout_marginStart="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="80dp"
         android:gravity="center" />
 
     <!-- Next Button aligned to the far right with rounded background -->
@@ -130,7 +108,7 @@
         android:padding="10dp"
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="80dp"
         android:gravity="center"
         android:textSize="15sp"
         app:backgroundTint="@null" />

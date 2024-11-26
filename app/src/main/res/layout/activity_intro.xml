@@ -8,9 +8,6 @@
     tools:context=".IntroActivity">
 
     <!-- Animated Waves Background -->
-
-    <!-- App Logo -->
-
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/lottieWaves"
         android:layout_width="match_parent"
@@ -18,10 +15,9 @@
         android:scaleType="fitXY"
         app:lottie_autoPlay="true"
         app:lottie_loop="true"
-        app:lottie_rawRes="@raw/intro_wave_animation"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="0dp" />
+        app:lottie_rawRes="@raw/intro_wave_animation" />
 
+    <!-- App Logo -->
     <ImageView
         android:id="@+id/appLogo"
         android:layout_width="235dp"
@@ -32,54 +28,53 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Welcome Title -->
-
-    <!-- Tagline -->
-
-    <TextView
-        android:id="@+id/welcomeTitle"
+    <!-- Grouped Welcome Text, Tagline, and Button in a LinearLayout -->
+    <LinearLayout
+        android:id="@+id/textContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="124dp"
-        android:fontFamily="@font/archivo_medium"
-        android:text="@string/welcome_to_wave"
-        android:textColor="#0086FF"
-        android:textSize="27sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appLogo" />
-
-    <TextView
-        android:id="@+id/tagline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:fontFamily="@font/inter_light"
-        android:text="@string/tagline"
-        android:textColor="#0086FF"
-        android:textSize="17sp"
+        android:orientation="vertical"
         android:gravity="center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
+        android:layout_marginBottom="50dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/welcomeTitle"
-        tools:ignore="VisualLintOverlap" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <Button
-        android:id="@+id/getStartedButton"
-        android:layout_width="300dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="15dp"
-        android:background="@drawable/rounded_button"
-        android:fontFamily="@font/archivo_medium"
-        android:text="@string/get_started"
-        android:textColor="#FFFFFF"
-        android:textSize="15sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tagline"
-        tools:layout_editor_absoluteY="730dp" />
+        <!-- Welcome Title -->
+        <TextView
+            android:id="@+id/welcomeTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/archivo_medium"
+            android:text="@string/welcome_to_wave"
+            android:textColor="#0086FF"
+            android:textSize="27sp"
+            android:gravity="center" />
+
+        <!-- Tagline -->
+        <TextView
+            android:id="@+id/tagline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:fontFamily="@font/inter_light"
+            android:text="@string/tagline"
+            android:textColor="#0086FF"
+            android:textSize="17sp"
+            android:gravity="center" />
+
+        <!-- Get Started Button -->
+        <Button
+            android:id="@+id/getStartedButton"
+            android:layout_width="300dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/rounded_button"
+            android:fontFamily="@font/archivo_medium"
+            android:text="@string/get_started"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:gravity="center" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
