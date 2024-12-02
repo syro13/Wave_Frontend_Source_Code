@@ -18,4 +18,12 @@
     <string name="email_or_username">Email or Username</string>
     <string name="password">Password</string>
     <string name="default_web_client_id">621971573276-14q3ib2mrr0d1ccg5epdsu3n0rpdjtu1.apps.googleusercontent.com</string>
+    <string name="Home">Home</string>
+    <string name="Calendar">Calendar</string>
+    <string name="Settings">Settings</string>
+    <string name="Profile">Profile</string>
+    <string name="house_tasks">House Tasks</string>
+    <string name="school_tasks">School Tasks</string>
+    <string name="Budget_Planner">Budget Planner</string>
+    <string name="wellness">Wellness\n</string>
 </resources>
