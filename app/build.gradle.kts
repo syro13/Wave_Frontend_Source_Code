@@ -44,5 +44,8 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation (libs.play.services.auth)
-
+    implementation(libs.constraintlayout)
+    implementation(libs.appcompat.v170)
+    implementation(libs.fragment.ktx)
+    implementation(libs.material.v1120)
 }
