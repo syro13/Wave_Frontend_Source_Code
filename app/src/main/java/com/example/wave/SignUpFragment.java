@@ -132,7 +132,7 @@ public class SignUpFragment extends Fragment {
                             // Navigate to MainActivity or other dashboard activity
                             if (getActivity() != null) {
                                 getActivity().finish(); // Close LoginSignUpActivity
-                                startActivity(new android.content.Intent(getActivity(), MainActivity.class));
+                                startActivity(new android.content.Intent(getActivity(), DashboardActivity.class));
                             }
                         }
                     } else {
@@ -184,7 +184,7 @@ public class SignUpFragment extends Fragment {
                         // Navigate to MainActivity or other activity
                         if (getActivity() != null) {
                             getActivity().finish(); // Close LoginSignUpActivity
-                            startActivity(new android.content.Intent(getActivity(), MainActivity.class));
+                            startActivity(new android.content.Intent(getActivity(), DashboardActivity.class));
                         }
                     } else {
                         Toast.makeText(getContext(), "Sign-up failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();

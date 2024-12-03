@@ -110,7 +110,7 @@ public class LoginFragment extends Fragment {
                         // Navigate to MainActivity
                         if (getActivity() != null) {
                             getActivity().finish();
-                            startActivity(new Intent(getActivity(), MainActivity.class));
+                            startActivity(new Intent(getActivity(), DashboardActivity.class));
                         }
                     } else {
                         Toast.makeText(getContext(), "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
@@ -146,7 +146,7 @@ public class LoginFragment extends Fragment {
                         Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_SHORT).show();
                         if (getActivity() != null) {
                             getActivity().finish();
-                            startActivity(new Intent(getActivity(), MainActivity.class));
+                            startActivity(new Intent(getActivity(), DashboardActivity.class));
                         }
                     } else {
                         Toast.makeText(getContext(), "Login failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
