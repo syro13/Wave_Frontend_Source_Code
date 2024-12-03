@@ -21,3 +21,15 @@ Project Dependencies so far:
 3. Google Fonts
    Fonts are selected through Android Studio’s Resource Manager or directly applied in XML using the
    fontFamily attribute.
+
+
+Navigation Bar Integration:
+The project features a Bottom Navigation Bar for seamless navigation between core activities like
+the Dashboard, Calendar, Settings, and Profile. The navigation bar uses BottomNavigationView 
+from Material Components, ensuring a consistent look and feel that aligns
+with Material Design principles. It supports icon and text customization using 
+itemIconTint and itemTextColor attributes.
+
+The navigation bar is implemented as a reusable component, allowing easy integration into new activities. 
+Developers can include it in their layouts using the <include> tag and configure navigation actions programmatically.
+This design promotes modularity, reduces code duplication, and simplifies future updates to the navigation experience.

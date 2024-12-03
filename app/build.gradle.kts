@@ -43,8 +43,6 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-    implementation (libs.play.services.auth)
-    implementation (libs.material.v190)
     implementation ("com.google.android.material:material:1.9.0")
 
 
