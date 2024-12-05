@@ -25,7 +25,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 public class LoginFragment extends Fragment {
 
@@ -106,17 +108,37 @@ public class LoginFragment extends Fragment {
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(getContext(), "Google Sign-In successful!", Toast.LENGTH_SHORT).show();
-                        // Navigate to MainActivity
-                        if (getActivity() != null) {
-                            getActivity().finish();
-                            startActivity(new Intent(getActivity(), DashboardActivity.class));
+                        // Sign-in successful
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            String displayName = account.getDisplayName(); // Get name from Google account
+
+                            // Update display name in Firebase Authentication
+                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(displayName)
+                                    .build();
+
+                            user.updateProfile(profileUpdates)
+                                    .addOnCompleteListener(updateTask -> {
+                                        if (updateTask.isSuccessful()) {
+                                            Toast.makeText(getContext(), "Display name updated", Toast.LENGTH_SHORT).show();
+                                            // Proceed to dashboard
+                                            Intent intent = new Intent(getActivity(), DashboardActivity.class);
+                                            intent.putExtra("USER_NAME", displayName);
+                                            startActivity(intent);
+                                            getActivity().finish();
+                                        } else {
+                                            Toast.makeText(getContext(), "Failed to update display name", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
                         }
                     } else {
                         Toast.makeText(getContext(), "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
+
+
 
     private void setActiveButton(TextView activeButton, TextView inactiveButton) {
         activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
@@ -143,10 +165,18 @@ public class LoginFragment extends Fragment {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_SHORT).show();
-                        if (getActivity() != null) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            // Fetch the display name
+                            String displayName = user.getDisplayName();
+                            if (displayName == null || displayName.isEmpty()) {
+                                displayName = "User"; // Fallback if no display name is set
+                            }
+                            // Navigate to DashboardActivity
+                            Intent intent = new Intent(getActivity(), DashboardActivity.class);
+                            intent.putExtra("USER_NAME", displayName);
+                            startActivity(intent);
                             getActivity().finish();
-                            startActivity(new Intent(getActivity(), DashboardActivity.class));
                         }
                     } else {
                         Toast.makeText(getContext(), "Login failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
