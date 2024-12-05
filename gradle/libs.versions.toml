@@ -15,6 +15,7 @@ lottie = "5.2.0"
 firebaseAuth = "23.1.0"
 materialVersion = "1.9.0"
 playServicesAuth = "21.2.0"
+playServicesAuthVersion = "20.7.0"
 
 [libraries]
 appcompat-v170 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
@@ -33,6 +34,7 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version
 material-v1120 = { module = "com.google.android.material:material", version.ref = "googleMaterial" }
 material-v190 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+play-services-auth-v2070 = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuthVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
