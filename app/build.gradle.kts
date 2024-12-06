@@ -45,6 +45,8 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation (libs.play.services.auth.v2070)
     implementation ("com.google.android.material:material:1.9.0")
+    implementation (libs.recyclerview)
+
 
 
 
