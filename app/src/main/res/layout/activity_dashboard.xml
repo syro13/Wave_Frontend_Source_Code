@@ -90,14 +90,18 @@
                     android:textSize="20sp"
                     android:textColor="@color/black" />
 
-                <TextView
-                    android:id="@+id/tasksPlaceholder"
-                    android:layout_width="wrap_content"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/taskRecyclerView"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Wireframes for Websites"
-                    android:textSize="14sp"
-                    android:textColor="@color/black"
-                    android:layout_marginTop="8dp" />
+                    android:orientation="horizontal"
+                    android:scrollbars="horizontal"
+                    android:layout_marginTop="16dp"
+                    android:paddingStart="3dp"
+                    android:paddingEnd="3dp"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+
 
                 <!-- Stay on Track Section -->
                 <TextView
