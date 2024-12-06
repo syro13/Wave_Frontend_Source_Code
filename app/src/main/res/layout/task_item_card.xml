@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    android:id="@+id/taskCard"
+    >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp"
+        android:paddingStart="5dp"
+        android:paddingEnd="5dp"
+        android:background="@color/light_gray">
+
+        <!-- Circular Checkbox -->
+        <View
+            android:id="@+id/taskCheckCircle"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:background="@drawable/circle_selector"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="3dp" />
+
+        <!-- Task Title -->
+        <TextView
+            android:id="@+id/taskTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Task Title"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:layout_toEndOf="@id/taskCheckCircle"
+            android:layout_alignParentTop="true"
+            android:fontFamily="@font/lato"
+            android:layout_marginStart="3dp"
+            android:paddingTop="5dp"
+            android:textStyle="bold" />
+
+        <!-- Delete Icon -->
+        <ImageView
+            android:id="@+id/deleteTask"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_delete"
+            android:contentDescription="Delete Task"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="3dp"
+            android:layout_marginTop="5dp" />
+
+        <!-- Time and Tags Row -->
+        <LinearLayout
+            android:id="@+id/timeAndTagsContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/taskTitle"
+            android:layout_toEndOf="@id/taskCheckCircle"
+            android:paddingBottom="6dp"
+            android:layout_marginTop="7dp"
+            android:layout_marginStart="3dp">
+
+            <!-- Time Section -->
+            <LinearLayout
+                android:id="@+id/timeContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginEnd="12dp"
+                android:paddingVertical="4dp">
+
+                <ImageView
+                    android:id="@+id/timeIcon"
+                    android:layout_width="12dp"
+                    android:layout_height="17dp"
+                    android:src="@drawable/ic_clock"
+                    android:contentDescription="Time Icon" />
+
+                <TextView
+                    android:id="@+id/taskTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="8:00 AM"
+                    android:textSize="12sp"
+                    android:textColor="@color/black"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <!-- Overdue Tag -->
+            <LinearLayout
+                android:id="@+id/overdueTagContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/rounded_red_background"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="4dp"
+                android:visibility="gone" >
+
+                <ImageView
+                    android:id="@+id/overdueIcon"
+                    android:layout_width="10dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_warning"
+                    android:contentDescription="Overdue Icon"
+                    android:layout_marginEnd="4dp" />
+
+                <TextView
+                    android:id="@+id/overdueTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Overdue"
+                    android:textSize="10sp"
+                    android:textColor="@color/black" />
+            </LinearLayout>
+
+            <!-- Category Tag -->
+            <LinearLayout
+                android:id="@+id/categoryTagContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@drawable/rounded_green_background"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="4dp">
+
+                <ImageView
+                    android:id="@+id/categoryIcon"
+                    android:layout_width="10dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_school"
+                    android:contentDescription="Category Icon"
+                    android:layout_marginEnd="4dp" />
+
+                <TextView
+                    android:id="@+id/categoryTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="School"
+                    android:textSize="10sp"
+                    android:textColor="@color/black" />
+            </LinearLayout>
+
+            <!-- Priority Flag -->
+            <ImageView
+                android:id="@+id/priorityFlag"
+                android:layout_width="20dp"
+                android:layout_height="15dp"
+                android:src="@drawable/ic_flag"
+                android:contentDescription="High Priority"
+                android:layout_marginStart="8dp"
+                android:layout_gravity="center_vertical"
+                app:tint="@color/red" />
+        </LinearLayout>
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>
