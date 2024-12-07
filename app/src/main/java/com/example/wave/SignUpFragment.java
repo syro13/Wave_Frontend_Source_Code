@@ -25,6 +25,7 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 public class SignUpFragment extends Fragment {
 
@@ -129,10 +130,16 @@ public class SignUpFragment extends Fragment {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             Toast.makeText(getContext(), "Google Sign-Up successful!", Toast.LENGTH_SHORT).show();
-                            // Navigate to MainActivity or other dashboard activity
+
+                            // Get the user's display name
+                            String userName = account.getDisplayName();
+
+                            // Navigate to DashboardActivity and pass the user name
                             if (getActivity() != null) {
-                                getActivity().finish(); // Close LoginSignUpActivity
-                                startActivity(new android.content.Intent(getActivity(), MainActivity.class));
+                                Intent intent = new Intent(getActivity(), DashboardActivity.class);
+                                intent.putExtra("USER_NAME", userName); // Pass the user's name
+                                getActivity().finish();
+                                startActivity(intent);
                             }
                         }
                     } else {
@@ -140,6 +147,7 @@ public class SignUpFragment extends Fragment {
                     }
                 });
     }
+
 
     /**
      * Handles user sign-up with email and password.
@@ -180,17 +188,34 @@ public class SignUpFragment extends Fragment {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(getContext(), "Sign-up successful!", Toast.LENGTH_SHORT).show();
-                        // Navigate to MainActivity or other activity
-                        if (getActivity() != null) {
-                            getActivity().finish(); // Close LoginSignUpActivity
-                            startActivity(new android.content.Intent(getActivity(), MainActivity.class));
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            // Set the display name in Firebase Authentication
+                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(name)
+                                    .build();
+
+                            user.updateProfile(profileUpdates)
+                                    .addOnCompleteListener(updateTask -> {
+                                        if (updateTask.isSuccessful()) {
+                                            Toast.makeText(getContext(), "Sign-up successful!", Toast.LENGTH_SHORT).show();
+                                            // Navigate to Dashboard
+                                            Intent intent = new Intent(getActivity(), DashboardActivity.class);
+                                            intent.putExtra("USER_NAME", name);
+                                            startActivity(intent);
+                                            getActivity().finish();
+                                        } else {
+                                            Toast.makeText(getContext(), "Failed to set display name", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
                         }
                     } else {
                         Toast.makeText(getContext(), "Sign-up failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
+
+
 
     /**
      * Updates the styles of the toggle buttons to show which one is active.

@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -19,7 +20,7 @@ import android.view.View;
 public class OnboardingActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
-    private Button backButton, nextButton;
+    private Button nextButton;
     private TextView skipButton;
     private OnboardingAdapter onboardingAdapter;
     private Handler slideHandler = new Handler();
@@ -27,6 +28,7 @@ public class OnboardingActivity extends AppCompatActivity {
     // Indicator Views
     private View indicator1, indicator2, indicator3;
 
+    private Button backButton; // Declare backButton at the top
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,11 +37,9 @@ public class OnboardingActivity extends AppCompatActivity {
 
         // Initialize views
         viewPager = findViewById(R.id.viewPager);
-        backButton = findViewById(R.id.backButton);
         nextButton = findViewById(R.id.nextButton);
         skipButton = findViewById(R.id.skipButton);
-
-        // Initialize indicators
+        backButton = findViewById(R.id.backButton); // Initialize backButton
         indicator1 = findViewById(R.id.dot1);
         indicator2 = findViewById(R.id.dot2);
         indicator3 = findViewById(R.id.dot3);
@@ -48,7 +48,16 @@ public class OnboardingActivity extends AppCompatActivity {
         setupListeners();
         setupAutoSlide();
         updateIndicators(0); // Set initial indicator
+
+        // Handle the back button functionality for backButton
+        backButton.setOnClickListener(v -> {
+            // Navigate to IntroActivity
+            Intent intent = new Intent(OnboardingActivity.this, IntroActivity.class);
+            startActivity(intent);
+            finish(); // Close OnboardingActivity
+        });
     }
+
 
     private void setupListeners() {
         // Action for Next button
@@ -58,14 +67,6 @@ public class OnboardingActivity extends AppCompatActivity {
                 viewPager.setCurrentItem(currentItem + 1, true); // Move to the next slide
             } else {
                 finishOnboarding(); // Navigate to main activity on the last slide
-            }
-        });
-
-        // Action for Back button
-        backButton.setOnClickListener(v -> {
-            int currentItem = viewPager.getCurrentItem();
-            if (currentItem > 0) {
-                viewPager.setCurrentItem(currentItem - 1, true); // Move to the previous slide
             }
         });
 
@@ -124,8 +125,6 @@ public class OnboardingActivity extends AppCompatActivity {
         } else {
             nextButton.setText("Next");
         }
-
-        backButton.setVisibility(position == 0 ? View.INVISIBLE : View.VISIBLE);
     }
 
     private void finishOnboarding() {
@@ -165,4 +164,5 @@ public class OnboardingActivity extends AppCompatActivity {
         // Resume auto-slide when activity becomes visible again
         slideHandler.postDelayed(slideRunnable, 6000);
     }
+
 }

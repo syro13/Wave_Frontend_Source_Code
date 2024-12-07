@@ -30,6 +30,8 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+
 }
 
 dependencies {
@@ -43,9 +45,18 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-    implementation (libs.play.services.auth)
-    implementation(libs.constraintlayout)
-    implementation(libs.appcompat.v170)
-    implementation(libs.fragment.ktx)
-    implementation(libs.material.v1120)
+    implementation (libs.play.services.auth.v2070)
+    implementation ("com.google.android.material:material:1.9.0")
+    implementation (libs.recyclerview)
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
+    implementation (libs.logging.interceptor)
+    implementation ("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.15.1")
+
+
+
+
+
+
 }

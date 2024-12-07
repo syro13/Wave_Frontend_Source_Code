@@ -1,3 +1,4 @@
+
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.Wave" parent="Theme.MaterialComponents.DayNight.NoActionBar">
@@ -14,12 +15,5 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
         <item name="android:fontFamily">@font/archivo_medium</item>
-        <item name="bottomNavigationStyle">@style/CustomBottomNavigation</item>
-    </style>
-
-    <style name="CustomBottomNavigation" parent="Widget.MaterialComponents.BottomNavigationView">
-        <item name="itemIconTint">@color/nav_icon_selector</item>
-        <item name="itemTextColor">@color/nav_text_selector</item>
-        <item name="android:background">#C7F9FF</item>
     </style>
 </resources>
