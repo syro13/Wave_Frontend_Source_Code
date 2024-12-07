@@ -12,8 +12,11 @@ import androidx.recyclerview.widget.SnapHelper;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class DashboardActivity extends AppCompatActivity {
 
@@ -61,6 +64,7 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Load Dummy Tasks for Testing
         loadDummyTasks();
+        loadCurrentDate();
     }
 
     private void loadDummyTasks() {
@@ -73,5 +77,16 @@ public class DashboardActivity extends AppCompatActivity {
         // Notify adapter about data changes
         taskAdapter.notifyDataSetChanged();
     }
+    private void loadCurrentDate() {
+        TextView currentDate = findViewById(R.id.currentDate);
+
+        // Format the current date
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE dd MMM", Locale.getDefault());
+        String formattedDate = dateFormat.format(new Date());
+
+        // Set the formatted date to the TextView
+        currentDate.setText(formattedDate);
+    }
+
 }
 ;

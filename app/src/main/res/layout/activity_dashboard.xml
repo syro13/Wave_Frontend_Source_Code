@@ -52,13 +52,14 @@
                     android:id="@+id/currentDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="MON 18 NOV"
+                    android:text="Loading date..."
                     android:textSize="12sp"
                     android:textColor="@android:color/black"
                     android:textStyle="bold"
                     android:layout_below="@id/waveLogo"
                     android:layout_alignStart="@id/waveLogo"
                     android:layout_marginTop="19dp" />
+
 
                 <TextView
                     android:id="@+id/greetingText"
