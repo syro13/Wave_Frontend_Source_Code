@@ -1,6 +1,7 @@
 package com.example.wave;
 
 import android.os.Bundle;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,14 +10,22 @@ import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SnapHelper;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DashboardActivity extends AppCompatActivity {
 
@@ -65,6 +74,9 @@ public class DashboardActivity extends AppCompatActivity {
         // Load Dummy Tasks for Testing
         loadDummyTasks();
         loadCurrentDate();
+
+        // Load the weather icon
+        loadWeatherIcon();
     }
 
     private void loadDummyTasks() {
@@ -87,6 +99,47 @@ public class DashboardActivity extends AppCompatActivity {
         // Set the formatted date to the TextView
         currentDate.setText(formattedDate);
     }
+    private void loadWeatherIcon() {
+        ImageView weatherIcon = findViewById(R.id.weatherIcon);
+
+        // Retrofit setup
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://api.openweathermap.org/data/2.5/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        WeatherApi weatherApi = retrofit.create(WeatherApi.class);
+
+        // Make API request
+        Call<WeatherResponse> call = weatherApi.getCurrentWeather("London", "42035aa61a1c72229ac148f2a197c138", "metric");
+        call.enqueue(new Callback<WeatherResponse>() {
+            @Override
+            public void onResponse(Call<WeatherResponse> call, Response<WeatherResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // Get weather icon code
+                    String iconCode = response.body().weather[0].icon;
+
+                    // Build icon URL (OpenWeatherMap provides icons)
+                    String iconUrl = "https://openweathermap.org/img/wn/" + iconCode + "@2x.png";
+
+                    // Load icon into ImageView using Glide
+                    Glide.with(DashboardActivity.this)
+                            .load(iconUrl)
+                            .into(weatherIcon);
+                } else {
+                    // Fallback icon for errors
+                    weatherIcon.setImageResource(R.drawable.ic_placeholder_weather);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<WeatherResponse> call, Throwable t) {
+                // Fallback icon for errors
+                weatherIcon.setImageResource(R.drawable.ic_placeholder_weather);
+            }
+        });
+    }
+
 
 }
 ;
