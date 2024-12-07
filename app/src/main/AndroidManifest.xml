@@ -42,5 +42,6 @@
             android:theme="@style/Theme.Wave">
         </activity>
 
+
     </application>
 </manifest>
