@@ -22,4 +22,10 @@
     <string name="Calendar">Calendar</string>
     <string name="Settings">Settings</string>
     <string name="Profile">Profile</string>
+    <string name="house_tasks">House Tasks</string>
+    <string name="school_tasks">School Tasks</string>
+    <string name="Budget_Planner">Budget Planner</string>
+    <string name="wellness">Wellness\n</string>
+    <string name="hello">Hello!</string>
+    <string name="weather_api_key">42035aa61a1c72229ac148f2a197c138</string>
 </resources>
