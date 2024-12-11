@@ -13,7 +13,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
+// .
     protected void setupBottomNavigation(BottomNavigationView bottomNavigationView, int currentMenuItemId) {
         bottomNavigationView.setSelectedItemId(currentMenuItemId); // Highlight current tab
         bottomNavigationView.setOnItemSelectedListener(this::onNavigationItemSelected);
