@@ -42,6 +42,9 @@
             android:theme="@style/Theme.Wave">
         </activity>
 
+        <activity android:name=".WellnessActivity"
+            android:exported="true"/>
+
 
     </application>
 </manifest>
