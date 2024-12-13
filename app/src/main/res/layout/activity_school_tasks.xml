@@ -152,162 +152,272 @@
                     android:layout_height="wrap_content"
                     android:columnCount="2"
                     android:rowCount="2"
-                    android:paddingStart="2dp"
-                    android:paddingEnd="2dp"
 
-                    android:layout_marginTop="16dp">
+                    >
 
-                    <!-- Completed tasks Card -->
+                    <!-- Tasks Completed Card -->
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_margin="8dp"
+                        android:layout_margin="5dp"
                         android:layout_columnWeight="1"
                         app:cardCornerRadius="16dp"
                         app:cardElevation="4dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
                         app:cardBackgroundColor="@color/light_blue"
-                        >
+                        android:layout_marginStart="0dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
                             android:gravity="center"
-                            android:paddingTop="10dp">
+                            android:orientation="horizontal"
+                            android:padding="0dp"
+                            android:layout_marginStart="0dp"
+                            >
 
-                            <ImageView
-                                android:layout_width="120dp"
-                                android:layout_height="100dp"
-                                android:src="@drawable/ic_tasks_completed"
-                                android:contentDescription="@string/wellness" />
+                            <!-- Icon with Background -->
+                            <LinearLayout
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                android:gravity="start"
+                                android:layout_marginStart="0dp"
+                                app:cardBackgroundColor="@color/light_blue">
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/wellness"
-                                android:textSize="13sp"
-                                android:textColor="@color/black"
-                                android:layout_marginTop="8dp"
-                                android:paddingStart="15dp"
-                                android:paddingEnd="15dp"
-                                android:paddingTop="14dp"
-                                android:gravity="start" />
+                                <ImageView
+                                    android:layout_width="59dp"
+                                    android:layout_height="59dp"
+                                    android:gravity="start"
+                                    android:src="@drawable/ic_tasks_completed"
+                                    android:contentDescription="@string/tasks_completed_icon" />
+                            </LinearLayout>
 
+                            <!-- Number of Completed Tasks -->
+                            <LinearLayout
+                                android:layout_width="84dp"
+                                android:layout_height="84dp"
+                                android:layout_marginStart="10dp"
+                                android:gravity="start"
+                                android:orientation="vertical"
+                                app:cardBackgroundColor="@color/light_blue">
+
+                                <TextView
+                                    android:id="@+id/tasks_count"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="5"
+                                    android:textSize="24sp"
+                                    android:textColor="@color/dark_blue"
+                                    android:gravity="center"
+                                    android:fontFamily="@font/archivo_medium" />
+
+                                <!-- Label -->
+                                <TextView
+                                    android:id="@+id/tasks_label"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Completed Tasks"
+                                    android:textSize="13sp"
+                                    android:textColor="@color/black"
+                                    android:gravity="start"
+                                    android:fontFamily="@font/archivo_medium" />
+                            </LinearLayout>
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
 
-                    <!-- Budget Planner Card -->
+                    <!-- Tasks Completed Card -->
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_margin="8dp"
                         android:layout_columnWeight="1"
                         app:cardCornerRadius="16dp"
+                        android:layout_margin="5dp"
                         app:cardElevation="4dp"
-                        app:cardBackgroundColor="@color/light_blue"
-                        >
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:layout_marginStart="10dp"
+                        app:cardBackgroundColor="@color/light_blue">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
                             android:gravity="center"
-                            android:paddingTop="10dp">
+                            android:orientation="horizontal"
+                            android:padding="0dp">
 
-                            <ImageView
-                                android:layout_width="120dp"
-                                android:layout_height="100dp"
-                                android:src="@drawable/ic_budget"
-                                android:contentDescription="@string/Budget_Planner" />
+                            <!-- Icon with Background -->
+                            <LinearLayout
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                android:gravity="start"
+                                app:cardBackgroundColor="@color/light_blue">
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/Budget_Planner"
-                                android:textSize="13sp"
-                                android:textColor="@color/black"
-                                android:layout_marginTop="8dp"
-                                android:paddingStart="15dp"
-                                android:paddingEnd="15dp"
-                                android:paddingTop="14dp"
-                                android:paddingBottom="14dp"
-                                android:gravity="start" />
+                                <ImageView
+                                    android:layout_width="59dp"
+                                    android:layout_height="59dp"
+                                    android:src="@drawable/ic_tasks_pending"
+                                    android:contentDescription="@string/tasks_pending_icon" />
+                            </LinearLayout>
+
+                            <!-- Number of Completed Tasks -->
+                            <LinearLayout
+                                android:layout_width="84dp"
+                                android:layout_height="84dp"
+                                android:layout_marginStart="10dp"
+                                android:gravity="start"
+                                android:orientation="vertical"
+                                app:cardBackgroundColor="@color/light_blue">
+
+                                <TextView
+                                    android:id="@+id/tasks_pending_count"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="2"
+                                    android:textSize="24sp"
+                                    android:textColor="@color/dark_blue"
+                                    android:gravity="center"
+                                    android:fontFamily="@font/archivo_medium" />
+
+                                <!-- Label -->
+                                <TextView
+                                    android:id="@+id/tasks__pending_label"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Pending Tasks"
+                                    android:textSize="13sp"
+                                    android:textColor="@color/black"
+                                    android:gravity="start"
+                                    android:fontFamily="@font/archivo_medium" />
+                            </LinearLayout>
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
 
+                    <!-- Overdue tasks Card -->
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_margin="8dp"
+                        android:layout_margin="5dp"
                         android:layout_columnWeight="1"
-                        app:cardCornerRadius="16dp"
+                        app:cardCornerRadius="17dp"
                         app:cardElevation="4dp"
-                        app:cardBackgroundColor="@color/light_blue"
-                        >
+                        app:cardBackgroundColor="@color/light_blue">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
                             android:gravity="center"
-                            android:paddingTop="10dp">
+                            android:orientation="horizontal"
+                            android:padding="0dp">
 
-                            <ImageView
-                                android:layout_width="120dp"
-                                android:layout_height="100dp"
-                                android:src="@drawable/ic_school_tasks"
-                                android:contentDescription="@string/school_tasks" />
+                            <!-- Icon with Background -->
+                            <LinearLayout
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                android:gravity="start"
+                                app:cardBackgroundColor="@color/light_blue">
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/school_tasks"
-                                android:textSize="13sp"
-                                android:textColor="@color/black"
-                                android:layout_marginTop="8dp"
-                                android:paddingStart="15dp"
-                                android:paddingEnd="15dp"
-                                android:paddingTop="14dp"
-                                android:paddingBottom="14dp"
-                                android:gravity="start" />
+                                <ImageView
+                                    android:layout_width="59dp"
+                                    android:layout_height="59dp"
+                                    android:src="@drawable/ic_tasks_overdue"
+                                    android:contentDescription="@string/tasks_pending_icon" />
+                            </LinearLayout>
+
+                            <!-- Number of Completed Tasks -->
+                            <LinearLayout
+                                android:layout_width="84dp"
+                                android:layout_height="84dp"
+                                android:layout_marginStart="10dp"
+                                android:gravity="start"
+                                android:orientation="vertical"
+                                app:cardBackgroundColor="@color/light_blue">
+
+                                <TextView
+                                    android:id="@+id/tasks_overdue_count"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="1"
+                                    android:textSize="24sp"
+                                    android:textColor="@color/dark_blue"
+                                    android:gravity="center"
+                                    android:fontFamily="@font/archivo_medium" />
+
+                                <!-- Label -->
+                                <TextView
+                                    android:id="@+id/tasks_overdue_label"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Overdue Tasks"
+                                    android:textSize="13sp"
+                                    android:textColor="@color/black"
+                                    android:gravity="start"
+                                    android:fontFamily="@font/archivo_medium" />
+                            </LinearLayout>
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
 
+                    <!-- Cancelled tasks Card -->
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_margin="8dp"
+                        android:layout_margin="5dp"
                         android:layout_columnWeight="1"
                         app:cardCornerRadius="16dp"
                         app:cardElevation="4dp"
-                        app:cardBackgroundColor="@color/light_blue"
-                        >
+                        app:cardBackgroundColor="@color/light_blue">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
                             android:gravity="center"
-                            android:paddingTop="10dp">
+                            android:orientation="horizontal"
+                            android:padding="0dp">
 
-                            <ImageView
-                                android:layout_width="120dp"
-                                android:layout_height="100dp"
-                                android:src="@drawable/ic_house_tasks"
-                                android:contentDescription="@string/house_tasks" />
+                            <!-- Icon with Background -->
+                            <LinearLayout
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                android:gravity="start"
+                                app:cardBackgroundColor="@color/light_blue">
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/house_tasks"
-                                android:textSize="13sp"
-                                android:textColor="@color/black"
-                                android:layout_marginTop="8dp"
-                                android:paddingStart="15dp"
-                                android:paddingEnd="15dp"
-                                android:paddingTop="14dp"
-                                android:paddingBottom="14dp"
-                                android:gravity="start" />
+                                <ImageView
+                                    android:layout_width="59dp"
+                                    android:layout_height="59dp"
+                                    android:src="@drawable/ic_tasks_overdue"
+                                    android:contentDescription="@string/tasks_pending_icon" />
+                            </LinearLayout>
+
+                            <!-- Number of Completed Tasks -->
+                            <LinearLayout
+                                android:layout_width="84dp"
+                                android:layout_height="84dp"
+                                android:layout_marginStart="10dp"
+                                android:gravity="start"
+                                android:orientation="vertical"
+                                app:cardBackgroundColor="@color/light_blue">
+
+                                <TextView
+                                    android:id="@+id/tasks_cancelled_count"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0"
+                                    android:textSize="24sp"
+                                    android:textColor="@color/dark_blue"
+                                    android:gravity="center"
+                                    android:fontFamily="@font/archivo_medium" />
+
+                                <!-- Label -->
+                                <TextView
+                                    android:id="@+id/tasks_cancelled_label"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Cancelled Tasks"
+                                    android:textSize="13sp"
+                                    android:textColor="@color/black"
+                                    android:gravity="start"
+                                    android:fontFamily="@font/archivo_medium" />
+                            </LinearLayout>
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
 
@@ -334,7 +444,6 @@
                     android:rowCount="2"
                     android:paddingStart="2dp"
                     android:paddingEnd="2dp"
-
                     android:layout_marginTop="16dp">
 
                     <!-- Wellness Card -->
