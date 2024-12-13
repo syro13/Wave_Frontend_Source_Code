@@ -420,22 +420,19 @@
                             </LinearLayout>
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
-
                 </GridLayout>
-
-
 
                 <!-- Stay on Track Section -->
                 <TextView
                     android:id="@+id/stayOnTrackTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Stay on Track"
+                    android:text="School Hub"
                     android:textSize="20sp"
                     android:layout_marginTop="24dp"
                     android:textColor="@color/black" />
 
-                <!-- Grid for Stay on Track Shortcuts -->
+                <!-- Grid for School Hub Shortcuts -->
                 <GridLayout
                     android:id="@+id/stayOnTrackGrid"
                     android:layout_width="match_parent"
@@ -446,7 +443,7 @@
                     android:paddingEnd="2dp"
                     android:layout_marginTop="16dp">
 
-                    <!-- Wellness Card -->
+                    <!-- My Calendar Card -->
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -455,6 +452,7 @@
                         app:cardCornerRadius="16dp"
                         app:cardElevation="4dp"
                         app:cardBackgroundColor="@color/light_blue"
+                        android:padding="15dp"
                         >
 
                         <LinearLayout
@@ -462,30 +460,31 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:gravity="center"
-                            android:paddingTop="10dp">
+                            android:padding="10dp">
 
                             <ImageView
-                                android:layout_width="120dp"
-                                android:layout_height="100dp"
-                                android:src="@drawable/ic_wellness"
-                                android:contentDescription="@string/wellness" />
+                                android:layout_width="150dp"
+                                android:layout_height="120dp"
+                                android:src="@drawable/ic_calendar_card"
+                                android:contentDescription="@string/my_calendar" />
 
                             <TextView
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/wellness"
-                                android:textSize="13sp"
+                                android:layout_height="50dp"
+                                android:text="@string/my_calendar"
+                                android:textSize="17sp"
                                 android:textColor="@color/black"
                                 android:layout_marginTop="8dp"
-                                android:paddingStart="15dp"
-                                android:paddingEnd="15dp"
-                                android:paddingTop="14dp"
+                                android:paddingStart="10dp"
+                                android:paddingEnd="10dp"
+                                android:paddingTop="5dp"
+                                android:paddingBottom="5dp"
                                 android:gravity="start" />
 
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
 
-                    <!-- Budget Planner Card -->
+                    <!-- Notes Card -->
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -494,6 +493,7 @@
                         app:cardCornerRadius="16dp"
                         app:cardElevation="4dp"
                         app:cardBackgroundColor="@color/light_blue"
+                        android:padding="15dp"
                         >
 
                         <LinearLayout
@@ -501,106 +501,39 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:gravity="center"
-                            android:paddingTop="10dp">
+                            android:padding="10dp">
 
                             <ImageView
-                                android:layout_width="120dp"
-                                android:layout_height="100dp"
-                                android:src="@drawable/ic_budget"
-                                android:contentDescription="@string/Budget_Planner" />
+                                android:layout_width="150dp"
+                                android:layout_height="120dp"
+                                android:src="@drawable/ic_notes_card"
+                                android:contentDescription="@string/notes" />
 
                             <TextView
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/Budget_Planner"
-                                android:textSize="13sp"
+                                android:layout_height="50dp"
+                                android:text="@string/notes"
+                                android:textSize="17sp"
                                 android:textColor="@color/black"
                                 android:layout_marginTop="8dp"
-                                android:paddingStart="15dp"
-                                android:paddingEnd="15dp"
-                                android:paddingTop="14dp"
-                                android:paddingBottom="14dp"
+                                android:paddingStart="10dp"
+                                android:paddingEnd="10dp"
+                                android:paddingTop="5dp"
+                                android:paddingBottom="5dp"
                                 android:gravity="start" />
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
-
-                    <androidx.cardview.widget.CardView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="8dp"
-                        android:layout_columnWeight="1"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="4dp"
-                        app:cardBackgroundColor="@color/light_blue"
-                        >
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:paddingTop="10dp">
-
-                            <ImageView
-                                android:layout_width="120dp"
-                                android:layout_height="100dp"
-                                android:src="@drawable/ic_school_tasks"
-                                android:contentDescription="@string/school_tasks" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/school_tasks"
-                                android:textSize="13sp"
-                                android:textColor="@color/black"
-                                android:layout_marginTop="8dp"
-                                android:paddingStart="15dp"
-                                android:paddingEnd="15dp"
-                                android:paddingTop="14dp"
-                                android:paddingBottom="14dp"
-                                android:gravity="start" />
-                        </LinearLayout>
-                    </androidx.cardview.widget.CardView>
-
-                    <androidx.cardview.widget.CardView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="8dp"
-                        android:layout_columnWeight="1"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="4dp"
-                        app:cardBackgroundColor="@color/light_blue"
-                        >
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:paddingTop="10dp">
-
-                            <ImageView
-                                android:layout_width="120dp"
-                                android:layout_height="100dp"
-                                android:src="@drawable/ic_house_tasks"
-                                android:contentDescription="@string/house_tasks" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/house_tasks"
-                                android:textSize="13sp"
-                                android:textColor="@color/black"
-                                android:layout_marginTop="8dp"
-                                android:paddingStart="15dp"
-                                android:paddingEnd="15dp"
-                                android:paddingTop="14dp"
-                                android:paddingBottom="14dp"
-                                android:gravity="start" />
-                        </LinearLayout>
-                    </androidx.cardview.widget.CardView>
-
                 </GridLayout>
+
+                <!-- Study Tips and Insights Section -->
+                <TextView
+                    android:id="@+id/StudyTipsAndInsightsTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/study_tips_amp_insights"
+                    android:textSize="20sp"
+                    android:layout_marginTop="24dp"
+                    android:textColor="@color/black" />
 
             </LinearLayout>
 
