@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="180dp"
+    android:layout_height="300dp"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/card_background">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Blog Image -->
+            <ImageView
+                android:id="@+id/blogImage"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/blog_placeholder"
+                android:contentDescription="Blog Image" />
+
+            <!-- Blog Content -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <!-- Blog Title -->
+                <TextView
+                    android:id="@+id/blogTitle"
+                    android:layout_width="130dp"
+                    android:layout_height="wrap_content"
+                    android:text="Feeling Overwhelmed? Try the RAIN Meditation"
+                    android:textSize="12sp"
+                    android:textColor="#171C1E"
+                    android:textStyle="bold"
+                    android:gravity="start"
+                    android:layout_marginBottom="4dp" />
+
+                <!-- Blog Author -->
+                <TextView
+                    android:id="@+id/blogAuthor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="By Tara Brach"
+                    android:textSize="12sp"
+                    android:textColor="#757575"
+                    android:padding="5dp"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Tags and Icon -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <!-- Tag -->
+                    <TextView
+                        android:id="@+id/blogTag"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Meditation"
+                        android:textSize="12sp"
+                        android:textColor="#1565C0"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingBottom="2dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@drawable/rounded_tag"
+                        android:gravity="center" />
+
+                    <!-- Action Button with Icon -->
+                    <FrameLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp">
+
+                        <!-- Background Circle -->
+                        <View
+                            android:id="@+id/podcastPlayCircle"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/circle_background_light_blue" />
+
+                        <!-- Action Icon -->
+                        <ImageView
+                            android:id="@+id/blogActionIcon"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:src="@drawable/arrow_forward"
+                            android:layout_gravity="center"
+                            android:contentDescription="Action" />
+                    </FrameLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+</androidx.cardview.widget.CardView>
