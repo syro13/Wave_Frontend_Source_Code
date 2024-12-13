@@ -10,6 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
+        android:layout_marginBottom="56dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -17,50 +18,50 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-        <!-- Header Section -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/headerSection"
-            android:layout_width="match_parent"
-            android:layout_height="220dp"
-            android:background="@drawable/header_pages">
+            <!-- Header Section -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/headerSection"
+                android:layout_width="match_parent"
+                android:layout_height="220dp"
+                android:background="@drawable/header_pages">
 
-            <!-- Header Content -->
-            <!-- Wave Logo -->
-            <ImageView
-                android:id="@+id/waveLogo"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_wave_logo"
-                android:contentDescription="Wave Logo"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_margin="16dp" />
+                <!-- Wave Logo -->
+                <ImageView
+                    android:id="@+id/waveLogo"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_wave_logo"
+                    android:contentDescription="Wave Logo"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_margin="16dp" />
 
-            <!-- Profile Icon -->
-            <ImageView
-                android:id="@+id/profileIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_profile_placeholder"
-                android:contentDescription="Profile Icon"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_margin="16dp" />
+                <!-- Profile Icon -->
+                <ImageView
+                    android:id="@+id/profileIcon"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_profile_placeholder"
+                    android:contentDescription="Profile Icon"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_margin="16dp" />
 
-            <!-- Wellness Title -->
-            <TextView
-                android:id="@+id/wellnessTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginBottom="60dp"
-                android:text="Wellness"
-                android:textColor="@android:color/black"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                <!-- Wellness Title -->
+                <TextView
+                    android:id="@+id/wellnessTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="60dp"
+                    android:text="Wellness"
+                    android:textColor="@android:color/black"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
             <!-- Title Section with Icon -->
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -102,7 +103,6 @@
                 android:layout_margin="15dp"
                 android:backgroundTint="#F5FAFD">
 
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -118,7 +118,7 @@
                         android:src="@drawable/quote_image"
                         android:layout_marginBottom="20dp"
                         android:layout_marginTop="20dp"
-                        android:layout_gravity="center"/>
+                        android:layout_gravity="center" />
 
                     <TextView
                         android:id="@+id/quoteText"
@@ -129,8 +129,8 @@
                         android:textStyle="normal"
                         android:layout_gravity="center_horizontal"
                         android:layout_marginBottom="8dp"
-                        android:textColor= "#171C1E"
-                        android:gravity="center"/>
+                        android:textColor="#171C1E"
+                        android:gravity="center" />
 
                     <TextView
                         android:id="@+id/quoteAuthor"
@@ -180,10 +180,21 @@
                 android:id="@+id/blogRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
-                android:layout_marginBottom="16dp"
                 android:layout_marginTop="2dp"
                 android:layout_margin="15dp"
-                android:orientation="horizontal"  />
+                android:orientation="horizontal" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom"
+        android:background="#C7F9FF"
+        app:menu="@menu/bottom_nav_menu"
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/black" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
