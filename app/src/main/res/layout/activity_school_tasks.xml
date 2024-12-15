@@ -87,10 +87,10 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:background="@drawable/toggle_button_unselected"
+                        android:background="@drawable/toggle_button_selected"
                         android:gravity="center"
                         android:text="School"
-                        android:textColor="@color/blue"
+                        android:textColor="@color/white"
                         android:textStyle="bold"
                         android:fontFamily="@font/archivo_medium"
                         android:textAllCaps="false"
@@ -101,10 +101,10 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:background="@drawable/toggle_button_selected"
                         android:gravity="center"
+                        android:background="@drawable/toggle_button_unselected"
                         android:text="Home"
-                        android:textColor="@color/white"
+                        android:textColor="@color/blue"
                         android:textStyle="bold"
                         android:fontFamily="@font/archivo_medium"
                         android:textAllCaps="false"
@@ -179,15 +179,15 @@
 
                             <!-- Icon with Background -->
                             <LinearLayout
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
+                                android:layout_width="54dp"
+                                android:layout_height="54dp"
                                 android:gravity="start"
-                                android:layout_marginStart="0dp"
+                                android:layout_marginStart="20dp"
                                 app:cardBackgroundColor="@color/light_blue">
 
                                 <ImageView
-                                    android:layout_width="59dp"
-                                    android:layout_height="59dp"
+                                    android:layout_width="49dp"
+                                    android:layout_height="49dp"
                                     android:gravity="start"
                                     android:src="@drawable/ic_tasks_completed"
                                     android:contentDescription="@string/tasks_completed_icon" />
@@ -196,8 +196,8 @@
                             <!-- Number of Completed Tasks -->
                             <LinearLayout
                                 android:layout_width="84dp"
-                                android:layout_height="84dp"
-                                android:layout_marginStart="10dp"
+                                android:layout_height="74dp"
+                                android:layout_marginStart="5dp"
                                 android:gravity="start"
                                 android:orientation="vertical"
                                 app:cardBackgroundColor="@color/light_blue">
@@ -207,7 +207,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="5"
-                                    android:textSize="24sp"
+                                    android:textSize="20sp"
                                     android:textColor="@color/dark_blue"
                                     android:gravity="center"
                                     android:fontFamily="@font/archivo_medium" />
@@ -244,18 +244,21 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:orientation="horizontal"
-                            android:padding="0dp">
+                            android:padding="0dp"
+                            android:layout_marginStart="0dp">
 
                             <!-- Icon with Background -->
                             <LinearLayout
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
+                                android:layout_width="54dp"
+                                android:layout_height="54dp"
                                 android:gravity="start"
+                                android:layout_marginStart="20dp"
                                 app:cardBackgroundColor="@color/light_blue">
 
                                 <ImageView
-                                    android:layout_width="59dp"
-                                    android:layout_height="59dp"
+                                    android:layout_width="49dp"
+                                    android:layout_height="49dp"
+                                    android:gravity="start"
                                     android:src="@drawable/ic_tasks_pending"
                                     android:contentDescription="@string/tasks_pending_icon" />
                             </LinearLayout>
@@ -263,8 +266,8 @@
                             <!-- Number of Completed Tasks -->
                             <LinearLayout
                                 android:layout_width="84dp"
-                                android:layout_height="84dp"
-                                android:layout_marginStart="10dp"
+                                android:layout_height="74dp"
+                                android:layout_marginStart="5dp"
                                 android:gravity="start"
                                 android:orientation="vertical"
                                 app:cardBackgroundColor="@color/light_blue">
@@ -274,7 +277,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="2"
-                                    android:textSize="24sp"
+                                    android:textSize="20sp"
                                     android:textColor="@color/dark_blue"
                                     android:gravity="center"
                                     android:fontFamily="@font/archivo_medium" />
@@ -308,18 +311,21 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:orientation="horizontal"
-                            android:padding="0dp">
+                            android:padding="0dp"
+                            android:layout_marginStart="0dp">
 
                             <!-- Icon with Background -->
                             <LinearLayout
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
+                                android:layout_width="54dp"
+                                android:layout_height="54dp"
                                 android:gravity="start"
+                                android:layout_marginStart="20dp"
                                 app:cardBackgroundColor="@color/light_blue">
 
                                 <ImageView
-                                    android:layout_width="59dp"
-                                    android:layout_height="59dp"
+                                    android:layout_width="49dp"
+                                    android:layout_height="49dp"
+                                    android:gravity="start"
                                     android:src="@drawable/ic_tasks_overdue"
                                     android:contentDescription="@string/tasks_pending_icon" />
                             </LinearLayout>
@@ -327,8 +333,8 @@
                             <!-- Number of Completed Tasks -->
                             <LinearLayout
                                 android:layout_width="84dp"
-                                android:layout_height="84dp"
-                                android:layout_marginStart="10dp"
+                                android:layout_height="74dp"
+                                android:layout_marginStart="5dp"
                                 android:gravity="start"
                                 android:orientation="vertical"
                                 app:cardBackgroundColor="@color/light_blue">
@@ -338,7 +344,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="1"
-                                    android:textSize="24sp"
+                                    android:textSize="20sp"
                                     android:textColor="@color/dark_blue"
                                     android:gravity="center"
                                     android:fontFamily="@font/archivo_medium" />
@@ -372,18 +378,21 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:orientation="horizontal"
-                            android:padding="0dp">
+                            android:padding="0dp"
+                            android:layout_marginStart="0dp">
 
                             <!-- Icon with Background -->
                             <LinearLayout
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
+                                android:layout_width="54dp"
+                                android:layout_height="54dp"
                                 android:gravity="start"
+                                android:layout_marginStart="20dp"
                                 app:cardBackgroundColor="@color/light_blue">
 
                                 <ImageView
-                                    android:layout_width="59dp"
-                                    android:layout_height="59dp"
+                                    android:layout_width="49dp"
+                                    android:layout_height="49dp"
+                                    android:gravity="start"
                                     android:src="@drawable/ic_tasks_overdue"
                                     android:contentDescription="@string/tasks_pending_icon" />
                             </LinearLayout>
@@ -391,8 +400,8 @@
                             <!-- Number of Completed Tasks -->
                             <LinearLayout
                                 android:layout_width="84dp"
-                                android:layout_height="84dp"
-                                android:layout_marginStart="10dp"
+                                android:layout_height="74dp"
+                                android:layout_marginStart="5dp"
                                 android:gravity="start"
                                 android:orientation="vertical"
                                 app:cardBackgroundColor="@color/light_blue">
@@ -402,7 +411,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="0"
-                                    android:textSize="24sp"
+                                    android:textSize="20sp"
                                     android:textColor="@color/dark_blue"
                                     android:gravity="center"
                                     android:fontFamily="@font/archivo_medium" />
@@ -463,7 +472,7 @@
                             android:padding="10dp">
 
                             <ImageView
-                                android:layout_width="150dp"
+                                android:layout_width="120dp"
                                 android:layout_height="120dp"
                                 android:src="@drawable/ic_calendar_card"
                                 android:contentDescription="@string/my_calendar" />
@@ -472,7 +481,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="50dp"
                                 android:text="@string/my_calendar"
-                                android:textSize="17sp"
+                                android:textSize="15sp"
                                 android:textColor="@color/black"
                                 android:layout_marginTop="8dp"
                                 android:paddingStart="10dp"
@@ -504,7 +513,7 @@
                             android:padding="10dp">
 
                             <ImageView
-                                android:layout_width="150dp"
+                                android:layout_width="120dp"
                                 android:layout_height="120dp"
                                 android:src="@drawable/ic_notes_card"
                                 android:contentDescription="@string/notes" />
@@ -513,7 +522,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="50dp"
                                 android:text="@string/notes"
-                                android:textSize="17sp"
+                                android:textSize="15sp"
                                 android:textColor="@color/black"
                                 android:layout_marginTop="8dp"
                                 android:paddingStart="10dp"
@@ -534,6 +543,16 @@
                     android:textSize="20sp"
                     android:layout_marginTop="24dp"
                     android:textColor="@color/black" />
+
+                <!-- RecyclerView for Articles -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/articlesRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:scrollbars="vertical"/>
 
             </LinearLayout>
 
