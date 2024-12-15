@@ -41,6 +41,11 @@
             android:exported="true"
             android:theme="@style/Theme.Wave">
         </activity>
+        <activity
+            android:name=".SchoolTasks"
+            android:exported="true"
+            android:theme="@style/Theme.Wave">
+        </activity>
 
 
     </application>
