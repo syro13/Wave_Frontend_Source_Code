@@ -46,7 +46,11 @@
             android:exported="true"
             android:theme="@style/Theme.Wave">
         </activity>
-
+        <activity
+            android:name=".HomeTasks"
+            android:exported="true"
+            android:theme="@style/Theme.Wave">
+        </activity>
 
     </application>
 </manifest>
