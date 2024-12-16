@@ -35,4 +35,6 @@
     <string name="notes">Notes\n</string>
     <string name="study_tips_amp_insights"><![CDATA[Study Tips & Insights]]></string>
     <string name="quick_prompts">Quick Prompts</string>
+    <string name="grocery_list">Grocery List</string>
+    <string name="Home_hacks_and_guides"><![CDATA[Home Hacks & Guides\n]]></string>
 </resources>
