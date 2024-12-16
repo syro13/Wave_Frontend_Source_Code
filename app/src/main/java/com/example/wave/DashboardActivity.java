@@ -1,10 +1,13 @@
 package com.example.wave;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -40,7 +43,15 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Greeting TextView for User
         TextView greetingTextView = findViewById(R.id.greetingText);
+        CardView schoolTasksCard = findViewById(R.id.schoolTasksCard);
 
+        schoolTasksCard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DashboardActivity.this, SchoolTasks.class);
+                startActivity(intent);
+            }
+        });
         // Fetch the user's display name from Firebase Authentication
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
