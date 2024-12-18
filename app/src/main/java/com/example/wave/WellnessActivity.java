@@ -27,6 +27,7 @@ public class WellnessActivity extends AppCompatActivity {
         updateQuoteImage();
 
         setupPodcastsRecyclerView();
+        setupBlogsRecyclerView();
     }
 
     private void updateQuoteImage() {
@@ -59,6 +60,17 @@ public class WellnessActivity extends AppCompatActivity {
 
         PodcastAdapter podcastAdapter = new PodcastAdapter(podcasts);
         podcastRecyclerView.setAdapter(podcastAdapter);
+    }
+    private void setupBlogsRecyclerView() {
+        RecyclerView blogRecyclerView = findViewById(R.id.blogRecyclerView);
+        blogRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+        List<Blog> blogs = new ArrayList<>();
+        blogs.add(new Blog("Feeling Overwhelmed? Try the RAIN Meditation", "By Tara Brach"));
+        blogs.add(new Blog("Struggling with burnout? 10 recovery tips", "By Dr. Chris"));
+
+        BlogAdapter blogAdapter = new BlogAdapter(blogs);
+        blogRecyclerView.setAdapter(blogAdapter);
     }
 
 }
