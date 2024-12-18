@@ -163,7 +163,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/podcastRecyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="120dp"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:layout_marginTop="2dp"
                 android:layout_margin="15dp"
@@ -184,7 +184,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/blogRecyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="120dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:layout_margin="15dp"
                 android:orientation="horizontal" />
