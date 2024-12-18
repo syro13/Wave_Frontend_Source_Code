@@ -4,7 +4,12 @@ import android.os.Bundle;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class WellnessActivity extends AppCompatActivity {
 
@@ -20,6 +25,8 @@ public class WellnessActivity extends AppCompatActivity {
 
         // Update the image
         updateQuoteImage();
+
+        setupPodcastsRecyclerView();
     }
 
     private void updateQuoteImage() {
@@ -41,5 +48,18 @@ public class WellnessActivity extends AppCompatActivity {
         // Set the image
         quoteImage.setImageResource(images[index]);
     }
+
+    private void setupPodcastsRecyclerView() {
+        RecyclerView podcastRecyclerView = findViewById(R.id.podcastRecyclerView);
+        podcastRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+        List<Podcast> podcasts = new ArrayList<>();
+        podcasts.add(new Podcast("Stress day relaxation", "15 min"));
+        podcasts.add(new Podcast("Evening meditation to relax", "12 min"));
+
+        PodcastAdapter podcastAdapter = new PodcastAdapter(podcasts);
+        podcastRecyclerView.setAdapter(podcastAdapter);
+    }
+
 }
 
