@@ -25,7 +25,6 @@
                 android:layout_height="220dp"
                 android:background="@drawable/header_pages">
 
-                <!-- Wave Logo -->
                 <ImageView
                     android:id="@+id/waveLogo"
                     android:layout_width="48dp"
@@ -36,7 +35,6 @@
                     app:layout_constraintTop_toTopOf="parent"
                     android:layout_margin="16dp" />
 
-                <!-- Profile Icon -->
                 <ImageView
                     android:id="@+id/profileIcon"
                     android:layout_width="48dp"
@@ -47,7 +45,6 @@
                     app:layout_constraintTop_toTopOf="parent"
                     android:layout_margin="16dp" />
 
-                <!-- Wellness Title -->
                 <TextView
                     android:id="@+id/wellnessTitle"
                     android:layout_width="wrap_content"
@@ -70,7 +67,6 @@
                 android:layout_marginBottom="2dp"
                 android:gravity="center_vertical">
 
-                <!-- Title Text -->
                 <TextView
                     android:id="@+id/quoteTitle"
                     android:layout_width="wrap_content"
@@ -82,7 +78,6 @@
                     android:layout_marginStart="16dp"
                     android:textColor="@android:color/black" />
 
-                <!-- Decorative Icon -->
                 <ImageView
                     android:id="@+id/quoteIcon"
                     android:layout_width="30dp"
@@ -107,59 +102,59 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/card_background">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:id="@+id/quoteImage"
-                        android:layout_width="240dp"
-                        android:layout_height="200dp"
-                        android:scaleType="centerCrop"
-                        android:contentDescription="quote1"
-                        android:src="@drawable/quote1"
-                        android:layout_marginBottom="20dp"
-                        android:layout_marginTop="20dp"
-                        android:layout_gravity="center" />
-
-                    <TextView
-                        android:id="@+id/quoteText"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="“Our bodies are our gardens; our wills are our gardeners.”"
-                        android:textSize="18sp"
-                        android:textStyle="normal"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginBottom="8dp"
-                        android:textColor="#171C1E"
-                        android:gravity="center" />
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
-                    <TextView
-                        android:id="@+id/quoteAuthor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="William Shakespeare"
-                        android:textSize="14sp"
-                        android:layout_gravity="center_horizontal"
-                        android:textColor="#171C1E" />
+                        <ImageView
+                            android:id="@+id/quoteImage"
+                            android:layout_width="240dp"
+                            android:layout_height="200dp"
+                            android:scaleType="centerCrop"
+                            android:contentDescription="quote1"
+                            android:src="@drawable/quote1"
+                            android:layout_marginBottom="20dp"
+                            android:layout_marginTop="20dp"
+                            android:layout_gravity="center" />
 
-                    <TextView
-                        android:id="@+id/attribution"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Quotes provided by ZenQuotes"
-                        android:textSize="12sp"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginBottom="16dp"
-                        android:gravity="center"
-                        android:layout_gravity="center_horizontal"
-                        android:textColor="@android:color/darker_gray"
-                        android:autoLink="web"
-                        android:linksClickable="true" />
+                        <TextView
+                            android:id="@+id/quoteText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="“Our bodies are our gardens; our wills are our gardeners.”"
+                            android:textSize="18sp"
+                            android:textStyle="normal"
+                            android:layout_gravity="center_horizontal"
+                            android:layout_marginBottom="8dp"
+                            android:textColor="#171C1E"
+                            android:gravity="center" />
 
-                </LinearLayout>
+                        <TextView
+                            android:id="@+id/quoteAuthor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="William Shakespeare"
+                            android:textSize="14sp"
+                            android:layout_gravity="center_horizontal"
+                            android:textColor="#171C1E" />
+
+                        <TextView
+                            android:id="@+id/attribution"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Quotes provided by ZenQuotes"
+                            android:textSize="12sp"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="16dp"
+                            android:gravity="center"
+                            android:layout_gravity="center_horizontal"
+                            android:textColor="@android:color/darker_gray"
+                            android:autoLink="web"
+                            android:linksClickable="true" />
+
+                    </LinearLayout>
                 </FrameLayout>
             </androidx.cardview.widget.CardView>
 
@@ -203,6 +198,17 @@
                 android:layout_marginTop="2dp"
                 android:layout_margin="15dp"
                 android:orientation="horizontal" />
+
+            <!-- No Blogs Placeholder -->
+            <ImageView
+                android:id="@+id/noBlogsImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="centerCrop"
+                android:src="@drawable/not_available"
+                android:visibility="gone"
+                android:layout_gravity="center"
+                android:contentDescription="@string/no_blogs_available" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
