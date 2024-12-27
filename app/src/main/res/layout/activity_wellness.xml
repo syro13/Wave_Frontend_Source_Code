@@ -202,15 +202,24 @@
             <!-- No Blogs Placeholder -->
             <ImageView
                 android:id="@+id/noBlogsImage"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="170dp"
+                android:layout_height="170dp"
                 android:scaleType="centerCrop"
-                android:src="@drawable/not_available"
+                android:src="@drawable/no_blogs"
                 android:visibility="gone"
                 android:layout_gravity="center"
+                android:layout_margin="15dp"
                 android:contentDescription="@string/no_blogs_available" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+    <!-- Loading Indicator -->
+    <ProgressBar
+        android:id="@+id/loadingIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/dark_blue"
+        android:visibility="gone" />
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
