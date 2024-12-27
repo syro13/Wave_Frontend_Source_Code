@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,6 +37,7 @@ public class WellnessActivity extends AppCompatActivity {
     private RecyclerView blogRecyclerView;
     private BlogAdapter blogAdapter;
     private ImageView noBlogsImage;
+    private ProgressBar loadingIndicator; // Progress bar for loading
     private final List<BlogResponse> blogs = new ArrayList<>();
 
     @Override
@@ -49,6 +51,7 @@ public class WellnessActivity extends AppCompatActivity {
         quoteAuthor = findViewById(R.id.quoteAuthor);
         blogRecyclerView = findViewById(R.id.blogRecyclerView);
         noBlogsImage = findViewById(R.id.noBlogsImage);
+        loadingIndicator = findViewById(R.id.loadingIndicator);
 
         // Update the image of the day
         updateQuoteImage();
@@ -118,14 +121,14 @@ public class WellnessActivity extends AppCompatActivity {
                             .putInt(KEY_LAST_FETCH, todayDate)
                             .apply();
                 } else {
-                    quoteText.setText("Failed to fetch quote.");
+                    quoteText.setText("Unable to load today's quote. Please check your connection.");
                     quoteAuthor.setText("");
                 }
             }
 
             @Override
             public void onFailure(Call<List<QuoteResponse>> call, Throwable t) {
-                quoteText.setText("Failed to fetch quote.");
+                quoteText.setText("Unable to load today's quote. Please check your connection.");
                 quoteAuthor.setText("");
             }
         });
@@ -150,6 +153,11 @@ public class WellnessActivity extends AppCompatActivity {
     }
 
     private void loadCachedBlogs() {
+        // Show the loading indicator before processing
+        loadingIndicator.setVisibility(View.VISIBLE);
+        blogRecyclerView.setVisibility(View.GONE);
+        noBlogsImage.setVisibility(View.GONE);
+
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
         int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
@@ -166,77 +174,120 @@ public class WellnessActivity extends AppCompatActivity {
 
             blogAdapter.notifyDataSetChanged();
             noBlogsImage.setVisibility(View.GONE);
+            blogRecyclerView.setVisibility(View.VISIBLE);
+            loadingIndicator.setVisibility(View.GONE); // Hide loading after caching
         } else {
             fetchBlogsFromApi(prefs, todayDate);
         }
+
     }
 
     private void fetchBlogsFromApi(SharedPreferences prefs, int todayDate) {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://medium2.p.rapidapi.com/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+        BlogsApi api = RetrofitClient.getRetrofitInstance(this).create(BlogsApi.class);
 
-        BlogsApi api = retrofit.create(BlogsApi.class);
-
-        blogs.clear();
+        blogs.clear(); // Clear previous blog data
         blogAdapter.notifyDataSetChanged();
 
         String[] tags = {"self-improvement", "meditation", "wellness"};
-        for (String tag : tags) {
-            if (blogs.size() >= MAX_BLOGS) break;
 
+        // Iterate over each tag
+        for (String tag : tags) {
+            if (blogs.size() >= MAX_BLOGS) break; // Stop if MAX_BLOGS is already reached
+
+            // Fetch the recommended feed for each tag
             api.getRecommendedFeed(tag, 1).enqueue(new Callback<RecommendedFeedResponse>() {
                 @Override
                 public void onResponse(Call<RecommendedFeedResponse> call, Response<RecommendedFeedResponse> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        fetchArticleDetails(api, Collections.singletonList(response.body().getRecommendedFeed().get(0)), tag, prefs, todayDate);
+                        List<String> recommendedFeed = response.body().getRecommendedFeed();
+
+                        if (!recommendedFeed.isEmpty()) {
+                            // Use only the first article from the recommended feed
+                            String firstArticleId = recommendedFeed.get(0);
+
+                            // Fetch the article details using the first article ID
+                            fetchArticleDetails(api, firstArticleId, tag, prefs, todayDate);
+                        } else {
+                            Log.e("WellnessActivity", "No articles found for tag: " + tag);
+                            showNoBlogsAvailable();
+                        }
                     } else {
+                        Log.e("WellnessActivity", "Failed to fetch recommended feed for tag " + tag + ": " + response.message());
                         showNoBlogsAvailable();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<RecommendedFeedResponse> call, Throwable t) {
+                    Log.e("WellnessActivity", "Error fetching recommended feed for tag " + tag, t);
                     showNoBlogsAvailable();
                 }
             });
         }
     }
 
-    private void fetchArticleDetails(BlogsApi api, List<String> articleIds, String tag, SharedPreferences prefs, int todayDate) {
-        for (String articleId : articleIds) {
-            if (blogs.size() >= MAX_BLOGS) return;
+    // Fetch the details of the article using its ID
+    private void fetchArticleDetails(BlogsApi api, String articleId, String tag, SharedPreferences prefs, int todayDate) {
+        if (blogs.size() >= MAX_BLOGS) return;
 
-            api.getArticleInfo(articleId).enqueue(new Callback<ArticleDetails>() {
-                @Override
-                public void onResponse(Call<ArticleDetails> call, Response<ArticleDetails> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        ArticleDetails article = response.body();
-                        addArticleToRecyclerView(article, tag);
+        api.getArticleInfo(articleId).enqueue(new Callback<ArticleDetails>() {
+            @Override
+            public void onResponse(Call<ArticleDetails> call, Response<ArticleDetails> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ArticleDetails article = response.body();
+
+                    // Fetch user info using the user_id from the article details
+                    fetchUserInfo(api, article.getAuthor(), userFullName -> {
+                        addArticleToRecyclerView(article, tag, userFullName);
 
                         if (blogs.size() == MAX_BLOGS) {
                             saveBlogsToCache(blogs, todayDate);
+                            loadingIndicator.setVisibility(View.GONE); // Hide loading indicator
+                            blogRecyclerView.setVisibility(View.VISIBLE); // Show RecyclerView
                         }
-                    } else {
-                        showNoBlogsAvailable();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<ArticleDetails> call, Throwable t) {
+                    });
+                } else {
+                    Log.e("WellnessActivity", "Failed to fetch article details: " + response.message());
                     showNoBlogsAvailable();
                 }
-            });
-        }
+            }
+
+            @Override
+            public void onFailure(Call<ArticleDetails> call, Throwable t) {
+                Log.e("WellnessActivity", "Error fetching article details", t);
+                showNoBlogsAvailable();
+            }
+        });
     }
 
-    private void addArticleToRecyclerView(ArticleDetails article, String tag) {
+    private void fetchUserInfo(BlogsApi api, String userId, OnUserFullNameFetched callback) {
+        api.getUserInfo(userId).enqueue(new Callback<UserInfo>() {
+            @Override
+            public void onResponse(Call<UserInfo> call, Response<UserInfo> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String fullName = response.body().getFullName();
+                    callback.onFetched(fullName != null ? fullName : "Unknown Author");
+                } else {
+                    Log.e("WellnessActivity", "Failed to fetch user info: " + response.message());
+                    callback.onFetched("Unknown Author");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<UserInfo> call, Throwable t) {
+                Log.e("WellnessActivity", "Error fetching user info", t);
+                callback.onFetched("Unknown Author");
+            }
+        });
+    }
+
+
+    private void addArticleToRecyclerView(ArticleDetails article, String tag, String authorFullName) {
         if (blogs.size() >= MAX_BLOGS) return;
 
         BlogResponse blog = new BlogResponse(
                 article.getTitle(),
-                article.getAuthor(),
+                authorFullName,
                 tag,
                 article.getUrl(),
                 article.getImageUrl()
@@ -246,6 +297,7 @@ public class WellnessActivity extends AppCompatActivity {
         blogAdapter.notifyDataSetChanged();
         noBlogsImage.setVisibility(View.GONE);
     }
+
 
     private void saveBlogsToCache(List<BlogResponse> blogs, int todayDate) {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
@@ -257,6 +309,7 @@ public class WellnessActivity extends AppCompatActivity {
 
     private void showNoBlogsAvailable() {
         if (blogs.isEmpty()) {
+            loadingIndicator.setVisibility(View.GONE);
             noBlogsImage.setVisibility(View.VISIBLE);
         }
     }
