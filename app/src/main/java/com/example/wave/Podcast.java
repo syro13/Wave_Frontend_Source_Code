@@ -1,19 +1,27 @@
 package com.example.wave;
 
-public class Podcast {
-    private String title;
-    private String duration;
+import com.google.gson.annotations.SerializedName;
 
-    public Podcast(String title, String duration) {
-        this.title = title;
-        this.duration = duration;
-    }
+public class Podcast {
+
+    @SerializedName("title_original")
+    private String title;
+
+    @SerializedName("audio_length_sec")
+    private int lengthSeconds;
+
+    @SerializedName("link")
+    private String link;
 
     public String getTitle() {
         return title;
     }
 
-    public String getDuration() {
-        return duration;
+    public int getLengthMinutes() {
+        return lengthSeconds / 60; // Convert seconds to minutes
+    }
+
+    public String getLink() {
+        return link; // External link to the podcast episode
     }
 }
