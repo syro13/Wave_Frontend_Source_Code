@@ -44,7 +44,9 @@
                     android:textColor="#171C1E"
                     android:textStyle="bold"
                     android:gravity="start"
-                    android:layout_marginBottom="4dp" />
+                    android:layout_marginBottom="4dp"
+                    android:maxLines="2"
+                    android:ellipsize="end"/>
 
                 <!-- Blog Author -->
                 <TextView
