@@ -179,6 +179,28 @@
                 android:layout_margin="15dp"
                 android:orientation="horizontal" />
 
+            <ImageView
+                android:id="@+id/noPodcastsImage"
+                android:layout_width="170dp"
+                android:layout_height="170dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/not_found"
+                android:visibility="gone"
+                android:layout_gravity="center"
+                android:layout_margin="15dp"
+                android:contentDescription="@string/no_podcasts_available" />
+            <TextView
+                android:id="@+id/noPodcastsText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No podcasts available"
+                android:textSize="16sp"
+                android:textColor="@android:color/darker_gray"
+                android:gravity="center"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
+
             <!-- Blogs Section -->
             <TextView
                 android:id="@+id/blogsTitle"
@@ -210,6 +232,17 @@
                 android:layout_gravity="center"
                 android:layout_margin="15dp"
                 android:contentDescription="@string/no_blogs_available" />
+            <TextView
+                android:id="@+id/noBlogsText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No blogs available"
+                android:textSize="16sp"
+                android:textColor="@android:color/darker_gray"
+                android:gravity="center"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
     <!-- Loading Indicator -->
