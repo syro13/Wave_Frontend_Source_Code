@@ -30,7 +30,9 @@
             android:textColor="#171C1E"
             android:textStyle="bold"
             android:layout_gravity="start"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="20dp"
+            android:maxLines="2"
+            android:ellipsize="end"/>
 
         <!-- Play Button and Duration -->
         <LinearLayout
@@ -50,7 +52,8 @@
                     android:id="@+id/podcastPlayCircle"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/circle_background_light_blue" />
+                    android:background="@drawable/circle_background_light_blue"
+                    android:contentDescription="Action"/>
 
                 <!-- Play Icon -->
                 <ImageView
@@ -58,7 +61,7 @@
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:layout_gravity="center"
-                    android:src="@drawable/play_button"
+                    android:src="@drawable/arrow_forward"
                     android:contentDescription="Play" />
             </FrameLayout>
 
