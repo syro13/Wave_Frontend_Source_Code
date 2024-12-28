@@ -1,19 +1,27 @@
 package com.example.wave;
 
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.List;
 
 public class PodcastAdapter extends RecyclerView.Adapter<PodcastAdapter.PodcastViewHolder> {
 
-    private List<Podcast> podcasts;
+    private final Context context;
+    private final List<Podcast> podcasts;
 
-    public PodcastAdapter(List<Podcast> podcasts) {
+    public PodcastAdapter(Context context, List<Podcast> podcasts) {
+        this.context = context;
         this.podcasts = podcasts;
     }
 
@@ -27,10 +35,20 @@ public class PodcastAdapter extends RecyclerView.Adapter<PodcastAdapter.PodcastV
     @Override
     public void onBindViewHolder(@NonNull PodcastViewHolder holder, int position) {
         Podcast podcast = podcasts.get(position);
+
+        // Set the podcast title
         holder.title.setText(podcast.getTitle());
-        holder.duration.setText(podcast.getDuration());
+
+        // Set the duration in minutes
+        holder.duration.setText(podcast.getLengthMinutes() + " min");
+
+        // Handle the play button click
         holder.playButton.setOnClickListener(v -> {
-            // Handle play button click
+            String audioUrl = podcast.getLink();
+            if (audioUrl != null && !audioUrl.isEmpty()) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(audioUrl));
+                context.startActivity(intent);
+            }
         });
     }
 
