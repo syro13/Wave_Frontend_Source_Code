@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.lottie)
     implementation(libs.firebase.auth)
+    implementation(libs.espresso.intents)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -53,6 +54,8 @@ dependencies {
     implementation (libs.logging.interceptor)
     implementation ("com.github.bumptech.glide:glide:4.15.1")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.15.1")
+    testImplementation("org.mockito:mockito-core:4.11.0")
+    androidTestImplementation("org.mockito:mockito-android:4.11.0")
 
 
 
