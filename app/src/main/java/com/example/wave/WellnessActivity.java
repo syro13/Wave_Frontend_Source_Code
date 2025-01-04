@@ -1,12 +1,15 @@
 package com.example.wave;
 
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,8 +25,8 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class WellnessActivity extends AppCompatActivity {
-
+public class WellnessActivity extends AppCompatActivity implements NetworkReceiver.NetworkChangeListener {
+    private NetworkReceiver networkReceiver;
     private static final String PREFS_NAME = "WellnessPrefs";
     private static final String KEY_QUOTE = "quoteText";
     private static final String KEY_AUTHOR = "quoteAuthor";
@@ -49,7 +52,8 @@ public class WellnessActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wellness);
-
+// Clear SharedPreferences for testing
+ //       getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().clear().apply();
         // Initialize views
         quoteImage = findViewById(R.id.quoteImage);
         quoteText = findViewById(R.id.quoteText);
@@ -75,6 +79,76 @@ public class WellnessActivity extends AppCompatActivity {
         setupPodcastsRecyclerView();
         loadCachedBlogs();
         loadCachedPodcasts();
+
+        // Register the network receiver
+        networkReceiver = new NetworkReceiver(this);
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(networkReceiver, filter);
+    }
+    @Override
+    public void onNetworkRestored() {
+        Log.d("WellnessActivity", "Network restored. Checking data...");
+        reloadDataIfNeeded();  // Reload only if data is not already cached
+    }
+
+    private void reloadDataIfNeeded() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
+        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+
+        boolean needsReload = false;
+
+        loadingIndicator.setVisibility(View.VISIBLE);
+
+        // Check if quote data needs to be reloaded
+        String cachedQuote = prefs.getString(KEY_QUOTE, null);
+        String cachedAuthor = prefs.getString(KEY_AUTHOR, null);
+        if (cachedQuote == null || cachedAuthor == null || lastFetchDate != todayDate) {
+            Log.d("WellnessActivity", "Reloading Quotes...");
+            fetchTodaysQuoteWithCache();
+            needsReload = true;
+        } else {
+            Log.d("WellnessActivity", "Quotes are already cached.");
+        }
+
+        // Check if blog data needs to be reloaded
+        String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
+        if (cachedBlogsJson == null || lastFetchDate != todayDate) {
+            Log.d("WellnessActivity", "Reloading Blogs...");
+            loadCachedBlogs();
+            needsReload = true;
+        } else {
+            Log.d("WellnessActivity", "Blogs are already cached.");
+        }
+
+        // Check if podcast data needs to be reloaded
+        String cachedPodcastsJson = prefs.getString(PREFS_PODCASTS, null);
+        if (cachedPodcastsJson == null || lastFetchDate != todayDate) {
+            Log.d("WellnessActivity", "Reloading Podcasts...");
+            loadCachedPodcasts();
+            needsReload = true;
+        } else {
+            Log.d("WellnessActivity", "Podcasts are already cached.");
+        }
+
+        // Hide placeholders if reload is required
+        if (needsReload) {
+            Toast.makeText(this, "Internet restored. Reloading data...", Toast.LENGTH_SHORT).show();
+            noBlogsImage.setVisibility(View.GONE);
+            noPodcastsImage.setVisibility(View.GONE);
+            noBlogsText.setVisibility(View.GONE);
+            noPodcastsText.setVisibility(View.GONE);
+        } else {
+            Log.d("WellnessActivity", "No reload required. Data is up-to-date.");
+            loadingIndicator.setVisibility(View.GONE); // Hide the loading indicator
+        }
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(networkReceiver);
     }
 
     private void updateQuoteImage() {
@@ -156,26 +230,25 @@ public class WellnessActivity extends AppCompatActivity {
 
     private void loadCachedPodcasts() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-//        String cachedPodcastsJson = prefs.getString(PREFS_PODCASTS, null);
-//        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
+        String cachedPodcastsJson = prefs.getString(PREFS_PODCASTS, null);
+        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
         int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
-//
-//        if (cachedPodcastsJson != null && lastFetchDate == todayDate) {
-//            podcasts.clear();
-//            podcasts.addAll(PodcastSearchResponse.fromJsonList(cachedPodcastsJson));
-//
-//            if (podcasts.size() > MAX_PODCASTS) {
-//                podcasts.subList(MAX_PODCASTS, podcasts.size()).clear();
-//            }
-//
-//            podcastAdapter.notifyDataSetChanged();
-//           noPodcastsImage.setVisibility(View.GONE);
-//           noPodcastsText.setVisibility(View.GONE);
-//            taskCompleted();
-//        } else {
-//            fetchPodcastsFromApi(prefs, todayDate);
-//        }
-        fetchPodcastsFromApi(prefs, todayDate);
+
+        if (cachedPodcastsJson != null && lastFetchDate == todayDate) {
+            podcasts.clear();
+            podcasts.addAll(PodcastSearchResponse.fromJsonList(cachedPodcastsJson));
+
+            if (podcasts.size() > MAX_PODCASTS) {
+                podcasts.subList(MAX_PODCASTS, podcasts.size()).clear();
+            }
+
+            podcastAdapter.notifyDataSetChanged();
+           noPodcastsImage.setVisibility(View.GONE);
+           noPodcastsText.setVisibility(View.GONE);
+            taskCompleted();
+        } else {
+            fetchPodcastsFromApi(prefs, todayDate);
+        }
     }
 
     private void fetchPodcastsFromApi(SharedPreferences prefs, int todayDate) {
@@ -245,25 +318,26 @@ public class WellnessActivity extends AppCompatActivity {
 
     private void loadCachedBlogs() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-//        String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
-//        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
+        String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
+        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
         int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 
-//        if (cachedBlogsJson != null && lastFetchDate == todayDate) {
-//            blogs.clear();
-//            blogs.addAll(BlogResponse.fromJsonList(cachedBlogsJson));
-//
-//            if (blogs.size() > MAX_BLOGS) {
-//                blogs.subList(MAX_BLOGS, blogs.size()).clear();
-//            }
-//
-//            blogAdapter.notifyDataSetChanged();
-//            noBlogsImage.setVisibility(View.GONE);
-//            taskCompleted();
-//        } else {
-//            fetchBlogsFromApi(prefs, todayDate);
-//        }
-        fetchBlogsFromApi(prefs, todayDate);
+        if (cachedBlogsJson != null && lastFetchDate == todayDate) {
+            blogs.clear();
+            blogs.addAll(BlogResponse.fromJsonList(cachedBlogsJson));
+
+            if (blogs.size() > MAX_BLOGS) {
+                blogs.subList(MAX_BLOGS, blogs.size()).clear();
+            }
+
+            blogAdapter.notifyDataSetChanged();
+            noBlogsImage.setVisibility(View.GONE);
+            noBlogsText.setVisibility(View.GONE);
+            taskCompleted();
+        } else {
+            blogs.clear();
+            fetchBlogsFromApi(prefs, todayDate);
+        }
     }
 
     private void fetchBlogsFromApi(SharedPreferences prefs, int todayDate) {
@@ -274,12 +348,10 @@ public class WellnessActivity extends AppCompatActivity {
                 getResources().getString(R.string.blog_api_key)
         ).create(BlogsApi.class);
 
-        blogs.clear(); // Clear previous blog data
-
         String[] tags = {"self-improvement", "meditation", "wellness"};
         for (String tag : tags) {
             if (blogs.size() >= MAX_BLOGS) break; // Stop if enough blogs are fetched
-
+            loadingTasksRemaining++; // Increment task count for each tag fetch
             api.getRecommendedFeed(tag, 1).enqueue(new Callback<RecommendedFeedResponse>() {
                 @Override
                 public void onResponse(Call<RecommendedFeedResponse> call, Response<RecommendedFeedResponse> response) {
@@ -292,24 +364,30 @@ public class WellnessActivity extends AppCompatActivity {
                         } else {
                             // Show placeholders if no articles are found for the tag
                             showNoBlogsAvailable();
+                            taskCompleted();
                         }
                     } else {
                         showNoBlogsAvailable();
+                        taskCompleted();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<RecommendedFeedResponse> call, Throwable t) {
                     showNoBlogsAvailable();
+                    taskCompleted();
                 }
             });
         }
+        // After successfully fetching blogs
+        noBlogsImage.setVisibility(View.GONE);
+        noBlogsText.setVisibility(View.GONE);
     }
 
 
     private void fetchArticleDetails(BlogsApi api, String articleId, String tag, SharedPreferences prefs, int todayDate) {
         if (blogs.size() >= MAX_BLOGS) return;
-
+        loadingTasksRemaining++;
         api.getArticleInfo(articleId).enqueue(new Callback<ArticleDetails>() {
             @Override
             public void onResponse(Call<ArticleDetails> call, Response<ArticleDetails> response) {
@@ -320,17 +398,19 @@ public class WellnessActivity extends AppCompatActivity {
 
                         if (blogs.size() == MAX_BLOGS) {
                             saveBlogsToCache(blogs, todayDate);
-                            taskCompleted();
                         }
+                        taskCompleted();
                     });
                 } else {
                     showNoBlogsAvailable();
+                    taskCompleted();
                 }
             }
 
             @Override
             public void onFailure(Call<ArticleDetails> call, Throwable t) {
                 showNoBlogsAvailable();
+                taskCompleted();
             }
         });
     }
@@ -345,17 +425,27 @@ public class WellnessActivity extends AppCompatActivity {
                 } else {
                     callback.onFetched("Unknown Author");
                 }
+                taskCompleted();
             }
 
             @Override
             public void onFailure(Call<UserInfo> call, Throwable t) {
                 callback.onFetched("Unknown Author");
+                taskCompleted();
             }
         });
     }
 
     private void addArticleToRecyclerView(ArticleDetails article, String tag, String authorFullName) {
         if (blogs.size() >= MAX_BLOGS) return;
+        // Check if the blog already exists in the list
+        for (BlogResponse existingBlog : blogs) {
+            if (existingBlog.getTitle().equals(article.getTitle()) &&
+                    existingBlog.getAuthor().equals(authorFullName)) {
+                return; // Don't add duplicates
+            }
+        }
+
 
         BlogResponse blog = new BlogResponse(
                 article.getTitle(),
