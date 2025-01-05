@@ -13,6 +13,7 @@ import static androidx.test.espresso.assertion.ViewAssertions.matches;
 @RunWith(AndroidJUnit4.class)
 public class IntroActivityTests {
 
+    // Test that the get started button is displayed
     @Test
     public void testButtonExists() {
         try (ActivityScenario<IntroActivity> scenario = ActivityScenario.launch(IntroActivity.class)) {
