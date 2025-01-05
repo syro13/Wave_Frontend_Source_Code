@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".HomeTasksFragment">
 
     <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
@@ -53,7 +54,7 @@
                     android:id="@+id/greetingText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="School Tasks"
+                    android:text="House Tasks"
                     android:textSize="22sp"
                     android:textColor="@android:color/black"
                     android:textStyle="bold"
@@ -87,10 +88,10 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:background="@drawable/toggle_button_selected"
+                        android:background="@drawable/toggle_button_unselected"
                         android:gravity="center"
                         android:text="School"
-                        android:textColor="@color/white"
+                        android:textColor="@color/blue"
                         android:textStyle="bold"
                         android:fontFamily="@font/archivo_medium"
                         android:textAllCaps="false"
@@ -102,9 +103,9 @@
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:background="@drawable/toggle_button_unselected"
+                        android:background="@drawable/toggle_button_selected"
                         android:text="Home"
-                        android:textColor="@color/blue"
+                        android:textColor="@color/white"
                         android:textStyle="bold"
                         android:fontFamily="@font/archivo_medium"
                         android:textAllCaps="false"
@@ -276,7 +277,7 @@
                                     android:id="@+id/tasks_pending_count"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="2"
+                                    android:text="1"
                                     android:textSize="20sp"
                                     android:textColor="@color/dark_blue"
                                     android:gravity="center"
@@ -343,7 +344,7 @@
                                     android:id="@+id/tasks_overdue_count"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="1"
+                                    android:text="0"
                                     android:textSize="20sp"
                                     android:textColor="@color/dark_blue"
                                     android:gravity="center"
@@ -436,7 +437,7 @@
                     android:id="@+id/stayOnTrackTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="School Hub"
+                    android:text="House Hub"
                     android:textSize="20sp"
                     android:layout_marginTop="24dp"
                     android:textColor="@color/black" />
@@ -515,18 +516,17 @@
                             <ImageView
                                 android:layout_width="120dp"
                                 android:layout_height="120dp"
-                                android:src="@drawable/ic_notes_card"
-                                android:contentDescription="@string/notes" />
+                                android:src="@drawable/ic_grocery_list"
+                                android:contentDescription="@string/grocery_list" />
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="50dp"
-                                android:text="@string/notes"
+                                android:text="@string/grocery_list"
                                 android:textSize="15sp"
                                 android:textColor="@color/black"
                                 android:layout_marginTop="8dp"
                                 android:paddingStart="10dp"
-                                android:paddingEnd="10dp"
                                 android:paddingTop="5dp"
                                 android:paddingBottom="5dp"
                                 android:gravity="start" />
@@ -534,12 +534,12 @@
                     </androidx.cardview.widget.CardView>
                 </GridLayout>
 
-                <!-- Study Tips and Insights Section -->
+                <!-- Home Hacks and Guides Section -->
                 <TextView
-                    android:id="@+id/StudyTipsAndInsightsTitle"
+                    android:id="@+id/HomeHacksAndGuidesTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/study_tips_amp_insights"
+                    android:text="@string/Home_hacks_and_guides"
                     android:textSize="20sp"
                     android:layout_marginTop="24dp"
                     android:textColor="@color/black" />
@@ -554,29 +554,29 @@
                     android:layout_marginEnd="6dp"
                     android:scrollbars="vertical"/>
 
-            <!-- AI Prompts Section -->
-            <LinearLayout
-                android:id="@+id/aiPromptsSection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/PromptsTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/quick_prompts"
-                    android:textSize="20sp"
-                    android:paddingBottom="10dp"
-                    android:layout_marginTop="24dp"
-                    android:textColor="@color/black" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/promptsRecyclerView"
+                <!-- AI Prompts Section -->
+                <LinearLayout
+                    android:id="@+id/aiPromptsSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:scrollbars="vertical"/>
-            </LinearLayout>
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/PromptsTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/quick_prompts"
+                        android:textSize="20sp"
+                        android:paddingBottom="10dp"
+                        android:layout_marginTop="24dp"
+                        android:textColor="@color/black" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/promptsRecyclerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="vertical"/>
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
