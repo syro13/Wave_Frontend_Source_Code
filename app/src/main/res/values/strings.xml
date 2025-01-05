@@ -28,6 +28,8 @@
     <string name="wellness">Wellness\n</string>
     <string name="hello">Hello!</string>
     <string name="weather_api_key">42035aa61a1c72229ac148f2a197c138</string>
+    <string name="no_blogs_available">No Blogs Available!</string>
+    <string name="no_podcasts_available">No Podcasts Availabale.</string>
     <string name="tasks_icon">tasks icon</string>
     <string name="tasks_completed_icon">tasks_completed_icon</string>
     <string name="tasks_pending_icon">tasks_pending_icon</string>

@@ -39,6 +39,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.lottie)
     implementation(libs.firebase.auth)
+    implementation(libs.activity)
+    implementation(libs.constraintlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -56,7 +58,6 @@ dependencies {
     implementation (libs.logging.interceptor.v493)
     implementation (libs.retrofit)
     implementation (libs.converter.gson)
-
 
 
 
