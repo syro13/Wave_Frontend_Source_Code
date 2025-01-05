@@ -53,6 +53,10 @@ dependencies {
     implementation (libs.logging.interceptor)
     implementation ("com.github.bumptech.glide:glide:4.15.1")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.15.1")
+    implementation (libs.logging.interceptor.v493)
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
+
 
 
 

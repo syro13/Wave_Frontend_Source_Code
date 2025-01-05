@@ -1,5 +1,6 @@
 package com.example.wave;
 
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,9 +33,10 @@ public class SchoolTasksFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_school_tasks, container, false);
+
+        TextView schoolTasksButton = view.findViewById(R.id.SchoolTasksButton);
+        TextView homeTasksButton = view.findViewById(R.id.homeTasksButton);
 
         // RecyclerView setup for articles
         recyclerView = view.findViewById(R.id.articlesRecyclerView);
@@ -51,15 +53,13 @@ public class SchoolTasksFragment extends Fragment {
         promptsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         promptsList = Arrays.asList(
-                "Suggest a study tip for today",
-                "How can I stay organized with my assignments?",
-                "Give me advice on tackling big assignments",
-                "How to avoid procrastination?",
-                "Share a tip for staying motivated with studies"
+                "Suggest a quick study tip",
+                "How can I stay organized in my studies?",
+                "Give me advice on balancing chores with studying",
+                "How to make studying less stressful?",
+                "Share a tip for keeping my work clean and tidy"
         );
-        TextView homeTasksButton = view.findViewById(R.id.homeTasksButton);
-        TextView schoolTasksButton = view.findViewById(R.id.SchoolTasksButton);
-        promptsAdapter = new SchoolTasksFragment.PromptsAdapter(promptsList, this::showPopup);
+        promptsAdapter = new PromptsAdapter(promptsList, this::showPopup);
         promptsRecyclerView.setAdapter(promptsAdapter);
 
         // Set initial active state for buttons
@@ -79,18 +79,18 @@ public class SchoolTasksFragment extends Fragment {
         return view;
     }
 
-
     private void loadTasks() {
-        taskList.add(new Task("Time Management Strategies - Harvard Summer School", R.drawable.placeholder_image, 4));
-        taskList.add(new Task("Effective Study Techniques - Purdue Global", R.drawable.placeholder_image, 5));
-        taskList.add(new Task("The Pomodoro Technique - TimeHackHero", R.drawable.placeholder_image, 3));
-        taskList.add(new Task("Avoiding Distractions - ASU Online", R.drawable.placeholder_image, 2));
+        taskList.add(new Task("Study hacks", R.drawable.placeholder_image, 4));
+        taskList.add(new Task("Student study on a budget", R.drawable.placeholder_image, 5));
+        taskList.add(new Task("Budget friendly meal prep", R.drawable.placeholder_image, 3));
+        taskList.add(new Task("How to make studying less stressful?", R.drawable.placeholder_image, 2));
     }
 
     private void showPopup(String prompt) {
         AIContentDialog dialog = AIContentDialog.newInstance(prompt, "This is placeholder content for AI response.");
         dialog.show(getParentFragmentManager(), "AIContentDialog");
     }
+
 
     // Task model
     public static class Task {
@@ -240,3 +240,4 @@ public class SchoolTasksFragment extends Fragment {
         inactiveButton.setTextColor(getResources().getColor(R.color.dark_blue));
     }
 }
+
