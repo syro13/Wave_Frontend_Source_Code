@@ -48,7 +48,7 @@ public class DashboardActivity extends AppCompatActivity {
         schoolTasksCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(DashboardActivity.this, SchoolTasks.class);
+                Intent intent = new Intent(DashboardActivity.this, SchoolTasksFragment.class);
                 startActivity(intent);
             }
         });
