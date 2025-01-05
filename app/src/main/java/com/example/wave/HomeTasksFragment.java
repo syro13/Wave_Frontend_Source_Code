@@ -1,5 +1,6 @@
 package com.example.wave;
 
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,8 +11,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class SchoolTasks extends AppCompatActivity {
+public class HomeTasksFragment extends Fragment {
 
     private RecyclerView recyclerView, promptsRecyclerView;
     private TaskAdapter taskAdapter;
@@ -27,14 +30,15 @@ public class SchoolTasks extends AppCompatActivity {
     private List<Task> taskList;
     private List<String> promptsList;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_school_tasks); // The parent layout XML
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_house_tasks, container, false);
 
         // RecyclerView setup for articles
-        recyclerView = findViewById(R.id.articlesRecyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView = view.findViewById(R.id.articlesRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         taskList = new ArrayList<>();
         loadTasks(); // Load placeholder content for now
@@ -43,32 +47,50 @@ public class SchoolTasks extends AppCompatActivity {
         recyclerView.setAdapter(taskAdapter);
 
         // RecyclerView setup for AI prompts
-        promptsRecyclerView = findViewById(R.id.promptsRecyclerView);
-        promptsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        promptsRecyclerView = view.findViewById(R.id.promptsRecyclerView);
+        promptsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         promptsList = Arrays.asList(
-                "Suggest a study tip for today",
-                "How can I stay organized with my assignments?",
-                "Give me advice on tackling big assignments",
-                "How to avoid procrastination?",
-                "Share a tip for staying motivated with studies"
+                "Suggest a quick cleaning tip",
+                "How can I stay organized in my space?",
+                "Give me advice on balancing chores with studying",
+                "How to make cleaning less stressful?",
+                "Share a tip for keeping my home clean and tidy"
         );
-
+        TextView homeTasksButton = view.findViewById(R.id.homeTasksButton);
+        TextView schoolTasksButton = view.findViewById(R.id.SchoolTasksButton);
         promptsAdapter = new PromptsAdapter(promptsList, this::showPopup);
         promptsRecyclerView.setAdapter(promptsAdapter);
+
+        // Set initial active state for buttons
+        setActiveButton(homeTasksButton, schoolTasksButton);
+
+        // Handle Home Tasks button click
+        homeTasksButton.setOnClickListener(v -> {
+            setActiveButton(homeTasksButton, schoolTasksButton);
+        });
+
+        // Handle School Tasks button click
+        schoolTasksButton.setOnClickListener(v -> {
+            if (getActivity() instanceof SchoolHomeTasksActivity) {
+                ((SchoolHomeTasksActivity) getActivity()).showSchoolTasksFragment();
+            }
+        });
+        return view;
     }
 
     private void loadTasks() {
-        taskList.add(new Task("Time Management Strategies - Harvard Summer School", R.drawable.placeholder_image, 4));
-        taskList.add(new Task("Effective Study Techniques - Purdue Global", R.drawable.placeholder_image, 5));
-        taskList.add(new Task("The Pomodoro Technique - TimeHackHero", R.drawable.placeholder_image, 3));
-        taskList.add(new Task("Avoiding Distractions - ASU Online", R.drawable.placeholder_image, 2));
+        taskList.add(new Task("Tiny dorm room hacks", R.drawable.placeholder_image, 4));
+        taskList.add(new Task("Student home decorating on a budget", R.drawable.placeholder_image, 5));
+        taskList.add(new Task("Budget friendly meal prep", R.drawable.placeholder_image, 3));
+        taskList.add(new Task("Meal prep tips under 500 calories", R.drawable.placeholder_image, 2));
     }
 
     private void showPopup(String prompt) {
         AIContentDialog dialog = AIContentDialog.newInstance(prompt, "This is placeholder content for AI response.");
-        dialog.show(getSupportFragmentManager(), "AIContentDialog");
+        dialog.show(getParentFragmentManager(), "AIContentDialog");
     }
+
 
     // Task model
     public static class Task {
@@ -204,4 +226,18 @@ public class SchoolTasks extends AppCompatActivity {
             return view;
         }
     }
+    /**
+     * Updates the styles of the toggle buttons to show which one is active.
+     *
+     * @param activeButton   The button to mark as active
+     * @param inactiveButton The button to mark as inactive
+     */
+    private void setActiveButton(TextView activeButton, TextView inactiveButton) {
+        activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
+        activeButton.setTextColor(getResources().getColor(android.R.color.white));
+
+        inactiveButton.setBackgroundResource(R.drawable.toggle_button_unselected);
+        inactiveButton.setTextColor(getResources().getColor(R.color.dark_blue));
+    }
 }
+
