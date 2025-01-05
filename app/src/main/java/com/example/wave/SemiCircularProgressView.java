@@ -30,7 +30,7 @@ public class SemiCircularProgressView extends View {
     private void init() {
         // Background arc paint
         backgroundPaint = new Paint();
-        backgroundPaint.setColor(Color.parseColor("#395EFD")); // Blue background arc
+        backgroundPaint.setColor(Color.parseColor("#0130F8")); // Blue background arc
         backgroundPaint.setStyle(Paint.Style.STROKE);
         backgroundPaint.setStrokeWidth(60f);
         backgroundPaint.setStrokeCap(Paint.Cap.ROUND); // Rounded edges
