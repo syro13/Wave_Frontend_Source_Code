@@ -257,7 +257,7 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
                             BlogResponse blog = new BlogResponse(
                                     article.getTitle(),
                                     article.getAuthor(),
-                                    "home-tasks",
+                                    "school-tasks",
                                     article.getUrl(),
                                     article.getImageUrl()
                             );
