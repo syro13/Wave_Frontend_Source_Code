@@ -554,6 +554,29 @@
                     android:layout_marginEnd="6dp"
                     android:scrollbars="vertical"/>
 
+                <ImageView
+                    android:id="@+id/noBlogsImage"
+                    android:layout_width="170dp"
+                    android:layout_height="170dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/no_blogs"
+                    android:visibility="gone"
+                    android:layout_gravity="center"
+                    android:layout_margin="15dp"
+                    android:contentDescription="@string/no_blogs_available" />
+
+                <TextView
+                    android:id="@+id/noBlogsText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No blogs available"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:gravity="center"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone" />
+
                 <!-- AI Prompts Section -->
                 <LinearLayout
                     android:id="@+id/aiPromptsSection"
@@ -580,6 +603,15 @@
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+    <!-- Loading Indicator -->
+    <ProgressBar
+        android:id="@+id/loadingIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/dark_blue"
+        android:visibility="gone" />
+
     <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="56dp"
