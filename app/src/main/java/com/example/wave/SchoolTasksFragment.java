@@ -20,6 +20,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -94,17 +95,22 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
         // Set initial active state for buttons
         setActiveButton(schoolTasksButton, homeTasksButton);
 
-        // Handle School Tasks button click
+        // School Tasks Button Click
         schoolTasksButton.setOnClickListener(v -> {
             setActiveButton(schoolTasksButton, homeTasksButton);
+            if (getActivity() instanceof SchoolHomeTasksActivity) {
+                ((SchoolHomeTasksActivity) getActivity()).showSchoolTasksFragment();
+            }
         });
 
-        // Handle Home Tasks button click
+// Home Tasks Button Click
         homeTasksButton.setOnClickListener(v -> {
+            setActiveButton(homeTasksButton, schoolTasksButton);
             if (getActivity() instanceof SchoolHomeTasksActivity) {
                 ((SchoolHomeTasksActivity) getActivity()).showHomeTasksFragment();
             }
         });
+
 
         return view;
     }
@@ -165,7 +171,7 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
             blogs.clear();
             blogs.addAll(BlogResponse.fromJsonList(cachedBlogsJson));
             if (blogs.size() > MAX_BLOGS) {
-                blogs.subList(MAX_BLOGS, blogs.size()).clear();
+                blogs.subList(MAX_BLOGS, blogs.size()).clear(); // Limit the list to MAX_BLOGS
             }
             blogAdapter.notifyDataSetChanged();
             noBlogsImage.setVisibility(View.GONE);
@@ -179,9 +185,9 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
                     loadCachedBlogs();
                 }
             });
-
         }
     }
+
     private void fetchBlogsWithFallback() {
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
@@ -206,7 +212,7 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
                 requireContext(),
                 "https://medium2.p.rapidapi.com/",
                 "x-rapidapi-key",
-                getResources().getString(R.string.blog_api_key)
+                getResources().getString(R.string.school_api_key)
         ).create(BlogsApi.class);
 
         String[] tags = {"education", "study tips", "studying for exams"}; // Example tags
@@ -224,7 +230,7 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
                     if (response.isSuccessful() && response.body() != null) {
                         List<String> recommendedFeed = response.body().getRecommendedFeed();
                         for (String articleId : recommendedFeed) {
-                            if (blogs.size() >= MAX_BLOGS) break;
+                            if (blogs.size() >= MAX_BLOGS) break; // Stop fetching if MAX_BLOGS reached
                             fetchArticleDetails(api, articleId, prefs, todayDate);
                         }
                     }
@@ -240,10 +246,6 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
                 }
             });
         }
-    }
-
-    private void showError(String message) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     private void fetchArticleDetails(BlogsApi api, String articleId, SharedPreferences prefs, int todayDate) {
@@ -452,11 +454,14 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
      * @param inactiveButton The button to mark as inactive
      */
     private void setActiveButton(TextView activeButton, TextView inactiveButton) {
+        // Apply active button styles
         activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
-        activeButton.setTextColor(getResources().getColor(android.R.color.white));
+        activeButton.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
 
+        // Apply inactive button styles
         inactiveButton.setBackgroundResource(R.drawable.toggle_button_unselected);
-        inactiveButton.setTextColor(getResources().getColor(R.color.dark_blue));
+        inactiveButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.dark_blue));
     }
+
 }
 

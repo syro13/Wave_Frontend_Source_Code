@@ -1,6 +1,5 @@
 package com.example.wave;
 
-
 import static android.content.Context.MODE_PRIVATE;
 
 import android.content.IntentFilter;
@@ -13,13 +12,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -34,27 +32,25 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class HomeTasksFragment extends Fragment implements NetworkReceiver.NetworkChangeListener{
+public class HomeTasksFragment extends Fragment implements NetworkReceiver.NetworkChangeListener {
     private NetworkReceiver networkReceiver;
-    private static final String PREFS_BLOGS = "PrefsBlogs";
-    private static final String KEY_LAST_FETCH = "lastFetchDate";
+    private static final String PREFS_BLOGS = "HomeTasksBlogs";
+    private static final String KEY_LAST_FETCH = "lastFetchDateHomeTasks";
     private static final int MAX_BLOGS = 4;
-    private static final String PREFS_NAME = "SchoolTasksPrefs";
+    private static final String PREFS_NAME = "HomeTasksPrefs";
     private RecyclerView articleRecyclerView, promptsRecyclerView;
     private TextView noBlogsText;
     private SchoolTasksBlogAdapter blogAdapter;
     private ImageView noBlogsImage;
     private ProgressBar loadingIndicator;
-    private SchoolTasksFragment.PromptsAdapter promptsAdapter;
+    private PromptsAdapter promptsAdapter;
     private List<String> promptsList;
-
     private final List<BlogResponse> blogs = new ArrayList<>();
     private int loadingTasksRemaining = 0;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_house_tasks, container, false);
 
         TextView schoolTasksButton = view.findViewById(R.id.SchoolTasksButton);
@@ -87,70 +83,59 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
                 "How to make cleaning less stressful?",
                 "Share a tip for keeping my home clean and tidy"
         );
-
-        promptsAdapter = new SchoolTasksFragment.PromptsAdapter(promptsList, this::showPopup);
+        promptsAdapter = new PromptsAdapter(promptsList, this::showPopup);
         promptsRecyclerView.setAdapter(promptsAdapter);
+
         // Set initial active state for buttons
         setActiveButton(homeTasksButton, schoolTasksButton);
 
-        // Handle Home Tasks button click
-        homeTasksButton.setOnClickListener(v -> {
-            setActiveButton(homeTasksButton, schoolTasksButton);
-        });
-
         // Handle School Tasks button click
         schoolTasksButton.setOnClickListener(v -> {
+            setActiveButton(schoolTasksButton, homeTasksButton);
             if (getActivity() instanceof SchoolHomeTasksActivity) {
                 ((SchoolHomeTasksActivity) getActivity()).showSchoolTasksFragment();
             }
         });
+
         return view;
     }
+
     @Override
     public void onNetworkRestored() {
-        Log.d("HomeTasksActivity", "Network restored. Checking data...");
+        Log.d("HomeTasksFragment", "Network restored. Checking data...");
         reloadDataIfNeeded();  // Reload only if data is not already cached
     }
 
-
     private void reloadDataIfNeeded() {
+        if (!isAdded()) {
+            Log.w("HomeTasksFragment", "Fragment not attached, skipping reloadDataIfNeeded");
+            return;
+        }
+
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
         int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 
-        boolean needsReload = false;
-
-        // Show the loading indicator while reloading data
-        loadingIndicator.setVisibility(View.VISIBLE);
-
-        // Check if blog data needs to be reloaded
-        String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
-        if (cachedBlogsJson == null || lastFetchDate != todayDate) {
+        if (lastFetchDate != todayDate) {
             Log.d("HomeTasksFragment", "Reloading Blogs...");
-            loadCachedBlogs();
-            needsReload = true;
+            fetchBlogsWithFallback();
         } else {
-            Log.d("HomeTasksFragment", "Blogs are already cached.");
-        }
-
-        // Hide placeholders if reload is required
-        if (needsReload) {
-            Toast.makeText(requireContext(), "Internet restored. Reloading data...", Toast.LENGTH_SHORT).show();
-            noBlogsImage.setVisibility(View.GONE);
-            noBlogsText.setVisibility(View.GONE);
-        } else {
-            Log.d("HomeTasksFragment", "No reload required. Data is up-to-date.");
-            loadingIndicator.setVisibility(View.GONE); // Hide the loading indicator
+            Log.d("HomeTasksFragment", "Blogs are up-to-date.");
         }
     }
-
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         requireContext().unregisterReceiver(networkReceiver);
     }
+
     private void loadCachedBlogs() {
+        if (!isAdded()) {
+            Log.w("HomeTasksFragment", "Fragment not attached, skipping loadCachedBlogs");
+            return;
+        }
+
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
         int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
@@ -159,105 +144,103 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
         if (cachedBlogsJson != null && lastFetchDate == todayDate) {
             blogs.clear();
             blogs.addAll(BlogResponse.fromJsonList(cachedBlogsJson));
+
             if (blogs.size() > MAX_BLOGS) {
                 blogs.subList(MAX_BLOGS, blogs.size()).clear();
             }
+
             blogAdapter.notifyDataSetChanged();
             noBlogsImage.setVisibility(View.GONE);
             noBlogsText.setVisibility(View.GONE);
-        } else {
-            blogs.clear();
-            prefs.edit().remove(PREFS_BLOGS).apply();
-            fetchBlogsFromApi(prefs, todayDate, success -> {
-                if (!success) {
-                    Log.d("Blog Fetch", "Falling back to cached blogs.");
-                    loadCachedBlogs();
-                }
-            });
 
+            Log.d("HomeTasksFragment", "Loaded blogs from cache.");
+        } else {
+            Log.d("HomeTasksFragment", "No valid cache found. Fetching from API...");
+            fetchBlogsWithFallback();
         }
     }
+
     private void fetchBlogsWithFallback() {
+        if (!isAdded()) {
+            Log.w("HomeTasksFragment", "Fragment not attached, skipping fetchBlogsWithFallback");
+            return;
+        }
+
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 
-        // Fetch blogs from the API
+        blogs.clear();
+        blogAdapter.notifyDataSetChanged();
+        loadingIndicator.setVisibility(View.VISIBLE);
+
         fetchBlogsFromApi(prefs, todayDate, success -> {
             if (!success) {
-                // Fallback to cached blogs if API fails
-                Log.d("Blog Fetch", "Falling back to cached blogs.");
+                Log.d("HomeTasksFragment", "API fetch failed. Falling back to cached blogs...");
                 loadCachedBlogs();
             }
         });
     }
 
-    interface OnFetchCompleteListener {
-        void onFetchComplete(boolean success);
-    }
-
-    private void fetchBlogsFromApi(SharedPreferences prefs, int todayDate, SchoolTasksFragment.OnFetchCompleteListener listener) {
+    private void fetchBlogsFromApi(SharedPreferences prefs, int todayDate, OnFetchCompleteListener listener) {
         BlogsApi api = RetrofitClient.getRetrofitInstance(
                 requireContext(),
                 "https://medium2.p.rapidapi.com/",
                 "x-rapidapi-key",
-                getResources().getString(R.string.blog_api_key)
+                getResources().getString(R.string.school_api_key)
         ).create(BlogsApi.class);
 
-        String[] tags = {"home", "cleaning tips", "home decorating"}; // Example tags
-        blogs.clear(); // Clear old data to avoid duplicates
-        prefs.edit().remove(PREFS_BLOGS).apply(); // Clear cache
+        String[] tags = {"home", "cleaning", "decorating"};
+        loadingTasksRemaining = tags.length;
 
         for (String tag : tags) {
-            if (blogs.size() >= MAX_BLOGS) break;
-
-            loadingTasksRemaining++; // Increment for each tag
-
             api.getRecommendedFeed(tag, 1).enqueue(new Callback<RecommendedFeedResponse>() {
                 @Override
                 public void onResponse(Call<RecommendedFeedResponse> call, Response<RecommendedFeedResponse> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         List<String> recommendedFeed = response.body().getRecommendedFeed();
+
                         for (String articleId : recommendedFeed) {
                             if (blogs.size() >= MAX_BLOGS) break;
                             fetchArticleDetails(api, articleId, prefs, todayDate);
                         }
+                        listener.onFetchComplete(true);
+                    } else {
+                        listener.onFetchComplete(false);
                     }
-                    taskCompleted(); // Decrement the counter when done
-                    listener.onFetchComplete(true);
+                    taskCompleted();
                 }
 
                 @Override
                 public void onFailure(Call<RecommendedFeedResponse> call, Throwable t) {
-                    Log.e("API Error", "Failed to fetch blogs", t);
-                    taskCompleted(); // Decrement the counter even if it fails
+                    taskCompleted();
                     listener.onFetchComplete(false);
                 }
             });
         }
     }
 
-    private void showError(String message) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
-    }
-
     private void fetchArticleDetails(BlogsApi api, String articleId, SharedPreferences prefs, int todayDate) {
-        if (blogs.size() >= MAX_BLOGS) {
-            taskCompleted(); // Ensure task is marked complete if we exceed MAX_BLOGS
+        if (blogs.size() >= MAX_BLOGS || !isAdded()) {
+            taskCompleted();
             return;
         }
 
         api.getArticleInfo(articleId).enqueue(new Callback<ArticleDetails>() {
             @Override
             public void onResponse(Call<ArticleDetails> call, Response<ArticleDetails> response) {
+                if (!isAdded()) {
+                    return;
+                }
+
                 if (response.isSuccessful() && response.body() != null) {
                     ArticleDetails article = response.body();
 
-                    synchronized (blogs) { // Synchronize access to blogs
+                    synchronized (blogs) {
                         if (blogs.size() < MAX_BLOGS && !isDuplicateArticle(article)) {
                             BlogResponse blog = new BlogResponse(
                                     article.getTitle(),
                                     article.getAuthor(),
-                                    "school-tasks",
+                                    "home-tasks",
                                     article.getUrl(),
                                     article.getImageUrl()
                             );
@@ -267,13 +250,12 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
                         }
                     }
                 }
-                taskCompleted(); // Mark task as complete after fetch
+                taskCompleted();
             }
 
             @Override
             public void onFailure(Call<ArticleDetails> call, Throwable t) {
-                Log.e("Article Fetch", "Failed to fetch article details", t);
-                taskCompleted(); // Mark task as complete even on failure
+                taskCompleted();
             }
         });
     }
@@ -282,33 +264,18 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
         for (BlogResponse existingBlog : blogs) {
             if (existingBlog.getTitle().equals(article.getTitle()) &&
                     existingBlog.getAuthor().equals(article.getAuthor())) {
-                return true; // Found duplicate
+                return true;
             }
         }
         return false;
     }
 
-
-    private void fetchUserInfo(BlogsApi api, String userId, OnUserFullNameFetched callback) {
-        api.getUserInfo(userId).enqueue(new Callback<UserInfo>() {
-            @Override
-            public void onResponse(Call<UserInfo> call, Response<UserInfo> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String fullName = response.body().getFullName();
-                    callback.onFetched(fullName != null ? fullName : "Unknown Author");
-                } else {
-                    callback.onFetched("Unknown Author");
-                }
-                taskCompleted();
-            }
-            @Override
-            public void onFailure(Call<UserInfo> call, Throwable t) {
-                callback.onFetched("Unknown Author");
-                taskCompleted();
-            }
-        });
+    private void saveBlogsToCache(SharedPreferences prefs, List<BlogResponse> blogs, int todayDate) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(PREFS_BLOGS, BlogResponse.toJsonList(blogs));
+        editor.putInt(KEY_LAST_FETCH, todayDate);
+        editor.apply();
     }
-
 
     private void setupBlogsRecyclerView() {
         articleRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
@@ -319,40 +286,6 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
         blogAdapter.notifyDataSetChanged();
     }
 
-    private void addArticleToRecyclerView(ArticleDetails article, String tag, String authorFullName) {
-        if (blogs.size() >= MAX_BLOGS) return;
-        // Check if the blog already exists in the list
-        for (BlogResponse existingBlog : blogs) {
-            if (existingBlog.getTitle().equals(article.getTitle()) &&
-                    existingBlog.getAuthor().equals(authorFullName)) {
-                return; // Don't add duplicates
-            }
-        }
-        BlogResponse blog = new BlogResponse(
-                article.getTitle(),
-                authorFullName,
-                tag,
-                article.getUrl(),
-                article.getImageUrl()
-        );
-
-        blogs.add(blog);
-        blogAdapter.notifyDataSetChanged();
-        noBlogsImage.setVisibility(View.GONE);
-    }
-    private void saveBlogsToCache(SharedPreferences prefs, List<BlogResponse> blogs, int todayDate) {
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PREFS_BLOGS, BlogResponse.toJsonList(blogs));
-        editor.putInt(KEY_LAST_FETCH, todayDate);
-        editor.apply();
-    }
-    private void showNoBlogsAvailable() {
-        if (blogs.isEmpty()) {
-            noBlogsImage.setVisibility(View.VISIBLE);
-            noBlogsText.setVisibility(View.VISIBLE);
-            taskCompleted();
-        }
-    }
     private synchronized void taskCompleted() {
         loadingTasksRemaining--;
         if (loadingTasksRemaining <= 0) {
@@ -361,30 +294,29 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
     }
 
     private void showPopup(String prompt) {
-        AIContentDialog dialog = AIContentDialog.newInstance(prompt, "This is placeholder content for AI response.");
+        SchoolTasksFragment.AIContentDialog dialog = SchoolTasksFragment.AIContentDialog.newInstance(prompt, "This is placeholder content for AI response.");
         dialog.show(getParentFragmentManager(), "AIContentDialog");
     }
 
-
     // Prompts RecyclerView Adapter
-    public static class PromptsAdapter extends RecyclerView.Adapter<PromptsAdapter.ViewHolder> {
+    public static class PromptsAdapter extends RecyclerView.Adapter<HomeTasksFragment.PromptsAdapter.ViewHolder> {
         private final List<String> prompts;
-        private final OnPromptClickListener listener;
+        private final SchoolTasksFragment.PromptsAdapter.OnPromptClickListener listener;
 
-        public PromptsAdapter(List<String> prompts, OnPromptClickListener listener) {
+        public PromptsAdapter(List<String> prompts, SchoolTasksFragment.PromptsAdapter.OnPromptClickListener listener) {
             this.prompts = prompts;
             this.listener = listener;
         }
 
         @NonNull
         @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        public HomeTasksFragment.PromptsAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_ai_prompt, parent, false);
-            return new ViewHolder(view);
+            return new HomeTasksFragment.PromptsAdapter.ViewHolder(view);
         }
 
         @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull HomeTasksFragment.PromptsAdapter.ViewHolder holder, int position) {
             String prompt = prompts.get(position);
             holder.promptText.setText(prompt);
             holder.itemView.setOnClickListener(v -> listener.onClick(prompt));
@@ -414,8 +346,8 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
         private static final String TITLE_KEY = "title";
         private static final String CONTENT_KEY = "content";
 
-        public static AIContentDialog newInstance(String title, String content) {
-            AIContentDialog dialog = new AIContentDialog();
+        public static HomeTasksFragment.AIContentDialog newInstance(String title, String content) {
+            HomeTasksFragment.AIContentDialog dialog = new HomeTasksFragment.AIContentDialog();
             Bundle args = new Bundle();
             args.putString(TITLE_KEY, title);
             args.putString(CONTENT_KEY, content);
@@ -439,18 +371,18 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
             return view;
         }
     }
-    /**
-     * Updates the styles of the toggle buttons to show which one is active.
-     *
-     * @param activeButton   The button to mark as active
-     * @param inactiveButton The button to mark as inactive
-     */
-    private void setActiveButton(TextView activeButton, TextView inactiveButton) {
-        activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
-        activeButton.setTextColor(getResources().getColor(android.R.color.white));
 
+
+    public interface OnFetchCompleteListener {
+        void onFetchComplete(boolean success);
+    }
+    private void setActiveButton(TextView activeButton, TextView inactiveButton) {
+        // Apply active button styles
+        activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
+        activeButton.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
+
+        // Apply inactive button styles
         inactiveButton.setBackgroundResource(R.drawable.toggle_button_unselected);
-        inactiveButton.setTextColor(getResources().getColor(R.color.dark_blue));
+        inactiveButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.dark_blue));
     }
 }
-
