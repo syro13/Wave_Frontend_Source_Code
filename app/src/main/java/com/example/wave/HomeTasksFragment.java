@@ -43,12 +43,16 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class HomeTasksFragment extends Fragment implements NetworkReceiver.NetworkChangeListener {
+public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.SaveGroceryItemsCallback, NetworkReceiver.NetworkChangeListener
+ {
     private NetworkReceiver networkReceiver;
     private static final String PREFS_BLOGS = "HomeTasksBlogs";
     private static final String KEY_LAST_FETCH = "lastFetchDateHomeTasks";
     private static final String GroceryListPREFS_NAME = "GroceryListPrefs";
     private static final String GROCERY_LIST_KEY = "grocery_list";
+    private Dialog dialog;
+    private ArrayList<GroceryItem> groceryItems; // Declare as member variable
+    private GroceryItemAdapter adapter;
     private static final int MAX_BLOGS = 4;
     private static final String PREFS_NAME = "HomeTasksPrefs";
     private RecyclerView articleRecyclerView, promptsRecyclerView;
@@ -60,7 +64,6 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
     private List<String> promptsList;
     private final List<BlogResponse> blogs = new ArrayList<>();
     private int loadingTasksRemaining = 0;
-    private Dialog dialog;
 
     @Nullable
     @Override
@@ -118,11 +121,12 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
         // Required empty public constructor
     }
     private void setupNotesCard(View view) {
-        CardView notesCard = view.findViewById(R.id.groceryCard); // Replace with your actual ID
+        CardView notesCard = view.findViewById(R.id.groceryCard);
         notesCard.setOnClickListener(v -> showGroceryListPopup());
     }
+
     private void showGroceryListPopup() {
-        dialog = new Dialog(getContext()); // Initialize the dialog
+        Dialog dialog = new Dialog(getContext());
         dialog.setContentView(R.layout.grocery_list_popup);
 
         EditText groceryItemInput = dialog.findViewById(R.id.grocery_item_input);
@@ -136,17 +140,17 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
         lp.height = WindowManager.LayoutParams.MATCH_PARENT;
         dialog.getWindow().setAttributes(lp);
 
-        ArrayList<String> groceryList = getGroceryList();
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, groceryList);
+        groceryItems = getGroceryItems(); // Initialize the grocery list
+        adapter = new GroceryItemAdapter(getContext(), groceryItems, this); // Pass this as the callback
         groceryListItems.setAdapter(adapter);
 
         addGroceryItem.setOnClickListener(v -> {
-            String newItem = groceryItemInput.getText().toString().trim();
-            if (!newItem.isEmpty()) {
-                groceryList.add(newItem);
+            String newItemText = groceryItemInput.getText().toString().trim();
+            if (!newItemText.isEmpty()) {
+                groceryItems.add(new GroceryItem(newItemText, false));
                 adapter.notifyDataSetChanged();
                 groceryItemInput.setText("");
-                saveGroceryList(groceryList); // Autosave after each add
+                saveGroceryItems(groceryItems);
             }
         });
 
@@ -159,30 +163,43 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
         });
 
         closeButton.setOnClickListener(v -> {
-            saveGroceryList(groceryList);
+            saveGroceryItems(groceryItems);
             dialog.dismiss();
         });
 
-        dialog.setOnDismissListener(dialogInterface -> {
-            saveGroceryList(groceryList);
-        });
+        dialog.setOnDismissListener(dialogInterface -> saveGroceryItems(groceryItems));
 
         dialog.show();
     }
 
-    private void saveGroceryList(ArrayList<String> list) {
+
+    @Override
+    public void saveGroceryItems(ArrayList<GroceryItem> groceryItems) {
         SharedPreferences prefs = getContext().getSharedPreferences(GroceryListPREFS_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-
-        Set<String> set = new HashSet<>(list);
+        Set<String> set = new HashSet<>();
+        for (GroceryItem item : groceryItems) {
+            set.add(item.text + ":" + item.checked); // Save text and checked state
+        }
         editor.putStringSet(GROCERY_LIST_KEY, set);
         editor.apply();
     }
-    private ArrayList<String> getGroceryList() {
+
+    private ArrayList<GroceryItem> getGroceryItems() {
         SharedPreferences prefs = getContext().getSharedPreferences(GroceryListPREFS_NAME, Context.MODE_PRIVATE);
         Set<String> set = prefs.getStringSet(GROCERY_LIST_KEY, new HashSet<>());
-        return new ArrayList<>(set);
+        ArrayList<GroceryItem> list = new ArrayList<>();
+        if (set != null) {
+            for (String s : set) {
+                String[] parts = s.split(":");
+                if (parts.length == 2) { // Check if the string has the expected format
+                    list.add(new GroceryItem(parts[0], Boolean.parseBoolean(parts[1])));
+                }
+            }
+        }
+        return list;
     }
+
     @Override
     public void onNetworkRestored() {
         Log.d("HomeTasksFragment", "Network restored. Checking data...");
