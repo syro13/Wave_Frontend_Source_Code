@@ -2,6 +2,8 @@ package com.example.wave;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.app.Dialog;
+import android.content.Context;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -10,13 +12,19 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
@@ -26,7 +34,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -36,6 +46,8 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
     private NetworkReceiver networkReceiver;
     private static final String PREFS_BLOGS = "HomeTasksBlogs";
     private static final String KEY_LAST_FETCH = "lastFetchDateHomeTasks";
+    private static final String GroceryListPREFS_NAME = "GroceryListPrefs";
+    private static final String GROCERY_LIST_KEY = "grocery_list";
     private static final int MAX_BLOGS = 4;
     private static final String PREFS_NAME = "HomeTasksPrefs";
     private RecyclerView articleRecyclerView, promptsRecyclerView;
@@ -47,6 +59,7 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
     private List<String> promptsList;
     private final List<BlogResponse> blogs = new ArrayList<>();
     private int loadingTasksRemaining = 0;
+    private Dialog dialog;
 
     @Nullable
     @Override
@@ -97,9 +110,73 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
             }
         });
 
+        setupNotesCard(view);
         return view;
     }
+    public HomeTasksFragment() {
+        // Required empty public constructor
+    }
+    private void setupNotesCard(View view) {
+        CardView notesCard = view.findViewById(R.id.groceryCard); // Replace with your actual ID
+        notesCard.setOnClickListener(v -> showGroceryListPopup());
+    }
+    private void showGroceryListPopup() {
+        dialog = new Dialog(getContext()); // Initialize the dialog
+        dialog.setContentView(R.layout.grocery_list_popup);
 
+        EditText groceryItemInput = dialog.findViewById(R.id.grocery_item_input);
+        ListView groceryListItems = dialog.findViewById(R.id.grocery_list_items);
+        Button addGroceryItem = dialog.findViewById(R.id.add_grocery_item);
+        ImageView closeButton = dialog.findViewById(R.id.close_popup);
+
+
+        ArrayList<String> groceryList = getGroceryList();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, groceryList);
+        groceryListItems.setAdapter(adapter);
+
+        addGroceryItem.setOnClickListener(v -> {
+            String newItem = groceryItemInput.getText().toString().trim();
+            if (!newItem.isEmpty()) {
+                groceryList.add(newItem);
+                adapter.notifyDataSetChanged();
+                groceryItemInput.setText("");
+                saveGroceryList(groceryList); // Autosave after each add
+            }
+        });
+
+        groceryItemInput.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                addGroceryItem.callOnClick();
+                return true;
+            }
+            return false;
+        });
+
+        closeButton.setOnClickListener(v -> {
+            saveGroceryList(groceryList);
+            dialog.dismiss();
+        });
+
+        dialog.setOnDismissListener(dialogInterface -> {
+            saveGroceryList(groceryList);
+        });
+
+        dialog.show();
+    }
+
+    private void saveGroceryList(ArrayList<String> list) {
+        SharedPreferences prefs = getContext().getSharedPreferences(GroceryListPREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        Set<String> set = new HashSet<>(list);
+        editor.putStringSet(GROCERY_LIST_KEY, set);
+        editor.apply();
+    }
+    private ArrayList<String> getGroceryList() {
+        SharedPreferences prefs = getContext().getSharedPreferences(GroceryListPREFS_NAME, Context.MODE_PRIVATE);
+        Set<String> set = prefs.getStringSet(GROCERY_LIST_KEY, new HashSet<>());
+        return new ArrayList<>(set);
+    }
     @Override
     public void onNetworkRestored() {
         Log.d("HomeTasksFragment", "Network restored. Checking data...");
@@ -186,7 +263,7 @@ public class HomeTasksFragment extends Fragment implements NetworkReceiver.Netwo
                 requireContext(),
                 "https://medium2.p.rapidapi.com/",
                 "x-rapidapi-key",
-                getResources().getString(R.string.school_api_key)
+                getResources().getString(R.string.home_api_key)
         ).create(BlogsApi.class);
 
         String[] tags = {"home", "cleaning", "decorating"};
