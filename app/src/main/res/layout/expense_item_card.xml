@@ -28,7 +28,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_gravity="center"
-            android:src="@drawable/ic_shopping"
+            android:src="@drawable/ic_shopping_blue"
             android:contentDescription="Expense Icon" />
 
     </FrameLayout>
