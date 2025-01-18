@@ -28,20 +28,41 @@
         android:textColor="#222B45"
         android:fontFamily="@font/archivo_semibold"
         android:gravity="center_horizontal"
-        android:layout_marginBottom="15dp"
-        android:layout_marginTop="5dp"/>
+        android:layout_marginBottom="10dp" />
 
-    <!-- Expense Category Dropdown -->
-    <AutoCompleteTextView
-        android:id="@+id/expenseCategoryDropdown"
+    <RelativeLayout
+        android:id="@+id/dropdownContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Select Expense Category"
-        android:drawableStart="@drawable/ic_expense"
-        android:padding="10dp"
-        android:background="@drawable/dropdown_background"
-        android:textSize="16sp"
-        android:layout_marginBottom="5dp" />
+        android:background="@drawable/dropdown_background">
+
+        <TextView
+            android:id="@+id/expenseCategoryDropdown"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Select Expense Category"
+            android:textSize="16sp"
+            android:textColor="@color/gray"
+            android:background="@android:color/transparent"
+            android:paddingStart="16dp"
+            android:gravity="center_vertical"
+            android:drawableStart="@drawable/ic_expense"
+            android:drawablePadding="12dp"
+            android:clickable="true"
+            android:focusable="true"/>
+
+        <!-- Dropdown Arrow -->
+        <ImageView
+            android:id="@+id/dropdownArrow"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="16dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_arrow_down" />
+    </RelativeLayout>
+
+
 
     <!-- Enter Amount -->
     <TextView
