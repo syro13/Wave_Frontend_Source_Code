@@ -18,4 +18,6 @@
     <color name="keypad_button_gray">#F5F6FA</color>
     <color name="red">#FAA0A0</color>"
     <color name="green">#D5F2DD</color>"
+    <color name="spinner_icon_gray">#6B6B6B</color>
+    <color name="spinner_selected">#0130F8</color>
 </resources>
