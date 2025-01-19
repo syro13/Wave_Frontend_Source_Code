@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Scrollable Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="56dp"
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Header Section -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!-- Wave Background -->
+                <ImageView
+                    android:id="@+id/headerBackground"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/header_profile"/>
+
+                <TextView
+                    android:id="@+id/appSettingsTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Settings"
+                    android:textSize="25sp"
+                    android:fontFamily="@font/archivo_medium"
+                    android:textColor="@android:color/black"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="140dp"/>
+
+            </FrameLayout>
+
+            <!-- Settings Options Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:padding="8dp">
+
+                <!-- Preferences Title -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Preferences"
+                    android:fontFamily="@font/lato"
+                    android:textSize="16sp"
+                    android:padding="3dp"
+                    android:textColor="#747474"
+                    android:layout_margin="5dp"/>
+
+                <!-- Change App Color -->
+                <LinearLayout
+                    android:id="@+id/changeAppColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_paint"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Change App Color"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_arrow_right"/>
+                </LinearLayout>
+                <!-- Change App Typography Title -->
+
+                <LinearLayout
+                    android:id="@+id/changeaAppTypography"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_text"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Change App Typography"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_arrow_right"/>
+                </LinearLayout>
+                <!-- Change App Language -->
+                <LinearLayout
+                    android:id="@+id/changeAppLanguage"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_language"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Change App Language"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_arrow_right"/>
+                </LinearLayout>
+                <!-- Import Title -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Import"
+                    android:fontFamily="@font/lato"
+                    android:textSize="16sp"
+                    android:padding="3dp"
+                    android:textColor="#747474"
+                    android:layout_margin="5dp"/>
+                <!-- Import from Google Calender -->
+                <LinearLayout
+                    android:id="@+id/importGoogleCalender"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_import"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Import from Google Calender"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_arrow_right"/>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+    <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom"
+        android:background="#C7F9FF"
+        app:menu="@menu/bottom_nav_menu"
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/nav_icon_selector"
+        app:itemTextColor="@color/nav_text_selector" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

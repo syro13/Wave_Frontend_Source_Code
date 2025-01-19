@@ -89,7 +89,7 @@
             <LinearLayout
                 android:id="@+id/appSettings"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:orientation="horizontal"
                 android:padding="3dp"
                 android:layout_margin="10dp"
@@ -129,10 +129,12 @@
             <LinearLayout
                 android:id="@+id/changeAccountName"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:orientation="horizontal"
                 android:padding="3dp"
-                android:layout_margin="10dp">
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground">
 
                 <ImageView
                     android:layout_width="25dp"
@@ -157,10 +159,12 @@
             <LinearLayout
                 android:id="@+id/changePassword"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:orientation="horizontal"
                 android:padding="3dp"
-                android:layout_margin="10dp">
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground">
 
                 <ImageView
                     android:layout_width="25dp"
@@ -185,10 +189,12 @@
             <LinearLayout
                 android:id="@+id/changeAccountImage"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:orientation="horizontal"
                 android:padding="3dp"
-                android:layout_margin="10dp">
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground">
 
                 <ImageView
                     android:layout_width="25dp"
@@ -223,10 +229,12 @@
             <LinearLayout
                 android:id="@+id/aboutUs"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:orientation="horizontal"
                 android:padding="3dp"
-                android:layout_margin="10dp">
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground">
 
                 <ImageView
                     android:layout_width="25dp"
@@ -251,10 +259,12 @@
             <LinearLayout
                 android:id="@+id/faq"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:orientation="horizontal"
                 android:padding="3dp"
-                android:layout_margin="10dp">
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground">
 
                 <ImageView
                     android:layout_width="25dp"
@@ -279,10 +289,12 @@
             <LinearLayout
                 android:id="@+id/helpAndFeedback"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:orientation="horizontal"
                 android:padding="3dp"
-                android:layout_margin="10dp">
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground">
 
                 <ImageView
                     android:layout_width="25dp"
@@ -307,10 +319,12 @@
             <LinearLayout
                 android:id="@+id/supportUs"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:orientation="horizontal"
                 android:padding="3dp"
-                android:layout_margin="10dp">
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground">
 
                 <ImageView
                     android:layout_width="25dp"
@@ -335,10 +349,12 @@
             <LinearLayout
                 android:id="@+id/logout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:orientation="horizontal"
                 android:padding="3dp"
-                android:layout_margin="10dp">
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground">
 
                 <ImageView
                     android:layout_width="25dp"
