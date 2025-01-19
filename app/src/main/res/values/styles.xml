@@ -39,6 +39,7 @@
     <style name="RoundedBottomSheet" parent="Widget.Design.BottomSheet.Modal">
         <item name="android:layout_height">wrap_content</item>
         <item name="android:background">@drawable/rounded_bottom_sheet</item>
+    </style>
     <style name="RoundedImage">
         <item name="cornerSize">50%</item>
     </style>
