@@ -18,74 +18,74 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-        <!-- Header Section -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/headerSection"
-            android:layout_width="match_parent"
-            android:layout_height="220dp"
-            android:background="@drawable/header_pages">
+            <!-- Header Section -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/headerSection"
+                android:layout_width="match_parent"
+                android:layout_height="220dp"
+                android:background="@drawable/header_pages">
 
-            <ImageView
-                android:id="@+id/waveLogo"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_wave_logo"
-                android:contentDescription="Wave Logo"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_margin="16dp" />
+                <ImageView
+                    android:id="@+id/waveLogo"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_wave_logo"
+                    android:contentDescription="Wave Logo"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_margin="16dp" />
 
-            <ImageView
-                android:id="@+id/profileIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_profile_placeholder"
-                android:contentDescription="Profile Icon"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_margin="16dp" />
+                <ImageView
+                    android:id="@+id/profileIcon"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_profile_placeholder"
+                    android:contentDescription="Profile Icon"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_margin="16dp" />
 
-            <TextView
-                android:id="@+id/budgetPlannerTitle"
+                <TextView
+                    android:id="@+id/budgetPlannerTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="60dp"
+                    android:text="Budget Planner"
+                    android:textColor="@android:color/black"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Title Section with Icon -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginBottom="60dp"
-                android:text="Budget Planner"
-                android:textColor="@android:color/black"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:orientation="horizontal"
+                android:layout_marginBottom="2dp"
+                android:gravity="center_vertical">
 
-        <!-- Title Section with Icon -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="2dp"
-            android:gravity="center_vertical">
+                <TextView
+                    android:id="@+id/spendingOverviewTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Spending Overview"
+                    android:fontFamily="@font/archivo_medium"
+                    android:textStyle="normal"
+                    android:textSize="24sp"
+                    android:layout_marginStart="16dp"
+                    android:textColor="@android:color/black" />
 
-            <TextView
-                android:id="@+id/spendingOverviewTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Spending Overview"
-                android:fontFamily="@font/archivo_medium"
-                android:textStyle="normal"
-                android:textSize="24sp"
-                android:layout_marginStart="16dp"
-                android:textColor="@android:color/black" />
-
-            <ImageView
-                android:id="@+id/moneyIcon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginBottom="8dp"
-                android:src="@drawable/money_icon" />
-        </LinearLayout>
+                <ImageView
+                    android:id="@+id/moneyIcon"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:src="@drawable/money_icon" />
+            </LinearLayout>
             <!-- Radial Chart Section -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -125,6 +125,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Amount Spent"
+                        android:fontFamily="@font/roboto_medium"
                         android:textSize="16sp"
                         android:textColor="@android:color/black"
                         android:gravity="center" />
@@ -134,7 +135,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="€20.00"
-                        android:textSize="20sp"
+                        android:textSize="28sp"
+                        android:fontFamily="@font/inter_light"
                         android:textStyle="bold"
                         android:textColor="@color/blue"
                         android:gravity="center"
@@ -157,6 +159,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Amount Left"
+                        android:fontFamily="@font/roboto_medium"
                         android:textSize="16sp"
                         android:textColor="@android:color/black"
                         android:gravity="center" />
@@ -166,7 +169,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="€180.00"
-                        android:textSize="20sp"
+                        android:textSize="28sp"
+                        android:fontFamily="@font/inter_light"
                         android:textStyle="bold"
                         android:textColor="@color/blue"
                         android:gravity="center"
@@ -174,8 +178,139 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/budgetForTheWeekTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Budget for the Week"
+                android:fontFamily="@font/archivo_medium"
+                android:textStyle="normal"
+                android:textSize="24sp"
+                android:layout_marginStart="16dp"
+                android:textColor="@android:color/black" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="10dp"
+                android:padding="16dp"
+                android:background="@drawable/card_background"
+                android:elevation="4dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp">
+
+                <ImageView
+                    android:id="@+id/budgetIllustration"
+                    android:layout_width="match_parent"
+                    android:layout_height="160dp"
+                    android:layout_marginTop="15dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/budget_week_image"
+                    android:contentDescription="Budget Illustration" />
+
+                <!-- Total Budget and Edit Button -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="10dp">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:padding="5dp"
+                        android:layout_marginEnd="8dp"
+                        android:elevation="4dp">
+
+                        <TextView
+                            android:id="@+id/totalBudgetTitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Total Budget"
+                            android:fontFamily="@font/roboto_medium"
+                            android:textSize="16sp"
+                            android:textColor="@android:color/black"
+                            android:gravity="center" />
+
+                        <TextView
+                            android:id="@+id/totalBudgetValue"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="€200.00"
+                            android:textSize="28sp"
+                            android:fontFamily="@font/inter_light"
+                            android:textStyle="bold"
+                            android:textColor="@color/blue"
+                            android:gravity="center"
+                            android:layout_marginTop="8dp" />
+                    </LinearLayout>
+                    <Button
+                        android:id="@+id/editBudgetButton"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="50dp"
+                        android:layout_marginTop="5dp"
+                        android:text="EDIT"
+                        android:textAllCaps="false"
+                        android:textSize="18sp"
+                        android:fontFamily="@font/roboto_medium"
+                        android:textColor="@android:color/white"
+                        android:background="@drawable/rounded_button_background"
+                        android:padding="2dp"/>
+                </LinearLayout>
+            </LinearLayout>
+            <TextView
+                android:id="@+id/expensesTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Expenses"
+                android:fontFamily="@font/archivo_medium"
+                android:textStyle="normal"
+                android:textSize="24sp"
+                android:layout_marginStart="16dp"
+                android:textColor="@android:color/black" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/expensesRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp" />
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Floating Action Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addExpenseButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_marginBottom="76dp"
+        android:layout_marginRight="16dp"
+        android:contentDescription="Add Expense"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="@color/blue"
+        app:tint="@android:color/white"
+        app:fabCustomSize="70dp"
+        android:padding="10dp"
+        app:maxImageSize="40dp"/>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom"
+        android:background="#C7F9FF"
+        app:menu="@menu/bottom_nav_menu"
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/black" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

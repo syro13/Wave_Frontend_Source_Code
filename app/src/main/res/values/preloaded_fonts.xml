@@ -2,7 +2,10 @@
 <resources>
     <array name="preloaded_fonts" translatable="false">
         <item>@font/archivo_medium</item>
+        <item>@font/archivo_semibold</item>
         <item>@font/inter_light</item>
+        <item>@font/montserrat</item>
+        <item>@font/montserrat_bold</item>
         <item>@font/lato_bold</item>
     </array>
 </resources>

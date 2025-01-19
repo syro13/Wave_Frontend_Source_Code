@@ -8,6 +8,37 @@
         <item name="hintTextColor">@color/light_blue</item> <!-- Blue hint color -->
         <item name="android:textColorHint">@android:color/darker_gray</item> <!-- Gray hint text -->
     </style>
+    <style name="KeypadButtonStyle" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/keypad_button</item>
+        <item name="android:textColor">@color/blue</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:layout_width">90dp</item>
+        <item name="android:layout_height">70dp</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:gravity">center</item>
+    </style>
+    <style name="SubmitButtonStyle" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/rounded_button_background_selector</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:layout_width">300dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">@font/roboto_medium</item>
+    </style>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="bottomSheetDialogTheme">@style/RoundedBottomSheetDialogTheme</item>
+    </style>
+    <style name="RoundedBottomSheetDialogTheme" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/RoundedBottomSheet</item>
+    </style>
+
+    <style name="RoundedBottomSheet" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/rounded_bottom_sheet</item>
     <style name="RoundedImage">
         <item name="cornerSize">50%</item>
     </style>
