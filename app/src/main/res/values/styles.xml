@@ -8,4 +8,7 @@
         <item name="hintTextColor">@color/light_blue</item> <!-- Blue hint color -->
         <item name="android:textColorHint">@android:color/darker_gray</item> <!-- Gray hint text -->
     </style>
+    <style name="RoundedImage">
+        <item name="cornerSize">50%</item>
+    </style>
 </resources>
