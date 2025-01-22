@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="650dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@drawable/rounded_bottom_sheet"
+    android:padding="16dp"
+    android:layout_gravity="bottom">
+
+    <!-- Handle Bar -->
+    <View
+        android:layout_width="96dp"
+        android:layout_height="8dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/rounded_bottom_screen_indicator"
+        android:layout_marginBottom="10dp"
+        android:alpha="0.5" />
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/addExpenseTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Expense"
+        android:textSize="20sp"
+        android:textColor="#222B45"
+        android:fontFamily="@font/archivo_semibold"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="10dp" />
+
+    <RelativeLayout
+        android:id="@+id/dropdownContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/dropdown_background">
+
+        <TextView
+            android:id="@+id/expenseCategoryDropdown"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Select Expense Category"
+            android:textSize="16sp"
+            android:textColor="@color/gray"
+            android:background="@android:color/transparent"
+            android:paddingStart="16dp"
+            android:gravity="center_vertical"
+            android:drawableStart="@drawable/ic_expense"
+            android:drawablePadding="12dp"
+            android:clickable="true"
+            android:focusable="true"/>
+
+        <!-- Dropdown Arrow -->
+        <ImageView
+            android:id="@+id/dropdownArrow"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="16dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_arrow_down" />
+    </RelativeLayout>
+
+
+
+    <!-- Enter Amount -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enter Amount"
+        android:textSize="18sp"
+        android:textColor="#2743FD"
+        android:fontFamily="@font/montserrat"
+        android:padding="10dp"
+        android:gravity="center_horizontal"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp">
+
+        <!-- Euro Symbol TextView -->
+        <TextView
+            android:id="@+id/euroSymbol"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="€ "
+            android:textStyle="bold"
+            android:textSize="36sp"
+            android:textColor="#395EFD"
+            android:fontFamily="@font/montserrat_bold" />
+
+        <!-- Amount TextView -->
+        <TextView
+            android:id="@+id/amountValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="0"
+            android:textSize="36sp"
+            android:textColor="#A9B7FF"
+        android:fontFamily="@font/montserrat_bold" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="225dp"
+        android:layout_height="2dp"
+        android:background="#DEE1EF"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_gravity="center_horizontal"/>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginTop="10dp">
+
+        <!-- Keypad Grid -->
+        <GridLayout
+            android:id="@+id/keypadGrid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:rowCount="4"
+            android:alignmentMode="alignMargins"
+            android:layout_gravity="center"
+            android:padding="8dp">
+
+            <!-- Keypad Buttons -->
+            <Button
+                android:id="@+id/button1"
+                style="@style/KeypadButtonStyle"
+                android:text="1"
+               />
+            <Button
+                android:id="@+id/button2"
+                style="@style/KeypadButtonStyle"
+                android:text="2"
+               />
+
+            <Button
+                android:id="@+id/button3"
+                style="@style/KeypadButtonStyle"
+                android:text="3"
+                />
+
+            <Button
+                android:id="@+id/button4"
+                style="@style/KeypadButtonStyle"
+                android:text="4"
+                />
+
+            <Button
+                android:id="@+id/button5"
+                style="@style/KeypadButtonStyle"
+                android:text="5"
+               />
+
+            <Button
+                android:id="@+id/button6"
+                style="@style/KeypadButtonStyle"
+                android:text="6"
+               />
+
+            <Button
+                android:id="@+id/button7"
+                style="@style/KeypadButtonStyle"
+                android:text="7"
+                />
+
+            <Button
+                android:id="@+id/button8"
+                style="@style/KeypadButtonStyle"
+                android:text="8"
+                />
+
+            <Button
+                android:id="@+id/button9"
+                style="@style/KeypadButtonStyle"
+                android:text="9"
+               />
+
+            <Button
+                android:id="@+id/buttonDot"
+                style="@style/KeypadButtonStyle"
+                android:text="." />
+
+            <Button
+                android:id="@+id/button0"
+                style="@style/KeypadButtonStyle"
+                android:text="0"
+                />
+
+            <Button
+                android:id="@+id/buttonBackspace"
+                style="@style/KeypadButtonStyle"
+                android:text="⌫" />
+        </GridLayout>
+        <!-- Submit Button -->
+        <Button
+            android:id="@+id/submitButton"
+            android:layout_width="300dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/rounded_button_background"
+            android:theme="@style/SubmitButtonStyle"
+            android:text="Submit"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:fontFamily="@font/roboto_medium"
+            android:backgroundTint="@null"
+            app:backgroundTint="@null"/>
+    </LinearLayout>
+</LinearLayout>

@@ -125,6 +125,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Amount Spent"
+                        android:fontFamily="@font/roboto_medium"
                         android:textSize="16sp"
                         android:textColor="@android:color/black"
                         android:gravity="center" />
@@ -134,7 +135,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="€20.00"
-                        android:textSize="20sp"
+                        android:textSize="28sp"
+                        android:fontFamily="@font/inter_light"
                         android:textStyle="bold"
                         android:textColor="@color/blue"
                         android:gravity="center"
@@ -157,6 +159,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Amount Left"
+                        android:fontFamily="@font/roboto_medium"
                         android:textSize="16sp"
                         android:textColor="@android:color/black"
                         android:gravity="center" />
@@ -166,7 +169,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="€180.00"
-                        android:textSize="20sp"
+                        android:textSize="28sp"
+                        android:fontFamily="@font/inter_light"
                         android:textStyle="bold"
                         android:textColor="@color/blue"
                         android:gravity="center"
@@ -174,8 +178,139 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/budgetForTheWeekTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Budget for the Week"
+                android:fontFamily="@font/archivo_medium"
+                android:textStyle="normal"
+                android:textSize="24sp"
+                android:layout_marginStart="16dp"
+                android:textColor="@android:color/black" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="10dp"
+                android:padding="16dp"
+                android:background="@drawable/card_background"
+                android:elevation="4dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp">
+
+                <ImageView
+                    android:id="@+id/budgetIllustration"
+                    android:layout_width="match_parent"
+                    android:layout_height="160dp"
+                    android:layout_marginTop="15dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/budget_week_image"
+                    android:contentDescription="Budget Illustration" />
+
+                <!-- Total Budget and Edit Button -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="10dp">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:padding="5dp"
+                        android:layout_marginEnd="8dp"
+                        android:elevation="4dp">
+
+                        <TextView
+                            android:id="@+id/totalBudgetTitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Total Budget"
+                            android:fontFamily="@font/roboto_medium"
+                            android:textSize="16sp"
+                            android:textColor="@android:color/black"
+                            android:gravity="center" />
+
+                        <TextView
+                            android:id="@+id/totalBudgetValue"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="€200.00"
+                            android:textSize="28sp"
+                            android:fontFamily="@font/inter_light"
+                            android:textStyle="bold"
+                            android:textColor="@color/blue"
+                            android:gravity="center"
+                            android:layout_marginTop="8dp" />
+                    </LinearLayout>
+                    <Button
+                        android:id="@+id/editBudgetButton"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="50dp"
+                        android:layout_marginTop="5dp"
+                        android:text="EDIT"
+                        android:textAllCaps="false"
+                        android:textSize="18sp"
+                        android:fontFamily="@font/roboto_medium"
+                        android:textColor="@android:color/white"
+                        android:background="@drawable/rounded_button_background"
+                        android:padding="2dp"/>
+                </LinearLayout>
+            </LinearLayout>
+            <TextView
+                android:id="@+id/expensesTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Expenses"
+                android:fontFamily="@font/archivo_medium"
+                android:textStyle="normal"
+                android:textSize="24sp"
+                android:layout_marginStart="16dp"
+                android:textColor="@android:color/black" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/expensesRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp" />
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Floating Action Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addExpenseButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_marginBottom="76dp"
+        android:layout_marginRight="16dp"
+        android:contentDescription="Add Expense"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="@color/blue"
+        app:tint="@android:color/white"
+        app:fabCustomSize="70dp"
+        android:padding="10dp"
+        app:maxImageSize="40dp"/>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom"
+        android:background="#C7F9FF"
+        app:menu="@menu/bottom_nav_menu"
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/black" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
