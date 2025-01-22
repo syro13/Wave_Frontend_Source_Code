@@ -39,4 +39,19 @@
     <string name="quick_prompts">Quick Prompts</string>
     <string name="grocery_list">Grocery List</string>
     <string name="Home_hacks_and_guides"><![CDATA[Home Hacks & Guides\n]]></string>
-</resources>
+        <!-- Month-Year Array -->
+        <string-array name="month_year_array">
+            <item>January 2025</item>
+            <item>February 2025</item>
+            <item>March 2025</item>
+            <item>April 2025</item>
+            <item>May 2025</item>
+            <item>June 2025</item>
+            <item>July 2025</item>
+            <item>August 2025</item>
+            <item>September 2025</item>
+            <item>October 2025</item>
+            <item>November 2025</item>
+            <item>December 2025</item>
+        </string-array>
+    </resources>
