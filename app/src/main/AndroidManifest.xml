@@ -59,5 +59,13 @@
         <activity
             android:name=".WellnessActivity"
             android:exported="true" />
+
+        <activity android:name=".HomeCalendarFragment"
+            android:exported="true"/>
+
+        <activity android:name=".SchoolCalendarFragment"
+            android:exported="true"/>
+        <activity android:name=".SchoolHomeCalendarActivity"
+            android:exported="true"/>
     </application>
 </manifest>
