@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".SchoolCalendarFragment">
+
+    <!-- Scrollable Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="56dp"
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Header Section -->
+            <RelativeLayout
+                android:id="@+id/schoolHeaderBackground"
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:background="@drawable/header_dashboard">
+
+                <!-- Header Content -->
+                <ImageView
+                    android:id="@+id/waveLogo"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_wave_logo"
+                    android:contentDescription="Wave Logo"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentTop="true" />
+
+                <ImageView
+                    android:id="@+id/profileIcon"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_profile_placeholder"
+                    android:contentDescription="Profile Icon"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentTop="true" />
+
+                <TextView
+                    android:id="@+id/greetingText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="School Calendar"
+                    android:textSize="22sp"
+                    android:textColor="@android:color/black"
+                    android:textStyle="bold"
+                    android:layout_below="@id/profileIcon"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginStart="20dp"/>
+            </RelativeLayout>
+
+            <!-- Main Content -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:gravity="center"
+                android:background="#FFFFFF">
+
+                <LinearLayout
+                    android:id="@+id/tasksToggleContainer"
+                    android:layout_width="280dp"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:padding="2dp"
+                    android:background="@drawable/toggle_button_background"
+                    android:layout_marginTop="2dp">
+
+                    <TextView
+                        android:id="@+id/SchoolCalendarButton"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/toggle_button_unselected"
+                        android:gravity="center"
+                        android:text="School"
+                        android:textColor="@color/blue"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/archivo_medium"
+                        android:textAllCaps="false"
+                        android:padding="8dp" />
+
+                    <TextView
+                        android:id="@+id/homeCalendarButton"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:background="@drawable/toggle_button_selected"
+                        android:text="Home"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/archivo_medium"
+                        android:textAllCaps="false"
+                        android:padding="8dp" />
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/rounded_calendar_background"
+                android:padding="16dp"
+                android:layout_margin="16dp">
+
+                <!-- Today Section -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp">
+
+                    <!-- Today Label -->
+                    <TextView
+                        android:id="@+id/todayLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TODAY"
+                        android:textColor="@android:color/darker_gray"
+                        android:textStyle="bold"
+                        android:textSize="12sp"
+                        android:layout_alignParentStart="true" />
+
+                    <!-- Selected Date -->
+                    <TextView
+                        android:id="@+id/selectedDateText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mon, Nov 18"
+                        android:textColor="@android:color/black"
+                        android:textStyle="bold"
+                        android:textSize="20sp"
+                        android:layout_below="@id/todayLabel"
+                        android:layout_alignParentStart="true"
+                        android:layout_marginTop="4dp" />
+
+                    <!-- Expansion Icon -->
+                    <ImageView
+                        android:id="@+id/expandCollapseIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_expand_more"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:contentDescription="Expand or Collapse" />
+                </RelativeLayout>
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@android:color/darker_gray"
+                    android:alpha="0.2" />
+
+                <!-- Month and Navigation Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="8dp">
+
+                    <!-- Previous Arrow -->
+                    <ImageView
+                        android:id="@+id/previousMonth"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_arrowleft"
+                        android:contentDescription="Previous Month"
+                        android:layout_marginEnd="16dp" />
+
+                    <!-- Month and Year Dropdown -->
+                    <Spinner
+                        android:id="@+id/monthYearDropdown"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:entries="@array/month_year_array"
+                        android:spinnerMode="dropdown" />
+
+                    <!-- Next Arrow -->
+                    <ImageView
+                        android:id="@+id/nextMonth"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_arrowright"
+                        android:contentDescription="Next Month"
+                        android:layout_marginStart="16dp" />
+                </LinearLayout>
+
+                <!-- Calendar Grid -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/calendarRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                    app:spanCount="7" />
+            </LinearLayout>
+
+
+            <!-- Tasks Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="#FFFFFF">
+
+                <TextView
+                    android:id="@+id/tasksDueTodayTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Today"
+                    android:textSize="20sp"
+                    android:textColor="@color/black" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/taskRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:scrollbars="horizontal"
+                    android:layout_marginTop="16dp"
+                    android:paddingStart="3dp"
+                    android:paddingEnd="3dp"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Loading Indicator -->
+    <ProgressBar
+        android:id="@+id/loadingIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/dark_blue"
+        android:visibility="gone" />
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
