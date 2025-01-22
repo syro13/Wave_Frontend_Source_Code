@@ -162,6 +162,8 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
     }
 
     private void loadCachedBlogs() {
+        if (!isAdded()) return; // Ensure Fragment is attached
+
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
         int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
@@ -180,13 +182,14 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
             blogs.clear();
             prefs.edit().remove(PREFS_BLOGS).apply();
             fetchBlogsFromApi(prefs, todayDate, success -> {
-                if (!success) {
+                if (!success && isAdded()) { // Ensure Fragment is attached
                     Log.d("Blog Fetch", "Falling back to cached blogs.");
                     loadCachedBlogs();
                 }
             });
         }
     }
+
 
     private void fetchBlogsWithFallback() {
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
@@ -208,6 +211,8 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
 
 
     private void fetchBlogsFromApi(SharedPreferences prefs, int todayDate, OnFetchCompleteListener listener) {
+        if (!isAdded()) return; // Ensure Fragment is attached
+
         BlogsApi api = RetrofitClient.getRetrofitInstance(
                 requireContext(),
                 "https://medium2.p.rapidapi.com/",
@@ -227,21 +232,25 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
             api.getRecommendedFeed(tag, 1).enqueue(new Callback<RecommendedFeedResponse>() {
                 @Override
                 public void onResponse(Call<RecommendedFeedResponse> call, Response<RecommendedFeedResponse> response) {
+                    if (!isAdded()) return; // Ensure Fragment is attached
+
                     if (response.isSuccessful() && response.body() != null) {
                         List<String> recommendedFeed = response.body().getRecommendedFeed();
                         for (String articleId : recommendedFeed) {
-                            if (blogs.size() >= MAX_BLOGS) break; // Stop fetching if MAX_BLOGS reached
+                            if (blogs.size() >= MAX_BLOGS) break;
                             fetchArticleDetails(api, articleId, prefs, todayDate);
                         }
                     }
-                    taskCompleted(); // Decrement the counter when done
+                    taskCompleted();
                     listener.onFetchComplete(true);
                 }
 
                 @Override
                 public void onFailure(Call<RecommendedFeedResponse> call, Throwable t) {
+                    if (!isAdded()) return; // Ensure Fragment is attached
+
                     Log.e("API Error", "Failed to fetch blogs", t);
-                    taskCompleted(); // Decrement the counter even if it fails
+                    taskCompleted();
                     listener.onFetchComplete(false);
                 }
             });
