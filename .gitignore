@@ -15,7 +15,7 @@
 local.properties
 
 .idea/
-.idea/misc.xml
 .gradle/
 build/
+/app/src/main/res/values/secrets.xml
 app/src/main/res/values/secrets.xml

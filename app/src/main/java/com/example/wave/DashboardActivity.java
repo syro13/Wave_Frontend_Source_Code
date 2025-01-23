@@ -1,16 +1,20 @@
 package com.example.wave;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SnapHelper;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -27,7 +31,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class DashboardActivity extends AppCompatActivity {
+public class DashboardActivity extends BaseActivity {
 
     private RecyclerView taskRecyclerView;
     private TaskAdapter taskAdapter;
@@ -38,9 +42,21 @@ public class DashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
+        // Set up bottom navigation
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        setupBottomNavigation(bottomNavigationView);
+
         // Greeting TextView for User
         TextView greetingTextView = findViewById(R.id.greetingText);
+        CardView schoolTasksCard = findViewById(R.id.schoolTasksCard);
 
+        schoolTasksCard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DashboardActivity.this, SchoolTasksFragment.class);
+                startActivity(intent);
+            }
+        });
         // Fetch the user's display name from Firebase Authentication
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
@@ -77,16 +93,37 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Load the weather icon
         loadWeatherIcon();
+
+        findViewById(R.id.homeTasksCard).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start SchoolHomeTasksActivity
+                Intent intent = new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        findViewById(R.id.schoolTasksCard).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start SchoolHomeTasksActivity
+                Intent intent = new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    @Override
+    protected int getCurrentMenuItemId() {
+        return R.id.nav_index; // The menu item ID for the Home tab
     }
 
     private void loadDummyTasks() {
-        // Adding some dummy tasks
-        taskList.add(new Task("Wireframes for Websites", "8:00 AM", "School", true, true));
-        taskList.add(new Task("Clean Kitchen", "8:30 AM", "Home", false, false));
-        taskList.add(new Task("Do Groceries", "9:00 AM", "Personal", false, true));
-        taskList.add(new Task("Math Assignments", "10:00 AM", "School", false, false));
+        taskList.add(new Task("Wireframes for Websites", "8:00 AM", "18", "January","School", true, true));
+        taskList.add(new Task("Clean Kitchen", "9:00 AM", "19", "January","Home", false, false));
+        taskList.add(new Task("Do Groceries", "10:00 AM", "20", "January","Personal", false, true));
+        taskList.add(new Task("Math Assignments", "11:00 AM", "18", "January","School", false, false));
 
-        // Notify adapter about data changes
         taskAdapter.notifyDataSetChanged();
     }
     private void loadCurrentDate() {

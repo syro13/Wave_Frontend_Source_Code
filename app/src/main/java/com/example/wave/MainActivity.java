@@ -9,7 +9,13 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Set up bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
-        setupBottomNavigation(bottomNavigationView, R.id.nav_index); // Pass the ID of the current menu item
+        setupBottomNavigation(bottomNavigationView);
+
+    }
+    @Override
+    protected int getCurrentMenuItemId() {
+        return R.id.nav_index; // The menu item ID for the Home tab
     }
 }
