@@ -53,7 +53,7 @@
                     android:id="@+id/greetingText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="School Calendar"
+                    android:text="My Calendar"
                     android:textSize="22sp"
                     android:textColor="@android:color/black"
                     android:textStyle="bold"
@@ -214,6 +214,34 @@
 
 
             <!-- Tasks Section -->
+            <!-- Tasks Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tasksDueTodayTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Today"
+                    android:textColor="@color/black"
+                    android:textSize="20sp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/taskRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="3dp"
+                    android:paddingEnd="3dp"
+                    android:scrollbars="horizontal"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+            </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -222,23 +250,22 @@
                 android:background="#FFFFFF">
 
                 <TextView
-                    android:id="@+id/tasksDueTodayTitle"
+                    android:id="@+id/tasksDueThisWeekTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Today"
+                    android:text="This Week"
                     android:textSize="20sp"
                     android:textColor="@color/black" />
 
                 <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/taskRecyclerView"
+                    android:id="@+id/weeklyTaskRecyclerView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:scrollbars="horizontal"
+                    android:orientation="vertical"
+                    android:scrollbars="vertical"
                     android:layout_marginTop="16dp"
                     android:paddingStart="3dp"
-                    android:paddingEnd="3dp"
-                    app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+                    android:paddingEnd="3dp" />
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
