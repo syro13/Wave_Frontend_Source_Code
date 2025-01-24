@@ -38,27 +38,34 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- OnboardingActivity: Separate onboarding screen without launcher intent -->
-        <activity
-            android:name=".OnboardingActivity"
-            android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <activity
-            android:name=".LoginSignUpActivity"
-            android:exported="true" />
-        <activity
-            android:name=".IntroActivity"
-            android:exported="true" />
-        <activity
-            android:name=".MainActivity"
-            android:exported="true" />
+        </activity>
+        <!-- OnboardingActivity: Separate onboarding screen without launcher intent -->
+        <activity android:name=".OnboardingActivity" android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:exported="true"/>
+
+        <activity android:name=".LoginSignUpActivity"
+            android:exported="true"/>
+
+        <activity android:name=".IntroActivity"
+            android:exported="true"/>
+
+        <activity android:name=".MainActivity"
+            android:exported="true"/>
+
         <activity
             android:name=".DashboardActivity"
             android:exported="true"
-            android:theme="@style/Theme.Wave" />
+            android:theme="@style/Theme.Wave">
+        </activity>
+        <activity
+            android:name=".SchoolHomeTasksActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Wave">
+        </activity>
         <activity
             android:name=".WellnessActivity"
             android:exported="true" />
+        <activity android:name=".SchoolHomeCalendarActivity"
+            android:exported="true"/>
     </application>
-
 </manifest>

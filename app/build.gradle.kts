@@ -54,8 +54,13 @@ dependencies {
     implementation (libs.converter.gson)
     implementation (libs.logging.interceptor)
     implementation ("com.github.bumptech.glide:glide:4.15.1")
-    implementation ("com.google.android.material:material:1.6.0")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.15.1")
+    implementation (libs.logging.interceptor.v493)
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
+    implementation (libs.material.v1120)
+
+
 
 
 

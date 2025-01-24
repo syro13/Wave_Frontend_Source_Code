@@ -68,6 +68,14 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             }
         });
     }
+    public void updateTasks(List<Task> newTasks) {
+        taskList.clear();
+        taskList.addAll(newTasks);
+        notifyDataSetChanged();
+    }
+
+
+
 
     @Override
     public int getItemCount() {
