@@ -46,7 +46,9 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     implementation(libs.core.ktx)
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.analytics) {
+        exclude(group = "com.google.android.gms", module = "play-services-measurement-api")
+    }
     implementation (libs.play.services.auth.v2070)
     implementation ("com.google.android.material:material:1.9.0")
     implementation (libs.recyclerview)
@@ -56,9 +58,6 @@ dependencies {
     implementation ("com.github.bumptech.glide:glide:4.15.1")
     implementation ("com.google.android.material:material:1.6.0")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.15.1")
-
-
-
-
-
+    implementation(libs.facebook.login)
+    implementation ("com.facebook.android:facebook-android-sdk:16.3.0")
 }
