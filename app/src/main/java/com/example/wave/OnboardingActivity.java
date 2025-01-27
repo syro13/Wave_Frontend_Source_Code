@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import android.view.View;
 
+import com.example.wave.databinding.ActivityOnboardingBinding;
+
 public class OnboardingActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
@@ -24,7 +26,7 @@ public class OnboardingActivity extends AppCompatActivity {
     private TextView skipButton;
     private OnboardingAdapter onboardingAdapter;
     private Handler slideHandler = new Handler();
-
+    private ActivityOnboardingBinding binding;
     // Indicator Views
     private View indicator1, indicator2, indicator3;
 
@@ -33,30 +35,33 @@ public class OnboardingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_onboarding);
 
-        // Initialize views
-        viewPager = findViewById(R.id.viewPager);
-        nextButton = findViewById(R.id.nextButton);
-        skipButton = findViewById(R.id.skipButton);
-        backButton = findViewById(R.id.backButton); // Initialize backButton
-        indicator1 = findViewById(R.id.dot1);
-        indicator2 = findViewById(R.id.dot2);
-        indicator3 = findViewById(R.id.dot3);
+        // Initialize ViewBinding
+        binding = ActivityOnboardingBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
+        // Set Back Button Listener
+        binding.backButton.setOnClickListener(v -> {
+            Intent intent = new Intent(OnboardingActivity.this, IntroActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
+        // Initialize Views via Binding
+        viewPager = binding.viewPager;
+        nextButton = binding.nextButton;
+        skipButton = binding.skipButton;
+        indicator1 = binding.dot1;
+        indicator2 = binding.dot2;
+        indicator3 = binding.dot3;
+
+        // Setup Onboarding
         setupOnboardingSlides();
         setupListeners();
         setupAutoSlide();
         updateIndicators(0); // Set initial indicator
-
-        // Handle the back button functionality for backButton
-        backButton.setOnClickListener(v -> {
-            // Navigate to IntroActivity
-            Intent intent = new Intent(OnboardingActivity.this, IntroActivity.class);
-            startActivity(intent);
-            finish(); // Close OnboardingActivity
-        });
     }
+
 
 
     private void setupListeners() {
