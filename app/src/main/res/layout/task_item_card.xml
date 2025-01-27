@@ -42,7 +42,9 @@
             android:fontFamily="@font/lato"
             android:layout_marginStart="3dp"
             android:paddingTop="5dp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:ellipsize="end"
+            android:maxLines="1" />
 
         <!-- Delete Icon -->
         <ImageView
@@ -59,7 +61,7 @@
         <!-- Time and Tags Row -->
         <LinearLayout
             android:id="@+id/timeAndTagsContainer"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_below="@id/taskTitle"
@@ -158,8 +160,7 @@
                 android:src="@drawable/ic_flag"
                 android:contentDescription="High Priority"
                 android:layout_marginStart="8dp"
-                android:layout_gravity="center_vertical"
-                app:tint="@color/red" />
+                android:layout_gravity="center_vertical" />
         </LinearLayout>
     </RelativeLayout>
 </com.google.android.material.card.MaterialCardView>
