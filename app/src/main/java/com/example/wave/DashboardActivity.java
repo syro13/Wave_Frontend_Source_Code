@@ -119,10 +119,12 @@ public class DashboardActivity extends BaseActivity {
     }
 
     private void loadDummyTasks() {
-        taskList.add(new Task("Wireframes for Websites", "8:00 AM", "18", "January","School", true, true));
-        taskList.add(new Task("Clean Kitchen", "9:00 AM", "19", "January","Home", false, false));
-        taskList.add(new Task("Do Groceries", "10:00 AM", "20", "January","Personal", false, true));
-        taskList.add(new Task("Math Assignments", "11:00 AM", "18", "January","School", false, false));
+        taskList.add(new Task("Wireframes for Websites", "8:00 AM", "18", "January", "High", "School", true));
+        taskList.add(new Task("Clean Kitchen", "9:00 AM", "19", "January", "Low", "Home", false));
+        taskList.add(new Task("Do Groceries", "10:00 AM", "20", "January", "High", "Personal", true));
+        taskList.add(new Task("Math Assignments", "11:00 AM", "18", "January", "Medium", "School", false));
+
+
 
         taskAdapter.notifyDataSetChanged();
     }
