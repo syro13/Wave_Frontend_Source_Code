@@ -93,6 +93,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         notifyDataSetChanged();
     }
 
+
     @Override
     public int getItemCount() {
         return taskList.size();

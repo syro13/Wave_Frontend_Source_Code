@@ -109,10 +109,10 @@ public class HomeCalendarFragment extends Fragment {
             monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
         });
 
+
         // Initialize calendar dates
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
 
-        // Set up calendarAdapter with click listener
         calendarAdapter = new CalendarAdapter(calendarDates, selectedDate -> {
             int selectedDay = Integer.parseInt(selectedDate);
             calendar.set(Calendar.DAY_OF_MONTH, selectedDay);
@@ -120,7 +120,7 @@ public class HomeCalendarFragment extends Fragment {
             List<Task> selectedDateTasks = filterTasksByDate(selectedDay, getMonthYearList().get(calendar.get(Calendar.MONTH)));
             taskAdapter.updateTasks(selectedDateTasks);
 
-            updateWeeklyTasks(); // Refresh weekly tasks when a new date is selected
+            updateWeeklyTasks();
 
             TextView tasksDueTodayTitle = getView().findViewById(R.id.tasksDueTodayTitle);
             if (selectedDateTasks.isEmpty()) {
@@ -166,40 +166,59 @@ public class HomeCalendarFragment extends Fragment {
     }
 
     private void updateWeeklyTasks() {
-        // Get the current week range
-        int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-        int selectedDay = calendar.get(Calendar.DAY_OF_MONTH);
-        int[] weekRange = getWeekRange(selectedDay, daysInMonth);
-
-        // Filter tasks for the current week
-        List<Task> weeklyTasks = filterTasksByWeek(weekRange[0], weekRange[1], getMonthYearList().get(calendar.get(Calendar.MONTH)));
-
-        // Update the weekly task adapter
-        weeklyTaskAdapter.updateTasks(weeklyTasks);
+        String currentDateString = calendar.get(Calendar.DAY_OF_MONTH) + "/" +
+                (calendar.get(Calendar.MONTH) + 1) + "/" +
+                calendar.get(Calendar.YEAR);
+        filterTasksByWeek(currentDateString);
     }
+
+
 
 
 
     // Add this method in SchoolCalendarFragment and HomeCalendarFragment
 
-    public void addTaskToCalendar(String title, String priority, String date, String time, boolean remind) {
+    public void addTaskToCalendar(String title, String priority, String date, String time, boolean remind, String taskType) {
         if (taskList == null) {
             taskList = new ArrayList<>();
         }
 
-        // Ensure date is stored in the correct format
-        String[] dateParts = date.split("/"); // Assuming date is "28/1/2025"
-        String taskDay = dateParts[0];
-        String taskMonth = getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1); // Convert month number to name
+        // Parse the date to extract day, month, and year
+        String[] dateParts = date.split("/"); // Split the date string by "/"
+        if (dateParts.length != 3) {
+            Log.e("addTaskToCalendar", "Invalid date format: " + date);
+            Toast.makeText(requireContext(), "Invalid date format!", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // Add the task
-        Task newTask = new Task(title, time, taskDay, taskMonth, priority, "School", remind);
+        String day = dateParts[0];
+        String month = dateParts[1];
+        String year = dateParts[2];
+
+        // Create a new task
+        Task newTask = new Task(
+                title,
+                time,
+                day,
+                getMonthYearList().get(Integer.parseInt(month) - 1), // Convert month index to month name
+                priority,
+                taskType,
+                remind
+        );
+
+        // Add task to the list
         taskList.add(newTask);
 
-        // Filter and update tasks for the current day
-        List<Task> todayTasks = filterTasksByDate(calendar.get(Calendar.DAY_OF_MONTH), getMonthYearList().get(calendar.get(Calendar.MONTH)));
-        taskAdapter.updateTasks(todayTasks);
+        // Update tasks for the selected date
+        int dayInt = Integer.parseInt(day);
+        String monthName = getMonthYearList().get(Integer.parseInt(month) - 1);
+        List<Task> selectedDateTasks = filterTasksByDate(dayInt, monthName);
+        taskAdapter.updateTasks(selectedDateTasks);
 
+        // Update weekly tasks
+        updateWeeklyTasks();
+
+        // Optionally, show a confirmation toast
         Toast.makeText(requireContext(), "Task added: " + title, Toast.LENGTH_SHORT).show();
     }
 
@@ -278,39 +297,55 @@ public class HomeCalendarFragment extends Fragment {
     private List<Task> filterTasksByDate(int day, String month) {
         List<Task> filteredTasks = new ArrayList<>();
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
-
             for (Task task : taskList) {
-                // Construct task date using task's day and month
-                String taskDateString = task.getDate() + "/" + (getMonthYearList().indexOf(task.getMonth()) + 1) + "/" + Calendar.getInstance().get(Calendar.YEAR);
-                LocalDate taskDate = LocalDate.parse(taskDateString, formatter);
-
-                // Construct selected date for comparison
-                LocalDate selectedDate = LocalDate.of(Calendar.getInstance().get(Calendar.YEAR), getMonthYearList().indexOf(month) + 1, day);
-
-                // Compare the selected date and task date
-                if (taskDate.isEqual(selectedDate)) {
+                // Compare task day and month
+                if (Integer.parseInt(task.getDate()) == day &&
+                        task.getMonth().equals(month)) {
                     filteredTasks.add(task);
                 }
             }
-        } catch (DateTimeParseException e) {
-            e.printStackTrace();
-            System.out.println("Date parsing error in filterTasksByDate");
+        } catch (NumberFormatException e) {
+            Log.e("filterTasksByDate", "Error parsing task date: " + e.getMessage());
         }
         return filteredTasks;
     }
 
 
 
-    private List<Task> filterTasksByWeek(int startDay, int endDay, String month) {
-        List<Task> weeklyTasks = new ArrayList<>();
-        for (Task task : taskList) {
-            int taskDay = Integer.parseInt(task.getDate());
-            if (taskDay >= startDay && taskDay <= endDay && task.getMonth().equals(month)) {
-                weeklyTasks.add(task);
+    private void filterTasksByWeek(String dateString) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+            LocalDate selectedDate = LocalDate.parse(dateString, formatter);
+
+            int selectedWeekOfYear = selectedDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+            Log.d("WeeklyTasks", "Selected Week of Year: " + selectedWeekOfYear);
+
+            List<Task> weeklyTasks = new ArrayList<>();
+            for (Task task : taskList) {
+                try {
+                    String taskFullDate = task.getFullDate(Calendar.getInstance().get(Calendar.YEAR));
+                    Log.d("WeeklyTasks", "Parsing Task Date: " + taskFullDate);
+
+                    LocalDate taskDate = LocalDate.parse(taskFullDate, formatter);
+                    int taskWeekOfYear = taskDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+
+                    Log.d("WeeklyTasks", "Task Week: " + taskWeekOfYear + ", Task Title: " + task.getTitle());
+
+                    if (taskWeekOfYear == selectedWeekOfYear) {
+                        weeklyTasks.add(task);
+                    }
+                } catch (DateTimeParseException e) {
+                    Log.e("WeeklyTasks", "Error parsing task date: " + e.getMessage());
+                }
             }
+
+            Log.d("WeeklyTasks", "Weekly Tasks Count: " + weeklyTasks.size());
+
+            weeklyTaskAdapter.updateTasks(weeklyTasks);
+
+        } catch (DateTimeParseException e) {
+            Log.e("WeeklyTasks", "Error parsing selected date: " + e.getMessage());
         }
-        return weeklyTasks;
     }
 
 

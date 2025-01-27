@@ -1,5 +1,10 @@
 package com.example.wave;
 
+import android.util.Log;
+
+import java.util.Arrays;
+import java.util.List;
+
 public class Task {
     private String title;
     private String time;
@@ -51,39 +56,18 @@ public class Task {
 
     // Method to get full date in d/M/yyyy format
     public String getFullDate(int year) {
-        int monthIndex = getMonthIndex(month); // Convert month name to index (e.g., "January" -> 1)
-        return date + "/" + monthIndex + "/" + year;
+        int monthIndex = getMonthIndex(this.month);
+        Log.d("getFullDate", "Month: " + this.month + ", Month Index: " + monthIndex);
+        return date + "/" + (monthIndex + 1) + "/" + year;
     }
+
+
 
     // Helper method to get the month index
     private int getMonthIndex(String monthName) {
-        switch (monthName) {
-            case "January":
-                return 1;
-            case "February":
-                return 2;
-            case "March":
-                return 3;
-            case "April":
-                return 4;
-            case "May":
-                return 5;
-            case "June":
-                return 6;
-            case "July":
-                return 7;
-            case "August":
-                return 8;
-            case "September":
-                return 9;
-            case "October":
-                return 10;
-            case "November":
-                return 11;
-            case "December":
-                return 12;
-            default:
-                throw new IllegalArgumentException("Invalid month: " + monthName);
-        }
+        List<String> months = Arrays.asList("January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December");
+        return months.indexOf(monthName);
     }
+
 }

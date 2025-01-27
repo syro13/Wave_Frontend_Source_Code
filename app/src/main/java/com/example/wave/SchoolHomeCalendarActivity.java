@@ -75,6 +75,8 @@ public class SchoolHomeCalendarActivity extends BaseActivity {
 
         // Initialize inputs
         EditText taskTitleInput = dialogView.findViewById(R.id.taskTitleInput);
+        MaterialButton schoolButton = dialogView.findViewById(R.id.schoolTaskButtonInput);
+        MaterialButton homeButton = dialogView.findViewById(R.id.homeTaskButtonInput);
         MaterialButton highPriorityButton = dialogView.findViewById(R.id.highPriorityButton);
         MaterialButton mediumPriorityButton = dialogView.findViewById(R.id.mediumPriorityButton);
         MaterialButton lowPriorityButton = dialogView.findViewById(R.id.lowPriorityButton);
@@ -94,12 +96,24 @@ public class SchoolHomeCalendarActivity extends BaseActivity {
         // Set up time picker
         selectTimeInput.setOnClickListener(v -> showTimePicker(selectTimeInput));
 
-        // Task priority selection
+        // Task priority and type selection
         final String[] taskPriority = {""};
+        final String[] taskType = {""};
 
+        // Handle task type selection
+        schoolButton.setOnClickListener(v -> {
+            taskType[0] = "School";
+            schoolButton.setBackgroundResource(R.drawable.rounded_green_background);
+        });
+
+        homeButton.setOnClickListener(v -> {
+            taskType[0] = "Home";
+            homeButton.setBackgroundResource(R.drawable.rounded_yellow_background);
+        });
+
+        // Handle task priority selection
         highPriorityButton.setOnClickListener(v -> {
             taskPriority[0] = "High";
-            // Update priority flag
             highPriorityButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_high_priority, 0, 0, 0);
             mediumPriorityButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
             lowPriorityButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
@@ -107,7 +121,6 @@ public class SchoolHomeCalendarActivity extends BaseActivity {
 
         mediumPriorityButton.setOnClickListener(v -> {
             taskPriority[0] = "Medium";
-            // Update priority flag
             mediumPriorityButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_medium_priority, 0, 0, 0);
             highPriorityButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
             lowPriorityButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
@@ -115,12 +128,10 @@ public class SchoolHomeCalendarActivity extends BaseActivity {
 
         lowPriorityButton.setOnClickListener(v -> {
             taskPriority[0] = "Low";
-            // Update priority flag
             lowPriorityButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_low_priority, 0, 0, 0);
             highPriorityButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
             mediumPriorityButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
         });
-
 
         // Handle task creation
         createTaskButton.setOnClickListener(v -> {
@@ -129,16 +140,16 @@ public class SchoolHomeCalendarActivity extends BaseActivity {
             String taskTime = selectTimeInput.getText().toString();
             boolean remind = remindSwitch.isChecked();
 
-            if (validateInputs(taskTitle, taskDate, taskTime, taskPriority[0])) {
+            if (validateInputs(taskTitle, taskDate, taskTime, taskPriority[0], taskType[0])) {
                 if (isSchoolCalendarFragmentActive) {
                     SchoolCalendarFragment fragment = (SchoolCalendarFragment) getSupportFragmentManager().findFragmentById(R.id.home_school_calendar_container);
                     if (fragment != null) {
-                        fragment.addTaskToCalendar(taskTitle, taskPriority[0], taskDate, taskTime, remind);
+                        fragment.addTaskToCalendar(taskTitle, taskPriority[0], taskDate, taskTime, remind, taskType[0]);
                     }
                 } else {
                     HomeCalendarFragment fragment = (HomeCalendarFragment) getSupportFragmentManager().findFragmentById(R.id.home_school_calendar_container);
                     if (fragment != null) {
-                        fragment.addTaskToCalendar(taskTitle, taskPriority[0], taskDate, taskTime, remind);
+                        fragment.addTaskToCalendar(taskTitle, taskPriority[0], taskDate, taskTime, remind, taskType[0]);
                     }
                 }
                 dialog.dismiss();
@@ -149,6 +160,11 @@ public class SchoolHomeCalendarActivity extends BaseActivity {
 
         dialog.show();
     }
+
+    private boolean validateInputs(String title, String date, String time, String priority, String type) {
+        return !title.isEmpty() && !date.isEmpty() && !time.isEmpty() && !priority.isEmpty() && !type.isEmpty();
+    }
+
 
     private boolean validateInputs(String title, String date, String time, String priority) {
         return !title.isEmpty() && !date.isEmpty() && !time.isEmpty() && !priority.isEmpty();
