@@ -140,6 +140,7 @@
 
                     <!-- Wellness Card -->
                     <androidx.cardview.widget.CardView
+                        android:id="@+id/wellnessTasksCard"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_margin="8dp"
@@ -179,6 +180,7 @@
 
                     <!-- Budget Planner Card -->
                     <androidx.cardview.widget.CardView
+                        android:id="@+id/budgetTasksCard"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_margin="8dp"

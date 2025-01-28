@@ -111,6 +111,22 @@ public class DashboardActivity extends BaseActivity {
                 startActivity(intent);
             }
         });
+        findViewById(R.id.wellnessTasksCard).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start Wellness Activity
+                Intent intent = new Intent(DashboardActivity.this, WellnessActivity.class);
+                startActivity(intent);
+            }
+        });
+        findViewById(R.id.budgetTasksCard).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start Budget Activity
+                Intent intent = new Intent(DashboardActivity.this, BudgetPlannerActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override

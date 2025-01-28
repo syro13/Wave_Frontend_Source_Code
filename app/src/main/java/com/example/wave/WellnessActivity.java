@@ -15,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -25,7 +27,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class WellnessActivity extends AppCompatActivity implements NetworkReceiver.NetworkChangeListener {
+public class WellnessActivity extends BaseActivity implements NetworkReceiver.NetworkChangeListener {
     private NetworkReceiver networkReceiver;
     private static final String PREFS_NAME = "WellnessPrefs";
     private static final String KEY_QUOTE = "quoteText";
@@ -52,6 +54,11 @@ public class WellnessActivity extends AppCompatActivity implements NetworkReceiv
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wellness);
+
+        // Set up bottom navigation
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        setupBottomNavigation(bottomNavigationView);
+
 // Clear SharedPreferences for testing
  //       getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().clear().apply();
         // Initialize views
@@ -85,6 +92,11 @@ public class WellnessActivity extends AppCompatActivity implements NetworkReceiv
         IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(networkReceiver, filter);
     }
+    @Override
+    protected int getCurrentMenuItemId() {
+        return R.id.nav_index; // The menu item ID for the Home tab
+    }
+
     @Override
     public void onNetworkRestored() {
         Log.d("WellnessActivity", "Network restored. Checking data...");
