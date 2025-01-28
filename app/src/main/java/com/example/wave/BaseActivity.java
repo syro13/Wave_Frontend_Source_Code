@@ -38,7 +38,12 @@ public abstract class BaseActivity extends AppCompatActivity {
             intent = new Intent(this, DashboardActivity.class);
         } else if (itemId == R.id.nav_calendar) {
             intent = new Intent(this, SchoolHomeCalendarActivity.class);
-        } // Add other navigation cases here (e.g., Settings, Profile)
+        } else if (itemId == R.id.nav_settings) {
+            intent = new Intent(this, SettingsActivity.class);
+        } else if (itemId == R.id.nav_profile) {
+            intent = new Intent(this, ProfileActivity.class);
+        }
+
 
         if (intent != null) {
             startActivity(intent);
