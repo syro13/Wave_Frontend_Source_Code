@@ -19,21 +19,33 @@ import androidx.fragment.app.Fragment;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
 
-public class LoginFragment extends Fragment {
+import java.util.Arrays;
+
+public class LoginFragment extends Fragment implements TwitterAuthManager.Callback {
 
     private FirebaseAuth mAuth; // Firebase Authentication instance
     private GoogleSignInClient googleSignInClient; // Google Sign-In client
     private EditText emailInput, passwordInput;
+
+    private CallbackManager callbackManager;
+    private TwitterAuthManager twitterAuthManager;
 
     @Nullable
     @Override
@@ -42,6 +54,12 @@ public class LoginFragment extends Fragment {
 
         // Initialize Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
+
+        // Initialize TwitterAuthManager with the Activity
+        twitterAuthManager = TwitterAuthManager.getInstance(requireActivity(), this);
+
+        // Initialize Facebook Callback Manager
+        callbackManager = CallbackManager.Factory.create();
 
         // Configure Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -57,6 +75,8 @@ public class LoginFragment extends Fragment {
         TextView loginButton = view.findViewById(R.id.loginButton);
         TextView signupButton = view.findViewById(R.id.signupButton);
         ImageView googleSignInButton = view.findViewById(R.id.googleIcon); // Google sign-in button (ImageView)
+        ImageView facebookIcon = view.findViewById(R.id.facebookIcon);
+        ImageView twitterIcon = view.findViewById(R.id.twitterIcon);
 
         // Set initial active state
         setActiveButton(loginButton, signupButton);
@@ -77,6 +97,13 @@ public class LoginFragment extends Fragment {
 
         // Handle Google Sign-In Button Click
         googleSignInButton.setOnClickListener(v -> signInWithGoogle());
+
+        // Handle Facebook Sign-Up Button Click
+        facebookIcon.setOnClickListener(v -> loginWithFacebook());
+
+        // Handle Twitter Sign-Up Button Click
+        twitterIcon.setOnClickListener(v -> loginWithTwitter());
+
 
         return view;
     }
@@ -139,6 +166,74 @@ public class LoginFragment extends Fragment {
     }
 
 
+    private void loginWithTwitter() {
+        twitterAuthManager.signIn();
+    }
+
+    @Override
+    public void updateUI(FirebaseUser user) {
+        if (user != null) {
+            Toast.makeText(getContext(), "Twitter Login Successful: " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
+            navigateToDashboard(user);
+        } else {
+            Toast.makeText(getContext(), "Twitter Login Failed", Toast.LENGTH_SHORT).show();
+        }
+    }
+    /**
+     * ✅ Facebook Authentication
+     */
+    private void loginWithFacebook() {
+        LoginManager.getInstance().logInWithReadPermissions(LoginFragment.this, Arrays.asList("email", "public_profile"));
+
+        LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                handleFacebookAccessToken(loginResult.getAccessToken());
+            }
+
+            @Override
+            public void onCancel() {
+                Toast.makeText(getContext(), "Facebook login canceled", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+                Toast.makeText(getContext(), "Facebook login failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void handleFacebookAccessToken(AccessToken token) {
+        AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        Toast.makeText(getContext(), "Facebook Login Successful", Toast.LENGTH_SHORT).show();
+                        navigateToDashboard(user);
+                    } else {
+                        Toast.makeText(getContext(), "Facebook Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+    /**
+     * Navigate to Dashboard after successful login.
+     */
+    private void navigateToDashboard(FirebaseUser user) {
+        if (getActivity() != null && user != null) {
+            Intent intent = new Intent(getActivity(), DashboardActivity.class);
+            intent.putExtra("USER_NAME", user.getDisplayName());
+            getActivity().finish();
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
 
     private void setActiveButton(TextView activeButton, TextView inactiveButton) {
         activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
