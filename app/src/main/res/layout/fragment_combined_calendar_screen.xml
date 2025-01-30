@@ -94,11 +94,7 @@
                         android:textColor="@color/blue"
                         android:textStyle="bold" />
                     <!-- Grey vertical line at the end -->
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginStart="2dp"
-                        android:background="@android:color/darker_gray" />
+
 
                     <TextView
                         android:id="@+id/homeCalendarButton"
@@ -136,7 +132,7 @@
                         android:padding="8dp"
                         android:text="School"
                         android:textAllCaps="false"
-                        android:textColor="@android:color/black"
+                        android:textColor="@color/gray"
                         android:textStyle="bold" />
 
                     <TextView
@@ -150,7 +146,7 @@
                         android:padding="8dp"
                         android:text="Both"
                         android:textAllCaps="false"
-                        android:textColor="@android:color/black"
+                        android:textColor="@color/gray"
                         android:textStyle="bold" />
 
                     <TextView
@@ -164,7 +160,7 @@
                         android:padding="8dp"
                         android:text="House"
                         android:textAllCaps="false"
-                        android:textColor="@android:color/black"
+                        android:textColor="@color/gray"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
