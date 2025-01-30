@@ -176,6 +176,7 @@ public class SchoolCalendarFragment extends Fragment {
 
 
 
+
     // Add this method in SchoolCalendarFragment and HomeCalendarFragment
 
     public void addTaskToCalendar(String title, String priority, String date, String time, boolean remind, String taskType) {
