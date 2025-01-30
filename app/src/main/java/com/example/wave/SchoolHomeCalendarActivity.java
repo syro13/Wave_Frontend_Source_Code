@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,7 +23,8 @@ import java.util.Calendar;
 import java.util.Locale;
 
 public class SchoolHomeCalendarActivity extends BaseActivity {
-
+    private enum ActiveFragment { SCHOOL, HOME, COMBINED }
+    private ActiveFragment activeFragment = ActiveFragment.COMBINED;
     private boolean isSchoolCalendarFragmentActive = true;
 
     @Override
@@ -36,12 +38,13 @@ public class SchoolHomeCalendarActivity extends BaseActivity {
 
         // Load the SchoolCalendarFragment by default
         if (savedInstanceState == null) {
-            loadFragment(new SchoolCalendarFragment());
+            loadFragment(new CombinedCalendarFragment()); // Load Combined View
         }
 
         // Set up Add Task button
         FloatingActionButton addTaskButton = findViewById(R.id.addTaskButton);
         addTaskButton.setOnClickListener(v -> showAddTaskDialog());
+
     }
 
     @Override
@@ -56,16 +59,24 @@ public class SchoolHomeCalendarActivity extends BaseActivity {
     }
 
     public void showSchoolCalendarFragment() {
-        if (!isSchoolCalendarFragmentActive) {
+        if (activeFragment != ActiveFragment.SCHOOL) {
             loadFragment(new SchoolCalendarFragment());
-            isSchoolCalendarFragmentActive = true;
+            activeFragment = ActiveFragment.SCHOOL;
         }
     }
 
     public void showHomeCalendarFragment() {
-        if (isSchoolCalendarFragmentActive) {
+        if (activeFragment != ActiveFragment.HOME) {
             loadFragment(new HomeCalendarFragment());
-            isSchoolCalendarFragmentActive = false;
+            activeFragment = ActiveFragment.HOME;
+        }
+    }
+
+
+    public void showCombinedCalendarFragment() {
+        if (activeFragment != ActiveFragment.COMBINED) {
+            loadFragment(new CombinedCalendarFragment());
+            activeFragment = ActiveFragment.COMBINED;
         }
     }
 
@@ -187,4 +198,5 @@ public class SchoolHomeCalendarActivity extends BaseActivity {
         }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true);
         timePickerDialog.show();
     }
+
 }
