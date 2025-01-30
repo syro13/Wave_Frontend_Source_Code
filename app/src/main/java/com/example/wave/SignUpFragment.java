@@ -1,6 +1,8 @@
 package com.example.wave;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -34,15 +36,17 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
 
+
 import java.util.Arrays;
 
-public class SignUpFragment extends Fragment {
+public class SignUpFragment extends Fragment implements TwitterAuthManager.Callback {
 
     private FirebaseAuth mAuth; // Firebase Authentication instance
     private EditText nameInput, emailInput, passwordInput, confirmPasswordInput;
     private GoogleSignInClient googleSignInClient;
     private static final int RC_SIGN_IN = 123; // Request code for Google Sign-In
     private CallbackManager callbackManager;
+    private TwitterAuthManager twitterAuthManager;
 
     @Nullable
     @Override
@@ -51,6 +55,9 @@ public class SignUpFragment extends Fragment {
 
         // Initialize Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
+
+        // Initialize TwitterAuthManager with the Activity
+        twitterAuthManager = TwitterAuthManager.getInstance(requireActivity(), this);
 
         // Initialize Facebook Callback Manager
         callbackManager = CallbackManager.Factory.create();
@@ -68,6 +75,7 @@ public class SignUpFragment extends Fragment {
         TextView signupButton = view.findViewById(R.id.signupButton);
         ImageView googleIcon = view.findViewById(R.id.googleIcon);
         ImageView facebookIcon = view.findViewById(R.id.facebookIcon);
+        ImageView twitterIcon = view.findViewById(R.id.twitterIcon);
 
         // Set initial active state
         setActiveButton(signupButton, loginButton);
@@ -92,8 +100,11 @@ public class SignUpFragment extends Fragment {
         // Handle Google Sign-Up Button Click
         googleIcon.setOnClickListener(v -> signUpWithGoogle());
 
-        // Handle Facebook Login Click
+        // Handle Facebook Sign-Up Button Click
         facebookIcon.setOnClickListener(v -> signUpWithFacebook());
+
+        // Handle Twitter Sign-Up Button Click
+        twitterIcon.setOnClickListener(v -> signUpWithTwitter());
 
         return view;
     }
@@ -134,12 +145,12 @@ public class SignUpFragment extends Fragment {
 
             @Override
             public void onCancel() {
-                Toast.makeText(getContext(), "Facebook login canceled", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Facebook signup canceled", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onError(FacebookException error) {
-                Toast.makeText(getContext(), "Facebook login failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Facebook signup failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -160,6 +171,21 @@ public class SignUpFragment extends Fragment {
                     }
                 });
     }
+
+    private void signUpWithTwitter() {
+        twitterAuthManager.signIn();
+    }
+
+    @Override
+    public void updateUI(FirebaseUser user) {
+        if (user != null) {
+            Toast.makeText(getContext(), "Twitter Sign-In Successful: " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
+            navigateToDashboard(user);
+        } else {
+            Toast.makeText(getContext(), "Twitter Sign-In Failed", Toast.LENGTH_SHORT).show();
+        }
+    }
+    /**
 
     /**
      * Navigate to Dashboard after successful login.
