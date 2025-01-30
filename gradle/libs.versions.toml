@@ -4,6 +4,7 @@ appcompatVersion = "1.7.0"
 constraintlayout = "2.2.0"
 converterGson = "2.9.0"
 coreKtx = "1.15.0"
+desugar_jdk_libs = "2.1.4"
 firebaseBom = "33.6.0"
 fragmentKtx = "1.8.5"
 googleMaterial = "1.12.0"
@@ -28,6 +29,7 @@ appcompat-v170 = { module = "androidx.appcompat:appcompat", version.ref = "appco
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }

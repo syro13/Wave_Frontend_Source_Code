@@ -18,13 +18,13 @@
         tools:targetApi="31">
         <activity
             android:name=".SettingsActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".ProfileActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".BudgetPlannerActivity"
-            android:exported="false" />
+            android:exported="true" />
 
         <meta-data
             android:name="preloaded_fonts"
@@ -65,12 +65,6 @@
         <activity
             android:name=".WellnessActivity"
             android:exported="true" />
-
-        <activity android:name=".HomeCalendarFragment"
-            android:exported="true"/>
-
-        <activity android:name=".SchoolCalendarFragment"
-            android:exported="true"/>
         <activity android:name=".SchoolHomeCalendarActivity"
             android:exported="true"/>
     </application>

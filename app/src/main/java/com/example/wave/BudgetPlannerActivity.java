@@ -8,9 +8,10 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-public class BudgetPlannerActivity extends AppCompatActivity {
+public class BudgetPlannerActivity extends BaseActivity {
 
     private SemiCircularProgressView semiCircularProgressView;
 
@@ -18,6 +19,9 @@ public class BudgetPlannerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget_planner);
+        // Set up bottom navigation
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        setupBottomNavigation(bottomNavigationView);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
 
@@ -64,5 +68,11 @@ public class BudgetPlannerActivity extends AppCompatActivity {
             String amount = result.getString("budget_amount");
             Toast.makeText(this, "Budget Set: €" + amount, Toast.LENGTH_SHORT).show();
         });
+
+    }
+
+    @Override
+    protected int getCurrentMenuItemId() {
+        return R.id.nav_index; // The menu item ID for the Home tab
     }
 }

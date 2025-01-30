@@ -8,9 +8,9 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,21 +19,23 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 public class SchoolCalendarFragment extends Fragment {
 
-    private RecyclerView calendarRecyclerView, taskRecyclerView;
+    private RecyclerView calendarRecyclerView, taskRecyclerView, weeklyTaskRecyclerView;
     private CalendarAdapter calendarAdapter;
-    private TaskAdapter taskAdapter;
+    private TaskAdapter taskAdapter, weeklyTaskAdapter;
     private List<String> calendarDates;
     private List<Task> taskList;
     private Calendar calendar;
-    private boolean isExpanded = true;
     private Spinner monthYearDropdown;
-    private TextView schoolCalendarButton, homeCalendarButton; // Toggle buttons
+    private TextView homeCalendarButton, schoolCalendarButton; // Toggle buttons
 
     @Nullable
     @Override
@@ -43,26 +45,25 @@ public class SchoolCalendarFragment extends Fragment {
         // Initialize calendar
         calendar = Calendar.getInstance();
 
-        // Initialize task list before loading dummy tasks
+        // Initialize task list
         taskList = new ArrayList<>();
 
         // Initialize views
         calendarRecyclerView = view.findViewById(R.id.calendarRecyclerView);
         taskRecyclerView = view.findViewById(R.id.taskRecyclerView);
+        weeklyTaskRecyclerView = view.findViewById(R.id.weeklyTaskRecyclerView);
         monthYearDropdown = view.findViewById(R.id.monthYearDropdown);
-        ImageView expandCollapseIcon = view.findViewById(R.id.expandCollapseIcon);
+        TextView tasksDueThisWeekTitle = view.findViewById(R.id.tasksDueThisWeekTitle);
         ImageView previousMonth = view.findViewById(R.id.previousMonth);
         ImageView nextMonth = view.findViewById(R.id.nextMonth);
 
         // Initialize toggle buttons
-        schoolCalendarButton = view.findViewById(R.id.SchoolCalendarButton);
         homeCalendarButton = view.findViewById(R.id.homeCalendarButton);
+        schoolCalendarButton = view.findViewById(R.id.SchoolCalendarButton);
 
         // Set initial active state for toggle buttons
         setActiveButton(schoolCalendarButton, homeCalendarButton);
 
-
-        // Handle Home Tasks button click
         homeCalendarButton.setOnClickListener(v -> {
             setActiveButton(homeCalendarButton, schoolCalendarButton);
             if (getActivity() instanceof SchoolHomeCalendarActivity) {
@@ -70,13 +71,18 @@ public class SchoolCalendarFragment extends Fragment {
             }
         });
 
+        schoolCalendarButton.setOnClickListener(v -> {
+            setActiveButton(schoolCalendarButton, homeCalendarButton);
+            if (getActivity() instanceof SchoolHomeCalendarActivity) {
+                ((SchoolHomeCalendarActivity) getActivity()).showSchoolCalendarFragment();
+            }
+        });
 
         // Set up spinner
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, getMonthYearList());
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         monthYearDropdown.setAdapter(adapter);
 
-        // Handle dropdown selection
         monthYearDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -94,78 +100,154 @@ public class SchoolCalendarFragment extends Fragment {
         previousMonth.setOnClickListener(v -> {
             calendar.add(Calendar.MONTH, -1);
             updateCalendar();
+            monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
         });
 
         nextMonth.setOnClickListener(v -> {
             calendar.add(Calendar.MONTH, 1);
             updateCalendar();
+            monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
         });
 
-        // Expand/collapse logic
-        expandCollapseIcon.setOnClickListener(v -> {
-            isExpanded = !isExpanded;
-            updateCalendarView(isExpanded);
 
-            // Update the icon based on the current state
-            if (isExpanded) {
-                expandCollapseIcon.setImageResource(R.drawable.ic_unexpand); // "Up arrow"
+        // Initialize calendar dates
+        calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
+
+        calendarAdapter = new CalendarAdapter(calendarDates, selectedDate -> {
+            int selectedDay = Integer.parseInt(selectedDate);
+            calendar.set(Calendar.DAY_OF_MONTH, selectedDay);
+
+            List<Task> selectedDateTasks = filterTasksByDate(selectedDay, getMonthYearList().get(calendar.get(Calendar.MONTH)));
+            taskAdapter.updateTasks(selectedDateTasks);
+
+            updateWeeklyTasks();
+
+            TextView tasksDueTodayTitle = getView().findViewById(R.id.tasksDueTodayTitle);
+            if (selectedDateTasks.isEmpty()) {
+                tasksDueTodayTitle.setText("No tasks for selected date");
             } else {
-                expandCollapseIcon.setImageResource(R.drawable.ic_expand_more); // "Down arrow"
+                tasksDueTodayTitle.setText("Tasks for " + selectedDate);
             }
         });
 
-        // Initialize calendar dates and adapters
-        calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
-
-        calendarAdapter = new CalendarAdapter(calendarDates, date -> {
-            // Get the selected month as a string
-            String selectedMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
-
-            // Filter tasks for the selected date
-            List<Task> filteredTasks = filterTasksByDate(date, selectedMonth);
-
-            // Update the TaskAdapter with the filtered tasks
-            taskAdapter.updateTasks(filteredTasks);
-        });
-
-        taskAdapter = new TaskAdapter(new ArrayList<>(), position -> {
-            // Handle task deletion
-            taskList.remove(position);
-            taskAdapter.notifyItemRemoved(position);
-        });
-
-        // Set up RecyclerViews
         calendarRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 7));
         calendarRecyclerView.setAdapter(calendarAdapter);
+
+        // Initialize task adapters with proper deletion logic
+        taskAdapter = new TaskAdapter(new ArrayList<>(), position -> {
+            Task taskToRemove = taskAdapter.getTaskList().get(position);
+            taskList.remove(taskToRemove);
+            taskAdapter.notifyItemRemoved(position);
+            updateTasksForToday(view);
+            updateWeeklyTasks(); // Refresh weekly tasks
+        });
+
+        weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), position -> {
+            Task taskToRemove = weeklyTaskAdapter.getTaskList().get(position);
+            taskList.remove(taskToRemove);
+            weeklyTaskAdapter.removeTask(position);
+            updateTasksForToday(view);
+            updateWeeklyTasks(); // Refresh weekly tasks
+        });
 
         taskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         taskRecyclerView.setAdapter(taskAdapter);
 
-        // Load dummy tasks
-        loadDummyTasks();
+        weeklyTaskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false));
+        weeklyTaskRecyclerView.setAdapter(weeklyTaskAdapter);
 
-        // Set the spinner to the current month
+        loadDummyTasks(); // Load initial tasks
+
+        updateTasksForToday(view);
+
         monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
 
         return view;
     }
 
+    private void updateWeeklyTasks() {
+        String currentDateString = calendar.get(Calendar.DAY_OF_MONTH) + "/" +
+                (calendar.get(Calendar.MONTH) + 1) + "/" +
+                calendar.get(Calendar.YEAR);
+        filterTasksByWeek(currentDateString);
+    }
+
+
+
+
+
+    // Add this method in SchoolCalendarFragment and HomeCalendarFragment
+
+    public void addTaskToCalendar(String title, String priority, String date, String time, boolean remind, String taskType) {
+        if (taskList == null) {
+            taskList = new ArrayList<>();
+        }
+
+        // Parse the date to extract day, month, and year
+        String[] dateParts = date.split("/"); // Split the date string by "/"
+        if (dateParts.length != 3) {
+            Log.e("addTaskToCalendar", "Invalid date format: " + date);
+            Toast.makeText(requireContext(), "Invalid date format!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String day = dateParts[0];
+        String month = dateParts[1];
+        String year = dateParts[2];
+
+        // Create a new task
+        Task newTask = new Task(
+                title,
+                time,
+                day,
+                getMonthYearList().get(Integer.parseInt(month) - 1), // Convert month index to month name
+                priority,
+                taskType,
+                remind
+        );
+
+        // Add task to the list
+        taskList.add(newTask);
+
+        // Update tasks for the selected date
+        int dayInt = Integer.parseInt(day);
+        String monthName = getMonthYearList().get(Integer.parseInt(month) - 1);
+        List<Task> selectedDateTasks = filterTasksByDate(dayInt, monthName);
+        taskAdapter.updateTasks(selectedDateTasks);
+
+        // Update weekly tasks
+        updateWeeklyTasks();
+
+        // Optionally, show a confirmation toast
+        Toast.makeText(requireContext(), "Task added: " + title, Toast.LENGTH_SHORT).show();
+    }
+
+
+
+
+
+    private void updateTasksForToday(View rootView) {
+        calendar = Calendar.getInstance(); // Get the current date
+        TextView tasksDueTodayTitle = rootView.findViewById(R.id.tasksDueTodayTitle);
+
+        // Filter tasks for today
+        List<Task> todayTasks = filterTasksByDate(calendar.get(Calendar.DAY_OF_MONTH), getMonthYearList().get(calendar.get(Calendar.MONTH)));
+        taskAdapter.updateTasks(todayTasks);
+
+        if (todayTasks.isEmpty()) {
+            tasksDueTodayTitle.setText("No tasks for today");
+        } else {
+            tasksDueTodayTitle.setText("Tasks for Today");
+        }
+    }
+
+
     private void updateCalendar() {
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
         calendarAdapter.updateData(calendarDates);
 
-        // Clear the task list when switching months
-        taskAdapter.updateTasks(new ArrayList<>());
-    }
-
-    private void updateCalendarView(boolean expand) {
-        if (expand) {
-            calendarRecyclerView.setLayoutParams(new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        } else {
-            calendarRecyclerView.setLayoutParams(new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, 200)); // Height for week view
-        }
+        // Clear the weekly tasks when switching months
+        weeklyTaskAdapter.updateTasks(new ArrayList<>());
     }
 
     private List<String> getCalendarDates(int year, int month) {
@@ -206,29 +288,86 @@ public class SchoolCalendarFragment extends Fragment {
         return months;
     }
 
-    private List<Task> filterTasksByDate(String date, String month) {
+    private int[] getWeekRange(int selectedDay, int daysInMonth) {
+        int startDay = Math.max(1, selectedDay - (selectedDay - 1) % 7);
+        int endDay = Math.min(daysInMonth, startDay + 6);
+        return new int[]{startDay, endDay};
+    }
+
+    private List<Task> filterTasksByDate(int day, String month) {
         List<Task> filteredTasks = new ArrayList<>();
-        for (Task task : taskList) {
-            if (task.getDate().equals(date) && task.getMonth().equals(month)) {
-                filteredTasks.add(task);
+        try {
+            for (Task task : taskList) {
+                // Compare task day and month
+                if (Integer.parseInt(task.getDate()) == day &&
+                        task.getMonth().equals(month)) {
+                    filteredTasks.add(task);
+                }
             }
+        } catch (NumberFormatException e) {
+            Log.e("filterTasksByDate", "Error parsing task date: " + e.getMessage());
         }
         return filteredTasks;
     }
 
+
+
+    private void filterTasksByWeek(String dateString) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+            LocalDate selectedDate = LocalDate.parse(dateString, formatter);
+
+            int selectedWeekOfYear = selectedDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+            Log.d("WeeklyTasks", "Selected Week of Year: " + selectedWeekOfYear);
+
+            List<Task> weeklyTasks = new ArrayList<>();
+            for (Task task : taskList) {
+                try {
+                    String taskFullDate = task.getFullDate(Calendar.getInstance().get(Calendar.YEAR));
+                    Log.d("WeeklyTasks", "Parsing Task Date: " + taskFullDate);
+
+                    LocalDate taskDate = LocalDate.parse(taskFullDate, formatter);
+                    int taskWeekOfYear = taskDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+
+                    Log.d("WeeklyTasks", "Task Week: " + taskWeekOfYear + ", Task Title: " + task.getTitle());
+
+                    if (taskWeekOfYear == selectedWeekOfYear) {
+                        weeklyTasks.add(task);
+                    }
+                } catch (DateTimeParseException e) {
+                    Log.e("WeeklyTasks", "Error parsing task date: " + e.getMessage());
+                }
+            }
+
+            Log.d("WeeklyTasks", "Weekly Tasks Count: " + weeklyTasks.size());
+
+            weeklyTaskAdapter.updateTasks(weeklyTasks);
+
+        } catch (DateTimeParseException e) {
+            Log.e("WeeklyTasks", "Error parsing selected date: " + e.getMessage());
+        }
+    }
+
+
     private void loadDummyTasks() {
-        // Add your dummy tasks here
+        taskList.add(new Task("Prepare Presentation", "10:00 AM", "25", "January", "High", "School", false));
+        taskList.add(new Task("Submit Assignment", "11:59 PM", "26", "January", "High", "School", true));
+        taskList.add(new Task("Attend Workshop", "2:00 PM", "27", "January", "Low", "School", false));
+        taskList.add(new Task("Complete Lab Report", "3:00 PM", "28", "January", "High", "School", true));
+        taskList.add(new Task("Group Study Session", "5:00 PM", "29", "January", "Medium", "School", false));
+        taskList.add(new Task("Faculty Meeting", "1:00 PM", "30", "January", "Low", "School", false));
+        taskList.add(new Task("Prepare Notes", "4:00 PM", "31", "January", "Medium", "School", true));
+
+        taskList.add(new Task("Join Webinar", "9:00 AM", "1", "February", "Medium", "School", true));
+        taskList.add(new Task("Library Visit", "10:00 AM", "2", "February", "Low", "School", false));
+        taskList.add(new Task("Schedule Exam", "11:00 AM", "3", "February", "High", "School", true));
+        taskList.add(new Task("Plan Project", "1:00 PM", "4", "February", "Medium", "School", false));
+        taskList.add(new Task("Team Presentation", "3:00 PM", "5", "February", "High", "School", true));
+        taskList.add(new Task("Mock Exam", "10:00 AM", "6", "February", "Low", "School", false));
+        taskList.add(new Task("Classroom Discussion", "2:00 PM", "7", "February", "Medium", "School", false));
     }
 
-    private void loadSchoolTasks() {
-        // Load school-specific tasks
-        taskAdapter.updateTasks(taskList); // Replace with filtered tasks for "School"
-    }
 
-    private void loadHomeTasks() {
-        // Load home-specific tasks
-        taskAdapter.updateTasks(taskList); // Replace with filtered tasks for "Home"
-    }
 
     private void setActiveButton(TextView activeButton, TextView inactiveButton) {
         activeButton.setBackgroundResource(R.drawable.toggle_button_selected);

@@ -20,4 +20,7 @@
     <color name="green">#D5F2DD</color>"
     <color name="spinner_icon_gray">#6B6B6B</color>
     <color name="spinner_selected">#0130F8</color>
+    <color name="semi_transparent_blue">#66339CFF</color>
+    <color name="light_green">#D5F2DD</color>
+    <color name="light_yellow">#FFFAA0</color>
 </resources>
