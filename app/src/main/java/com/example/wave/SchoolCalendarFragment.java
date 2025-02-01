@@ -1,5 +1,6 @@
 package com.example.wave;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -170,7 +171,15 @@ public class SchoolCalendarFragment extends Fragment {
 
         updateTasksForToday(view);
         monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
+        ImageView profileIcon = view.findViewById(R.id.profileIcon);
 
+        profileIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(requireContext(), ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
         return view;
     }
 

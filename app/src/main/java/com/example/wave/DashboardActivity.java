@@ -127,6 +127,14 @@ public class DashboardActivity extends BaseActivity {
                 startActivity(intent);
             }
         });
+        findViewById(R.id.profileIcon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start Budget Activity
+                Intent intent = new Intent(DashboardActivity.this, ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override

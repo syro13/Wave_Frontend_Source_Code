@@ -1,5 +1,6 @@
 package com.example.wave;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -64,6 +65,15 @@ public class HomeCalendarFragment extends Fragment {
         homeCalendarButton = view.findViewById(R.id.homeCalendarButton);
         schoolCalendarButton = view.findViewById(R.id.SchoolCalendarButton);
 
+        ImageView profileIcon = view.findViewById(R.id.profileIcon);
+
+        profileIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(requireContext(), ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
         // Set initial active state for toggle buttons
         setActiveButton(homeCalendarButton, schoolCalendarButton);
 

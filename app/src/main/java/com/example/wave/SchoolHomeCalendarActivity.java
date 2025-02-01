@@ -45,6 +45,7 @@ public class SchoolHomeCalendarActivity extends BaseActivity {
         FloatingActionButton addTaskButton = findViewById(R.id.addTaskButton);
         addTaskButton.setOnClickListener(v -> showAddTaskDialog());
 
+
     }
 
     @Override

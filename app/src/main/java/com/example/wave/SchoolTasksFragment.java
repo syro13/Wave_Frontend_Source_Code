@@ -3,6 +3,7 @@ package com.example.wave;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -110,7 +111,15 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
                 ((SchoolHomeTasksActivity) getActivity()).showHomeTasksFragment();
             }
         });
+        ImageView profileIcon = view.findViewById(R.id.profileIcon);
 
+        profileIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(requireContext(), ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
 
         return view;
     }

@@ -1,5 +1,6 @@
 package com.example.wave;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -67,6 +68,15 @@ public class BudgetPlannerActivity extends BaseActivity {
         fragmentManager.setFragmentResultListener("budget_request", this, (requestKey, result) -> {
             String amount = result.getString("budget_amount");
             Toast.makeText(this, "Budget Set: €" + amount, Toast.LENGTH_SHORT).show();
+        });
+
+        findViewById(R.id.profileIcon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start Budget Activity
+                Intent intent = new Intent(BudgetPlannerActivity.this, ProfileActivity.class);
+                startActivity(intent);
+            }
         });
 
     }

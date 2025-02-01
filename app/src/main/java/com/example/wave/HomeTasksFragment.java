@@ -4,6 +4,7 @@ import static android.content.Context.MODE_PRIVATE;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -113,7 +114,15 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
                 ((SchoolHomeTasksActivity) getActivity()).showSchoolTasksFragment();
             }
         });
+        ImageView profileIcon = view.findViewById(R.id.profileIcon);
 
+        profileIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(requireContext(), ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
         setupNotesCard(view);
         return view;
     }

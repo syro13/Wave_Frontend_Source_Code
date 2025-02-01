@@ -134,6 +134,7 @@ public class CombinedCalendarFragment extends Fragment {
                 ((SchoolHomeCalendarActivity) getActivity()).showSchoolCalendarFragment();
             }
         });
+
         setupToggleButtons();
         return view;
     }
