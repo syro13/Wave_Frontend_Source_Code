@@ -24,7 +24,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SchoolCalendarFragment extends Fragment {
 
@@ -45,8 +47,9 @@ public class SchoolCalendarFragment extends Fragment {
         // Initialize calendar
         calendar = Calendar.getInstance();
 
-        // Initialize task list
+        // Initialize task list and load tasks
         taskList = new ArrayList<>();
+        loadDummyTasks(); // Load initial tasks before setting task dates
 
         // Initialize views
         calendarRecyclerView = view.findViewById(R.id.calendarRecyclerView);
@@ -109,10 +112,14 @@ public class SchoolCalendarFragment extends Fragment {
             monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
         });
 
+        // Populate school task dates
+        Set<String> schoolTaskDates = getSchoolTaskDates();
+        Set<String> homeTaskDates = getHomeTaskDates();
 
         // Initialize calendar dates
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
 
+        // Initialize CalendarAdapter
         calendarAdapter = new CalendarAdapter(calendarDates, selectedDate -> {
             int selectedDay = Integer.parseInt(selectedDate);
             calendar.set(Calendar.DAY_OF_MONTH, selectedDay);
@@ -126,9 +133,14 @@ public class SchoolCalendarFragment extends Fragment {
             if (selectedDateTasks.isEmpty()) {
                 tasksDueTodayTitle.setText("No tasks for selected date");
             } else {
-                tasksDueTodayTitle.setText("Tasks for " + selectedDate);
+                int day = Integer.parseInt(selectedDate);
+                String monthYear = getMonthYearList().get(calendar.get(Calendar.MONTH)) + " " + calendar.get(Calendar.YEAR);
+                String formattedDate = day + getOrdinalSuffix(day) + " " + monthYear;
+                tasksDueTodayTitle.setText("Tasks for " + formattedDate);
             }
-        });
+        }, schoolTaskDates, homeTaskDates);  // Pass both task date sets
+
+
 
         calendarRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 7));
         calendarRecyclerView.setAdapter(calendarAdapter);
@@ -156,14 +168,57 @@ public class SchoolCalendarFragment extends Fragment {
         weeklyTaskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false));
         weeklyTaskRecyclerView.setAdapter(weeklyTaskAdapter);
 
-        loadDummyTasks(); // Load initial tasks
-
         updateTasksForToday(view);
-
         monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
 
         return view;
     }
+
+
+
+    private Set<String> getSchoolTaskDates() {
+        Set<String> schoolTaskDates = new HashSet<>();
+
+        String currentMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
+        int currentYear = calendar.get(Calendar.YEAR);
+
+        for (Task task : taskList) {
+            if ("School".equals(task.getCategory()) &&
+                    task.getMonth().equalsIgnoreCase(currentMonth) &&
+                    task.getYear() == currentYear) {  // Ensure correct year check
+                schoolTaskDates.add(task.getDate());  // Only add dates for current month/year
+            }
+        }
+        return schoolTaskDates;
+    }
+    private Set<String> getHomeTaskDates() {
+        Set<String> homeTaskDates = new HashSet<>();
+
+        String currentMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
+        int currentYear = calendar.get(Calendar.YEAR);
+
+        for (Task task : taskList) {
+            if ("Home".equals(task.getCategory()) &&
+                    task.getMonth().equalsIgnoreCase(currentMonth) &&
+                    task.getYear() == currentYear) {  // Ensure correct year check
+                homeTaskDates.add(task.getDate());  // Only add dates for current month/year
+            }
+        }
+        return homeTaskDates;
+    }
+
+    private String getOrdinalSuffix(int day) {
+        if (day >= 11 && day <= 13) {
+            return "th"; // Special case for 11th, 12th, and 13th
+        }
+        switch (day % 10) {
+            case 1: return "st";
+            case 2: return "nd";
+            case 3: return "rd";
+            default: return "th";
+        }
+    }
+
 
     private void updateWeeklyTasks() {
         String currentDateString = calendar.get(Calendar.DAY_OF_MONTH) + "/" +
@@ -171,11 +226,6 @@ public class SchoolCalendarFragment extends Fragment {
                 calendar.get(Calendar.YEAR);
         filterTasksByWeek(currentDateString);
     }
-
-
-
-
-
 
     // Add this method in SchoolCalendarFragment and HomeCalendarFragment
 
@@ -204,7 +254,8 @@ public class SchoolCalendarFragment extends Fragment {
                 getMonthYearList().get(Integer.parseInt(month) - 1), // Convert month index to month name
                 priority,
                 taskType,
-                remind
+                remind,
+                Integer.parseInt(year)
         );
 
         // Add task to the list
@@ -245,10 +296,12 @@ public class SchoolCalendarFragment extends Fragment {
 
     private void updateCalendar() {
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
-        calendarAdapter.updateData(calendarDates);
 
-        // Clear the weekly tasks when switching months
-        weeklyTaskAdapter.updateTasks(new ArrayList<>());
+        // Filter school task dates for the current month and year
+        Set<String> schoolTaskDates = getSchoolTaskDates();  // Recalculate dates on month switch
+
+        calendarAdapter.updateSchoolTaskDates(schoolTaskDates);
+        calendarAdapter.updateData(calendarDates);
     }
 
     private List<String> getCalendarDates(int year, int month) {
@@ -351,21 +404,21 @@ public class SchoolCalendarFragment extends Fragment {
 
 
     private void loadDummyTasks() {
-        taskList.add(new Task("Prepare Presentation", "10:00 AM", "25", "January", "High", "School", false));
-        taskList.add(new Task("Submit Assignment", "11:59 PM", "26", "January", "High", "School", true));
-        taskList.add(new Task("Attend Workshop", "2:00 PM", "27", "January", "Low", "School", false));
-        taskList.add(new Task("Complete Lab Report", "3:00 PM", "28", "January", "High", "School", true));
-        taskList.add(new Task("Group Study Session", "5:00 PM", "29", "January", "Medium", "School", false));
-        taskList.add(new Task("Faculty Meeting", "1:00 PM", "30", "January", "Low", "School", false));
-        taskList.add(new Task("Prepare Notes", "4:00 PM", "31", "January", "Medium", "School", true));
+        taskList.add(new Task("Prepare Presentation", "10:00 AM", "25", "January", "High", "School", false, 2025));
+        taskList.add(new Task("Submit Assignment", "11:59 PM", "26", "January", "High", "School", true, 2025));
+        taskList.add(new Task("Attend Workshop", "2:00 PM", "27", "January", "Low", "School", false, 2025));
+        taskList.add(new Task("Complete Lab Report", "3:00 PM", "28", "January", "High", "School", true, 2025));
+        taskList.add(new Task("Group Study Session", "5:00 PM", "29", "January", "Medium", "School", false, 2025));
+        taskList.add(new Task("Faculty Meeting", "1:00 PM", "30", "January", "Low", "School", false, 2025));
+        taskList.add(new Task("Prepare Notes", "4:00 PM", "31", "January", "Medium", "School", true, 2025));
 
-        taskList.add(new Task("Join Webinar", "9:00 AM", "1", "February", "Medium", "School", true));
-        taskList.add(new Task("Library Visit", "10:00 AM", "2", "February", "Low", "School", false));
-        taskList.add(new Task("Schedule Exam", "11:00 AM", "3", "February", "High", "School", true));
-        taskList.add(new Task("Plan Project", "1:00 PM", "4", "February", "Medium", "School", false));
-        taskList.add(new Task("Team Presentation", "3:00 PM", "5", "February", "High", "School", true));
-        taskList.add(new Task("Mock Exam", "10:00 AM", "6", "February", "Low", "School", false));
-        taskList.add(new Task("Classroom Discussion", "2:00 PM", "7", "February", "Medium", "School", false));
+        taskList.add(new Task("Join Webinar", "9:00 AM", "1", "February", "Medium", "School", true, 2025));
+        taskList.add(new Task("Library Visit", "10:00 AM", "2", "February", "Low", "School", false, 2025));
+        taskList.add(new Task("Schedule Exam", "11:00 AM", "3", "February", "High", "School", true, 2025));
+        taskList.add(new Task("Plan Project", "1:00 PM", "4", "February", "Medium", "School", false, 2025));
+        taskList.add(new Task("Team Presentation", "3:00 PM", "5", "February", "High", "School", true, 2025));
+        taskList.add(new Task("Mock Exam", "10:00 AM", "6", "February", "Low", "School", false, 2025));
+        taskList.add(new Task("Classroom Discussion", "2:00 PM", "7", "February", "Medium", "School", false, 2025));
     }
 
 
