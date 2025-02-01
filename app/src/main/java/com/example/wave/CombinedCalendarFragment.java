@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -27,7 +28,7 @@ public class CombinedCalendarFragment extends Fragment {
     private Calendar calendar;
     private Spinner monthYearDropdown;
     private TextView schoolToggleButton, bothToggleButton, houseToggleButton;
-
+    private TextView homeCalendarButton, schoolCalendarButton;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -35,12 +36,25 @@ public class CombinedCalendarFragment extends Fragment {
 
         // Initialize calendar
         calendar = Calendar.getInstance();
+        homeCalendarButton = view.findViewById(R.id.homeCalendarButton);
+        schoolCalendarButton = view.findViewById(R.id.SchoolCalendarButton);
 
         // Initialize task lists
         schoolTaskList = new ArrayList<>();
         homeTaskList = new ArrayList<>();
         combinedTaskList = new ArrayList<>();
+        ImageView previousMonth = view.findViewById(R.id.previousMonth);
+        ImageView nextMonth = view.findViewById(R.id.nextMonth);
 
+        previousMonth.setOnClickListener(v -> {
+            calendar.add(Calendar.MONTH, -1);
+            updateCalendar();
+        });
+
+        nextMonth.setOnClickListener(v -> {
+            calendar.add(Calendar.MONTH, 1);
+            updateCalendar();
+        });
         // Initialize views
         calendarRecyclerView = view.findViewById(R.id.calendarRecyclerView);
         taskRecyclerView = view.findViewById(R.id.taskRecyclerView);
@@ -117,8 +131,32 @@ public class CombinedCalendarFragment extends Fragment {
             updateCurrentTasks();
         });
 
+        homeCalendarButton.setOnClickListener(v -> {
+            setActiveTopButton(homeCalendarButton, schoolCalendarButton);
+            if (getActivity() instanceof SchoolHomeCalendarActivity) {
+                ((SchoolHomeCalendarActivity) getActivity()).showHomeCalendarFragment();
+            }
+        });
+
+        schoolCalendarButton.setOnClickListener(v -> {
+            setActiveTopButton(schoolCalendarButton, homeCalendarButton);
+            if (getActivity() instanceof SchoolHomeCalendarActivity) {
+                ((SchoolHomeCalendarActivity) getActivity()).showSchoolCalendarFragment();
+            }
+        });
+
+
         return view;
     }
+
+    private void setActiveTopButton(TextView activeButton, TextView inactiveButton) {
+        activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
+        activeButton.setTextColor(getResources().getColor(android.R.color.white));
+
+        inactiveButton.setBackgroundResource(R.drawable.toggle_button_selected);
+        inactiveButton.setTextColor(getResources().getColor(R.color.dark_blue));
+    }
+
 
     private void updateTasksForToday(int day) {
         String currentCategory = getCurrentSelectedCategory();
@@ -138,6 +176,7 @@ public class CombinedCalendarFragment extends Fragment {
 
         taskAdapter.updateTasks(todayTasks);
     }
+
 
     private void updateWeeklyTasks() {
         // Weekly task filtering logic (for the selected week)
@@ -231,15 +270,20 @@ public class CombinedCalendarFragment extends Fragment {
     public void addTaskToCalendar(String taskTitle, String taskPriority, String taskDate, String taskTime, boolean remind, String taskType) {
         Task newTask = new Task(taskTitle, taskTime, taskDate, getMonthYearList().get(calendar.get(Calendar.MONTH)), taskPriority, taskType, remind);
 
+        // Add task to the appropriate list
         if (taskType.equals("School")) {
             schoolTaskList.add(newTask);
         } else if (taskType.equals("Home")) {
             homeTaskList.add(newTask);
         }
 
+        // Always add to combined list
         combinedTaskList.add(newTask);
+
+        // Refresh UI
         updateCurrentTasks();
     }
+
 
     private String getCurrentSelectedCategory() {
         if (schoolToggleButton.isSelected()) {
@@ -251,11 +295,13 @@ public class CombinedCalendarFragment extends Fragment {
         }
     }
 
+
     private void updateCurrentTasks() {
         updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
     }
 
     private void setActiveButton(TextView activeButton, TextView... inactiveButtons) {
+        // Mark the active button as selected
         activeButton.setSelected(true);
 
         if (activeButton == schoolToggleButton) {
@@ -279,5 +325,9 @@ public class CombinedCalendarFragment extends Fragment {
             }
             inactiveButton.setTextColor(getResources().getColor(R.color.gray));
         }
+
+        // After updating buttons, update tasks
+        updateCurrentTasks();
     }
+
 }
