@@ -1,0 +1,4 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#E6E6FA" /> <!-- Light lavender -->
+    <corners android:radius="0dp" /> <!-- Flat corners for middle button -->
+</shape>

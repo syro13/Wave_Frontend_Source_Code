@@ -6,5 +6,6 @@
         <item>@font/inter_light</item>
         <item>@font/montserrat</item>
         <item>@font/montserrat_bold</item>
+        <item>@font/lato_bold</item>
     </array>
 </resources>

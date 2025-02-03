@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.wave"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -27,11 +27,19 @@ android {
         }
     }
     compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+        buildFeatures {
+            viewBinding = true
+        }
+
+
+    compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-
-
 }
 
 dependencies {
@@ -51,17 +59,19 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation (libs.play.services.auth.v2070)
+    coreLibraryDesugaring (libs.desugar.jdk.libs)
     implementation ("com.google.android.material:material:1.9.0")
     implementation (libs.recyclerview)
     implementation (libs.retrofit)
     implementation (libs.converter.gson)
     implementation (libs.logging.interceptor)
+    implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation ("com.github.bumptech.glide:glide:4.15.1")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.15.1")
     testImplementation("org.mockito:mockito-core:5.0.0")
     androidTestImplementation("org.mockito:mockito-android:5.0.0")
-
-
-
-
+    implementation (libs.logging.interceptor.v493)
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
+    implementation (libs.material.v1120)
 }
