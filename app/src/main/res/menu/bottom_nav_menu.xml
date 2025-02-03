@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_index"
+        android:icon="@drawable/ic_home"
+    android:title="@string/Home" />
+
+    <item
+        android:id="@+id/nav_calendar"
+        android:icon="@drawable/ic_calendar"
+    android:title="@string/Calendar" />
+
+    <item
+        android:id="@+id/nav_settings"
+        android:icon="@drawable/ic_settings"
+    android:title="@string/Settings" />
+
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/ic_profile"
+    android:title="@string/Profile" />
+</menu>

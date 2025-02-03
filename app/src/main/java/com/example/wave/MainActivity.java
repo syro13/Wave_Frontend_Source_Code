@@ -1,12 +1,21 @@
 package com.example.wave;
 
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(android.R.layout.simple_list_item_1); // Temporary default layout
+        setContentView(R.layout.activity_main);
+
+        // Set up bottom navigation
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        setupBottomNavigation(bottomNavigationView);
+
+    }
+    @Override
+    protected int getCurrentMenuItemId() {
+        return R.id.nav_index; // The menu item ID for the Home tab
     }
 }

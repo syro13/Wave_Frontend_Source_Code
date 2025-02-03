@@ -1,0 +1,115 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Lottie Animation as Background -->
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/onboardingAnimation"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/onboarding_animation"
+        android:scaleType="centerCrop" />
+
+    <!-- Skip Button -->
+    <TextView
+        android:id="@+id/skipButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SKIP"
+        android:layout_alignTop="@id/viewPager"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:fontFamily="@font/lato"
+        android:elevation="10dp"/>
+
+    <!-- ViewPager2 for Slides -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="200dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_centerHorizontal="true" />
+
+    <!-- Indicators (Dots) below ViewPager and above the buttons -->
+    <LinearLayout
+        android:id="@+id/indicatorLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_below="@id/viewPager"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:elevation="10dp">
+
+        <!-- Dot 1 -->
+        <View
+            android:id="@+id/dot1"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:backgroundTint="#D3E3FD"
+            android:layout_margin="4dp"
+            android:background="@drawable/indicator_dot" />
+
+        <!-- Dot 2 -->
+        <View
+            android:id="@+id/dot2"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:backgroundTint="#D3E3FD"
+            android:layout_margin="4dp"
+            android:background="@drawable/indicator_dot" />
+
+        <!-- Dot 3 -->
+        <View
+            android:id="@+id/dot3"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:backgroundTint="#D3E3FD"
+            android:layout_margin="4dp"
+            android:background="@drawable/indicator_dot" />
+    </LinearLayout>
+
+    <!-- Back Button aligned to the far left -->
+    <Button
+        android:id="@+id/backButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="BACK"
+        android:background="@android:color/transparent"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:textSize="15sp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="80dp"
+        android:gravity="center" />
+
+    <!-- Next Button aligned to the far right with rounded background -->
+    <Button
+        android:id="@+id/nextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="NEXT"
+        android:background="@drawable/rounded_button_background"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:layout_alignParentEnd="true"
+        android:padding="10dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="80dp"
+        android:gravity="center"
+        android:textSize="15sp"
+        app:backgroundTint="@null" />
+</RelativeLayout>

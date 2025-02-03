@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "621971573276",
+    "firebase_url": "https://wave-7269b-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "wave-7269b",
+    "storage_bucket": "wave-7269b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:621971573276:android:775cceefdc3c7d02f3add9",
+        "android_client_info": {
+          "package_name": "com.example.wave"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "621971573276-rl2vlr5j3sln70ffs14htql8lsh4brth.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.wave",
+            "certificate_hash": "22dc96716a5c5f01c4a4adcdf445760779cac696"
+          }
+        },
+        {
+          "client_id": "621971573276-14q3ib2mrr0d1ccg5epdsu3n0rpdjtu1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxgMPVqRhMT2gT57AkRGOmM4-DQNHq-z4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "621971573276-14q3ib2mrr0d1ccg5epdsu3n0rpdjtu1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <!-- Image for each slide -->
+    <ImageView
+        android:id="@+id/slideImage"
+        android:layout_width="230dp"
+        android:layout_height="230dp"
+        android:layout_gravity="center"
+        android:contentDescription="@string/slide_image" />
+
+    <!-- Title for each slide -->
+    <TextView
+        android:id="@+id/slideTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/title"
+        android:textSize="25sp"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="16dp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:fontFamily="@font/lato" />
+
+    <!-- Description for each slide -->
+    <TextView
+        android:id="@+id/slideDescription"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/description"
+        android:textSize="17sp"
+        android:gravity="center"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/lato" />
+</LinearLayout>

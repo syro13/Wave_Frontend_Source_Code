@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">Wave</string>
+    <string name="slide_image">Your Image Description Here</string>
+    <string name="enter_your_password">Enter your password</string>
+    <string name="enter_your_email">Enter your email</string>
+    <string name="enter_your_name">Enter your name</string>
+    <string name="or_sign_up_with">Or Sign Up with</string>
     <string name="welcome_to_wave">Welcome to Wave!</string>
     <string name="tagline">Budget Smarter\nStudy Better\nLive Healthier</string>
     <string name="get_started">Get Started</string>
@@ -7,4 +12,48 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="sign_up">Sign Up</string>
     <string name="log_in">Log In</string>
-</resources>
+    <string name="description">Description</string>
+    <string name="title">Title</string>
+    <string name="budget_smarter_study_better_live_healthier">Budget Smarter. Study Better. Live Healthier.</string>
+    <string name="email_or_username">Email or Username</string>
+    <string name="password">Password</string>
+    <string name="default_web_client_id">621971573276-14q3ib2mrr0d1ccg5epdsu3n0rpdjtu1.apps.googleusercontent.com</string>
+    <string name="Home">Home</string>
+    <string name="Calendar">Calendar</string>
+    <string name="Settings">Settings</string>
+    <string name="Profile">Profile</string>
+    <string name="house_tasks">House Tasks</string>
+    <string name="school_tasks">School Tasks</string>
+    <string name="Budget_Planner">Budget Planner</string>
+    <string name="wellness">Wellness\n</string>
+    <string name="hello">Hello!</string>
+    <string name="weather_api_key">42035aa61a1c72229ac148f2a197c138</string>
+    <string name="tasks_icon">tasks icon</string>
+    <string name="no_blogs_available">No Blogs Available!</string>
+    <string name="no_podcasts_available">No Podcasts Availabale.</string>
+    <string name="tasks_icon">tasks icon</string>
+    <string name="tasks_completed_icon">tasks_completed_icon</string>
+    <string name="tasks_pending_icon">tasks_pending_icon</string>
+    <string name="my_calendar">My Calendar</string>
+    <string name="notes">Notes\n</string>
+    <string name="study_tips_amp_insights"><![CDATA[Study Tips & Insights]]></string>
+    <string name="quick_prompts">Quick Prompts</string>
+    <string name="grocery_list">Grocery List</string>
+    <string name="Home_hacks_and_guides"><![CDATA[Home Hacks & Guides\n]]></string>
+    <string name="add_task">Add Task</string>
+    <!-- Month-Year Array -->
+        <string-array name="month_year_array">
+            <item>January 2025</item>
+            <item>February 2025</item>
+            <item>March 2025</item>
+            <item>April 2025</item>
+            <item>May 2025</item>
+            <item>June 2025</item>
+            <item>July 2025</item>
+            <item>August 2025</item>
+            <item>September 2025</item>
+            <item>October 2025</item>
+            <item>November 2025</item>
+            <item>December 2025</item>
+        </string-array>
+    </resources>
