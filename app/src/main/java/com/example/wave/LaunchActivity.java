@@ -11,7 +11,7 @@ import android.os.Looper;
 
 public class LaunchActivity extends AppCompatActivity {
 
-    private MediaPlayer mediaPlayer;
+    MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
