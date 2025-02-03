@@ -49,6 +49,9 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.fragment.testing)
+    implementation(libs.espresso.intents)
+    implementation(libs.espresso.contrib)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -65,15 +68,10 @@ dependencies {
     implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation ("com.github.bumptech.glide:glide:4.15.1")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.15.1")
+    testImplementation("org.mockito:mockito-core:5.0.0")
+    androidTestImplementation("org.mockito:mockito-android:5.0.0")
     implementation (libs.logging.interceptor.v493)
     implementation (libs.retrofit)
     implementation (libs.converter.gson)
     implementation (libs.material.v1120)
-
-
-
-
-
-
-
 }
