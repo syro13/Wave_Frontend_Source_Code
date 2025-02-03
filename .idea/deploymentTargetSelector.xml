@@ -25,6 +25,19 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
+      <SelectionState runConfigName="ExpenseCategoryAdapterInstrumentedTest">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="testFromJsonList_invalidJson()">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="BlogAdapterTest">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="testAdapterBinding()">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="AddExpenseBottomSheetFragmentInstrumentedTest">
       <SelectionState runConfigName="SchoolHomeCalendarActivity">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>

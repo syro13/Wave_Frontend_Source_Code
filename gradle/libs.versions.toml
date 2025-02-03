@@ -25,6 +25,9 @@ retrofit = "2.9.0"
 espressoIntents = "3.6.1"
 fragmentTesting = "1.8.5"
 activity = "1.9.3"
+fragmentTesting = "1.8.5"
+espressoIntents = "3.6.1"
+espressoContrib = "3.6.1"
 
 [libraries]
 appcompat-v170 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
@@ -53,6 +56,9 @@ retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit
 espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espressoIntents" }
 fragment-testing = { group = "androidx.fragment", name = "fragment-testing", version.ref = "fragmentTesting" }
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+fragment-testing = { group = "androidx.fragment", name = "fragment-testing", version.ref = "fragmentTesting" }
+espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espressoIntents" }
+espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espressoContrib" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
