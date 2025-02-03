@@ -1,6 +1,8 @@
 package com.example.wave;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import org.junit.Test;
 
 
@@ -50,6 +52,96 @@ public class OnboardingSlideTests {
         // Assert
         assertEquals(title, result);
     }
+
+    // Tests the getTitle method with null
+    @Test
+    public void testGetTitleWithNull() {
+        // Arrange
+        String title = null;
+        OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, title, "Test Description");
+
+        // Act
+        String result = slide.getTitle();
+
+        // Assert
+        assertNull(result);
+    }
+
+
+    // Tests the getTitle method with a long string
+    @Test
+    public void testGetTitleWithLongString() {
+        // Arrange
+        String title = "A".repeat(10000);
+        OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, title, "Test Description");
+
+        // Act
+        String result = slide.getTitle();
+
+        // Assert
+        assertEquals(title, result);
+    }
+
+    // Tests the getTitle method with special characters
+    @Test
+    public void testGetTitleWithSpecialCharacters() {
+        // Arrange
+        String title = "!£$%^&**&^%$";
+        OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, title, "Test Description");
+
+        // Act
+        String result = slide.getTitle();
+
+        // Assert
+        assertEquals(title, result);
+    }
+
+    // Tests the getTitle method with whitespace only
+    @Test
+    public void testGetTitleWithWhitespaceOnly() {
+        // Arrange
+        String title = "   ";
+        OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, title, "Test Description");
+
+        // Act
+        String result = slide.getTitle();
+
+        // Assert
+        assertEquals(title, result);
+    }
+
+
+    // Tests the getTitle method with leading and trailing whitespace
+    @Test
+    public void testGetTitleWithLeadingTrailingWhitespace() {
+        // Arrange
+        String title = "  Test Title  ";
+        OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, title, "Test Description");
+
+        // Act
+        String result = slide.getTitle();
+
+        // Assert
+        assertEquals(title, result);
+    }
+
+    // Tests the getTitle method with an empty string
+    @Test
+    public void testGetTitleWithEmptyString() {
+        // Arrange
+        String title = "";
+        OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, title, "Test Description");
+
+        // Act
+        String result = slide.getTitle();
+
+        // Assert
+        assertEquals(title, result);
+    }
+
+
+
+
 
     // Tests the getDescription method
     @Test

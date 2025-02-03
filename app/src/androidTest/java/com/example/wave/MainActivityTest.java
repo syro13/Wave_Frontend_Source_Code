@@ -15,7 +15,7 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class MainActivityTest {
 
-    // This test will pass because the BottomNavigationView is displayed
+    // Tests that the BottomNavigationView is displayed
     @Test
     public void testBottomNavigationIsDisplayed() {
         try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
@@ -24,7 +24,7 @@ public class MainActivityTest {
         }
     }
 
-    // This test will fail because the correct menu item is not selected
+    // Tests that the correct menu item is selected
     @Test
     public void testCorrectMenuItemIsSelected() {
         try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
@@ -33,7 +33,7 @@ public class MainActivityTest {
         }
     }
 
-    // tests that the MainActivity launches successfully
+    // Tests that the MainActivity launches successfully
     @Test
     public void testMainActivityLaunches() {
         try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {

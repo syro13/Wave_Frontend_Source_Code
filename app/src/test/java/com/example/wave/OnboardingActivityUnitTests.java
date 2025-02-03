@@ -1,17 +1,17 @@
-//package com.example.wave;
+package com.example.wave;
+
+import org.junit.Test;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+public class OnboardingActivityUnitTests {
 //
-//import org.junit.Test;
-//
-//import java.util.List;
-//
-//import static org.junit.Assert.assertEquals;
-//import static org.junit.Assert.assertNotNull;
-//
-//public class OnboardingActivityUnitTest {
-//
-//  //
-//    @Test
-//    public void testCreateOnboardingSlides() {
+  //
+    @Test
+    public void testCreateOnboardingSlides() {
 //        // Arrange
 //        OnboardingActivity activity = new OnboardingActivity();
 //
@@ -31,5 +31,5 @@
 //
 //        assertEquals("Focus on Well-being", slides.get(2).getTitle());
 //        assertEquals("Access tools and resources for a balanced, stress-free life while you study.", slides.get(2).getDescription());
-//    }
-//}
+  }
+}

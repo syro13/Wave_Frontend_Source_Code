@@ -1,7 +1,6 @@
 package com.example.wave;
 
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.testing.FragmentScenario;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
