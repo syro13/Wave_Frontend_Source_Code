@@ -15,6 +15,13 @@
     <color name="light_blue">#E3F2FD</color>
     <color name="gray">#747474</color>
     <color name="light_gray">#F5FAFD</color>
+    <color name="keypad_button_gray">#F5F6FA</color>
     <color name="red">#FAA0A0</color>"
     <color name="green">#D5F2DD</color>"
+    <color name="spinner_icon_gray">#6B6B6B</color>
+    <color name="spinner_selected">#0130F8</color>
+    <color name="semi_transparent_blue">#66339CFF</color>
+    <color name="light_green">#D5F2DD</color>
+    <color name="light_yellow">#FFFAA0</color>
+    <color name="light_purple">#E6E6FA</color>
 </resources>

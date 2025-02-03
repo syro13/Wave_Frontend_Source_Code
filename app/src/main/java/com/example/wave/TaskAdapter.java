@@ -8,7 +8,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.card.MaterialCardView;
@@ -37,28 +36,40 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         Task task = taskList.get(position);
 
-        // Set task title, time, and category
+        // Set task title and time
         holder.taskTitle.setText(task.getTitle());
         holder.taskTime.setText(task.getTime());
-        holder.categoryTag.setText(task.getCategory());
 
-        // Handle overdue tasks (red border and visibility)
-        if (task.isOverdue()) {
-            holder.taskCard.setCardBackgroundColor(holder.itemView.getContext().getResources().getColor(android.R.color.white));
-            holder.taskCard.setStrokeColor(holder.itemView.getContext().getResources().getColor(R.color.red)); // Red border
-            holder.taskCard.setStrokeWidth(4); // Set stroke width
-            holder.overdueTagContainer.setVisibility(View.VISIBLE); // Show overdue tag
-        } else {
-            holder.taskCard.setStrokeColor(holder.itemView.getContext().getResources().getColor(R.color.light_gray)); // Default border
-            holder.taskCard.setStrokeWidth(0); // No stroke
-            holder.overdueTagContainer.setVisibility(View.GONE); // Hide overdue tag
+        // Handle category tag text, background, and icon
+        holder.categoryTag.setText(task.getCategory());
+        switch (task.getCategory().toLowerCase()) {
+            case "school":
+                holder.categoryTagContainer.setBackgroundResource(R.drawable.rounded_green_background); // Green background for School
+                holder.categoryIcon.setImageResource(R.drawable.ic_school); // School icon
+                break;
+            case "home":
+                holder.categoryTagContainer.setBackgroundResource(R.drawable.rounded_yellow_background); // Yellow background for Home
+                holder.categoryIcon.setImageResource(R.drawable.ic_home); // Home icon
+                break;
         }
 
-        // Handle high-priority flag visibility
-        if (task.isHighPriority()) {
-            holder.priorityFlag.setVisibility(View.VISIBLE);
-        } else {
-            holder.priorityFlag.setVisibility(View.GONE);
+        // Handle priority flag visibility and icon
+        switch (task.getPriority()) {
+            case "High":
+                holder.priorityFlag.setVisibility(View.VISIBLE);
+                holder.priorityFlag.setImageResource(R.drawable.ic_high_priority); // Red flag for High priority
+                break;
+            case "Medium":
+                holder.priorityFlag.setVisibility(View.VISIBLE);
+                holder.priorityFlag.setImageResource(R.drawable.ic_medium_priority); // Yellow flag for Medium priority
+                break;
+            case "Low":
+                holder.priorityFlag.setVisibility(View.VISIBLE);
+                holder.priorityFlag.setImageResource(R.drawable.ic_low_priority); // Blue flag for Low priority
+                break;
+            default:
+                holder.priorityFlag.setVisibility(View.GONE); // No flag for unspecified priority
+                break;
         }
 
         // Handle delete icon click
@@ -69,17 +80,36 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         });
     }
 
+    public void removeTask(int position) {
+        if (position >= 0 && position < taskList.size()) {
+            taskList.remove(position); // Remove the task from the list
+            notifyItemRemoved(position); // Notify the adapter about the removal
+        }
+    }
+
+    public void updateTasks(List<Task> newTasks) {
+        taskList.clear();
+        taskList.addAll(newTasks);
+        notifyDataSetChanged();
+    }
+
+
     @Override
     public int getItemCount() {
         return taskList.size();
     }
 
+    public List<Task> getTaskList() {
+        return taskList;
+    }
+
+
     // ViewHolder class
     public static class TaskViewHolder extends RecyclerView.ViewHolder {
         MaterialCardView taskCard; // Reference to CardView
         TextView taskTitle, taskTime, categoryTag;
-        LinearLayout overdueTagContainer, categoryTagContainer;
-        ImageView deleteTask, priorityFlag;
+        LinearLayout categoryTagContainer;
+        ImageView deleteTask, priorityFlag, categoryIcon;
 
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -89,10 +119,10 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             taskTitle = itemView.findViewById(R.id.taskTitle);
             taskTime = itemView.findViewById(R.id.taskTime);
             categoryTag = itemView.findViewById(R.id.categoryTag);
-            overdueTagContainer = itemView.findViewById(R.id.overdueTagContainer);
             categoryTagContainer = itemView.findViewById(R.id.categoryTagContainer);
             deleteTask = itemView.findViewById(R.id.deleteTask);
             priorityFlag = itemView.findViewById(R.id.priorityFlag);
+            categoryIcon = itemView.findViewById(R.id.categoryIcon);
         }
     }
 
