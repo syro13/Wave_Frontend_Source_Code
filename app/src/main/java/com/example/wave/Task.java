@@ -13,9 +13,9 @@ public class Task {
     private String priority; // e.g., "High", "Medium", "Low"
     private String category; // e.g., "School", "Home"
     private boolean remind; // Whether the user wants to be reminded
-
+    private int year;
     // Constructor
-    public Task(String title, String time, String date, String month, String priority, String category, boolean remind) {
+    public Task(String title, String time, String date, String month, String priority, String category, boolean remind, int year) {
         this.title = title;
         this.time = time;
         this.date = date;
@@ -23,6 +23,7 @@ public class Task {
         this.priority = priority;
         this.category = category;
         this.remind = remind;
+        this.year = year;
     }
 
     // Getters
@@ -53,6 +54,11 @@ public class Task {
     public boolean isRemind() {
         return remind;
     }
+
+    public int getYear() {
+        return year;
+    }
+
 
     // Method to get full date in d/M/yyyy format
     public String getFullDate(int year) {

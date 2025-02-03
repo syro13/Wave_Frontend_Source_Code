@@ -1,5 +1,6 @@
 package com.example.wave;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,7 +25,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class HomeCalendarFragment extends Fragment {
 
@@ -45,8 +48,9 @@ public class HomeCalendarFragment extends Fragment {
         // Initialize calendar
         calendar = Calendar.getInstance();
 
-        // Initialize task list
+        // Initialize task list and load tasks
         taskList = new ArrayList<>();
+        loadDummyTasks(); // Load initial tasks before setting task dates
 
         // Initialize views
         calendarRecyclerView = view.findViewById(R.id.calendarRecyclerView);
@@ -61,6 +65,15 @@ public class HomeCalendarFragment extends Fragment {
         homeCalendarButton = view.findViewById(R.id.homeCalendarButton);
         schoolCalendarButton = view.findViewById(R.id.SchoolCalendarButton);
 
+        ImageView profileIcon = view.findViewById(R.id.profileIcon);
+
+        profileIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(requireContext(), ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
         // Set initial active state for toggle buttons
         setActiveButton(homeCalendarButton, schoolCalendarButton);
 
@@ -109,10 +122,14 @@ public class HomeCalendarFragment extends Fragment {
             monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
         });
 
+        // Populate school task dates
+        Set<String> schoolTaskDates = getSchoolTaskDates();
+        Set<String> homeTaskDates = getHomeTaskDates();
 
         // Initialize calendar dates
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
 
+        // Initialize CalendarAdapter
         calendarAdapter = new CalendarAdapter(calendarDates, selectedDate -> {
             int selectedDay = Integer.parseInt(selectedDate);
             calendar.set(Calendar.DAY_OF_MONTH, selectedDay);
@@ -126,9 +143,14 @@ public class HomeCalendarFragment extends Fragment {
             if (selectedDateTasks.isEmpty()) {
                 tasksDueTodayTitle.setText("No tasks for selected date");
             } else {
-                tasksDueTodayTitle.setText("Tasks for " + selectedDate);
+                int day = Integer.parseInt(selectedDate);
+                String monthYear = getMonthYearList().get(calendar.get(Calendar.MONTH)) + " " + calendar.get(Calendar.YEAR);
+                String formattedDate = day + getOrdinalSuffix(day) + " " + monthYear;
+                tasksDueTodayTitle.setText("Tasks for " + formattedDate);
             }
-        });
+        }, schoolTaskDates, homeTaskDates);  // Pass both task date sets
+
+
 
         calendarRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 7));
         calendarRecyclerView.setAdapter(calendarAdapter);
@@ -156,14 +178,57 @@ public class HomeCalendarFragment extends Fragment {
         weeklyTaskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false));
         weeklyTaskRecyclerView.setAdapter(weeklyTaskAdapter);
 
-        loadDummyTasks(); // Load initial tasks
-
         updateTasksForToday(view);
-
         monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
 
         return view;
     }
+
+
+    private Set<String> getSchoolTaskDates() {
+        Set<String> schoolTaskDates = new HashSet<>();
+
+        String currentMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
+        int currentYear = calendar.get(Calendar.YEAR);
+
+        for (Task task : taskList) {
+            if ("School".equals(task.getCategory()) &&
+                    task.getMonth().equalsIgnoreCase(currentMonth) &&
+                    task.getYear() == currentYear) {  // Ensure correct year check
+                schoolTaskDates.add(task.getDate());  // Only add dates for current month/year
+            }
+        }
+        return schoolTaskDates;
+    }
+    private Set<String> getHomeTaskDates() {
+        Set<String> homeTaskDates = new HashSet<>();
+
+        String currentMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
+        int currentYear = calendar.get(Calendar.YEAR);
+
+        for (Task task : taskList) {
+            if ("Home".equals(task.getCategory()) &&
+                    task.getMonth().equalsIgnoreCase(currentMonth) &&
+                    task.getYear() == currentYear) {  // Ensure correct year check
+                homeTaskDates.add(task.getDate());  // Only add dates for current month/year
+            }
+        }
+        return homeTaskDates;
+    }
+
+
+    private String getOrdinalSuffix(int day) {
+        if (day >= 11 && day <= 13) {
+            return "th"; // Special case for 11th, 12th, and 13th
+        }
+        switch (day % 10) {
+            case 1: return "st";
+            case 2: return "nd";
+            case 3: return "rd";
+            default: return "th";
+        }
+    }
+
 
     private void updateWeeklyTasks() {
         String currentDateString = calendar.get(Calendar.DAY_OF_MONTH) + "/" +
@@ -171,10 +236,6 @@ public class HomeCalendarFragment extends Fragment {
                 calendar.get(Calendar.YEAR);
         filterTasksByWeek(currentDateString);
     }
-
-
-
-
 
     // Add this method in SchoolCalendarFragment and HomeCalendarFragment
 
@@ -203,7 +264,8 @@ public class HomeCalendarFragment extends Fragment {
                 getMonthYearList().get(Integer.parseInt(month) - 1), // Convert month index to month name
                 priority,
                 taskType,
-                remind
+                remind,
+                Integer.parseInt(year)
         );
 
         // Add task to the list
@@ -244,10 +306,12 @@ public class HomeCalendarFragment extends Fragment {
 
     private void updateCalendar() {
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
-        calendarAdapter.updateData(calendarDates);
 
-        // Clear the weekly tasks when switching months
-        weeklyTaskAdapter.updateTasks(new ArrayList<>());
+        // Filter school task dates for the current month and year
+        Set<String> homeTaskDates = getHomeTaskDates();  // Recalculate dates on month switch
+
+        calendarAdapter.updateSchoolTaskDates(homeTaskDates);
+        calendarAdapter.updateData(calendarDates);
     }
 
     private List<String> getCalendarDates(int year, int month) {
@@ -350,22 +414,24 @@ public class HomeCalendarFragment extends Fragment {
 
 
     private void loadDummyTasks() {
-        taskList.add(new Task("Clean Bedroom", "10:00 AM", "25", "January", "Low", "Home", false));
-        taskList.add(new Task("Do Laundry", "2:00 PM", "26", "January", "High", "Home", true));
-        taskList.add(new Task("Organize Closet", "11:00 AM", "27", "January", "Low", "Home", false));
-        taskList.add(new Task("Grocery Shopping", "5:00 PM", "28", "January", "Medium", "Home", false));
-        taskList.add(new Task("Meal Prep", "3:00 PM", "29", "January", "Medium", "Home", false));
-        taskList.add(new Task("Vacuum Living Room", "4:00 PM", "30", "January", "Low", "Home", false));
-        taskList.add(new Task("Take Out Trash", "7:00 PM", "31", "January", "High", "Home", true));
+            taskList.add(new Task("Clean Bedroom", "10:00 AM", "25", "January", "Low", "Home", false, 2025));
+            taskList.add(new Task("Do Laundry", "2:00 PM", "26", "January", "High", "Home", true, 2025));
+            taskList.add(new Task("Organize Closet", "11:00 AM", "27", "January", "Low", "Home", false, 2025));
+            taskList.add(new Task("Grocery Shopping", "5:00 PM", "28", "January", "Medium", "Home", false, 2025));
+            taskList.add(new Task("Meal Prep", "3:00 PM", "29", "January", "Medium", "Home", false, 2025));
+            taskList.add(new Task("Vacuum Living Room", "4:00 PM", "30", "January", "Low", "Home", false, 2025));
+            taskList.add(new Task("Take Out Trash", "7:00 PM", "31", "January", "High", "Home", true, 2025));
 
-        taskList.add(new Task("Clean Kitchen", "9:00 AM", "1", "February", "High", "Home", true));
-        taskList.add(new Task("Water Plants", "11:00 AM", "2", "February", "High", "Home", true));
-        taskList.add(new Task("Dust Shelves", "1:00 PM", "3", "February", "Low", "Home", false));
-        taskList.add(new Task("Mop Floors", "10:00 AM", "4", "February", "Medium", "Home", false));
-        taskList.add(new Task("Wash Dishes", "6:00 PM", "5", "February", "High", "Home", true));
-        taskList.add(new Task("Organize Pantry", "2:00 PM", "6", "February", "Medium", "Home", false));
-        taskList.add(new Task("Clean Windows", "12:00 PM", "7", "February", "Low", "Home", false));
-    }
+            taskList.add(new Task("Clean Kitchen", "9:00 AM", "1", "February", "High", "Home", true, 2025));
+            taskList.add(new Task("Water Plants", "11:00 AM", "2", "February", "High", "Home", true, 2025));
+            taskList.add(new Task("Dust Shelves", "1:00 PM", "3", "February", "Low", "Home", false, 2025));
+            taskList.add(new Task("Mop Floors", "10:00 AM", "4", "February", "Medium", "Home", false, 2025));
+            taskList.add(new Task("Wash Dishes", "6:00 PM", "5", "February", "High", "Home", true, 2025));
+            taskList.add(new Task("Organize Pantry", "2:00 PM", "6", "February", "Medium", "Home", false, 2025));
+            taskList.add(new Task("Clean Windows", "12:00 PM", "7", "February", "Low", "Home", false, 2025));
+        }
+
+
 
 
     private void setActiveButton(TextView activeButton, TextView inactiveButton) {

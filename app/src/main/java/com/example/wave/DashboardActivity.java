@@ -127,6 +127,14 @@ public class DashboardActivity extends BaseActivity {
                 startActivity(intent);
             }
         });
+        findViewById(R.id.profileIcon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start Budget Activity
+                Intent intent = new Intent(DashboardActivity.this, ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -135,10 +143,10 @@ public class DashboardActivity extends BaseActivity {
     }
 
     private void loadDummyTasks() {
-        taskList.add(new Task("Wireframes for Websites", "8:00 AM", "18", "January", "High", "School", true));
-        taskList.add(new Task("Clean Kitchen", "9:00 AM", "19", "January", "Low", "Home", false));
-        taskList.add(new Task("Do Groceries", "10:00 AM", "20", "January", "High", "Personal", true));
-        taskList.add(new Task("Math Assignments", "11:00 AM", "18", "January", "Medium", "School", false));
+        taskList.add(new Task("Wireframes for Websites", "8:00 AM", "18", "January", "High", "School", true, 2025));
+        taskList.add(new Task("Clean Kitchen", "9:00 AM", "19", "January", "Low", "Home", false, 2025));
+        taskList.add(new Task("Do Groceries", "10:00 AM", "20", "January", "High", "Personal", true, 2025));
+        taskList.add(new Task("Math Assignments", "11:00 AM", "18", "January", "Medium", "School", false, 2025));
 
 
 

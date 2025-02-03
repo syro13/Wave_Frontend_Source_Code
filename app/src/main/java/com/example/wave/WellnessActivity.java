@@ -1,5 +1,6 @@
 package com.example.wave;
 
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -91,6 +92,14 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         networkReceiver = new NetworkReceiver(this);
         IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(networkReceiver, filter);
+        findViewById(R.id.profileIcon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start Budget Activity
+                Intent intent = new Intent(WellnessActivity.this, ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
     }
     @Override
     protected int getCurrentMenuItemId() {
