@@ -394,7 +394,7 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
 
     private void showPopup(String displayPrompt, String actualPrompt) {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://fastapi-openai-621971573276.us-central1.run.app/")
+                .baseUrl("https://updatedservice-621971573276.us-central1.run.app/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         AIService aiService = retrofit.create(AIService.class);
