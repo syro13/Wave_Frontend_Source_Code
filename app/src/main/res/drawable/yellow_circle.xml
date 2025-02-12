@@ -7,10 +7,10 @@
     <!-- Green border -->
     <stroke
         android:width="0.5dp"
-        android:color="@color/light_yellow" />
+        android:color="@color/yellow" />
 
     <!-- Size of the circle -->
     <size
-        android:width="28dp"
-        android:height="28dp" />
+        android:width="8dp"
+        android:height="8dp" />
 </shape>
