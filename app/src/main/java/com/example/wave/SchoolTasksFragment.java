@@ -21,6 +21,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
@@ -112,7 +113,7 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
             }
         });
         ImageView profileIcon = view.findViewById(R.id.profileIcon);
-
+        CardView calendarCard = view.findViewById(R.id.CalendarFromTasksButton);
         profileIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -120,7 +121,13 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
                 startActivity(intent);
             }
         });
-
+        calendarCard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(requireContext(), SchoolHomeCalendarActivity.class);
+                startActivity(intent);
+            }
+        });
         return view;
     }
 

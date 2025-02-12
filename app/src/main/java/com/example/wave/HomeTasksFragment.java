@@ -115,11 +115,19 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
             }
         });
         ImageView profileIcon = view.findViewById(R.id.profileIcon);
+        CardView calendarCard = view.findViewById(R.id.CalendarFromTasksButton);
 
         profileIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(requireContext(), ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
+        calendarCard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(requireContext(), SchoolHomeCalendarActivity.class);
                 startActivity(intent);
             }
         });
