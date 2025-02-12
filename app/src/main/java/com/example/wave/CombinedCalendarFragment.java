@@ -130,7 +130,7 @@ public class CombinedCalendarFragment extends Fragment {
         // Load tasks and update UI for the current day
         loadDummyTasks();
         updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
-
+//set up toggle buttons
         // Set up month selection dropdown
         monthYearDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
