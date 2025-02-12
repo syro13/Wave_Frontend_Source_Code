@@ -1,6 +1,5 @@
 package com.example.wave;
 
-
 import static android.content.Context.MODE_PRIVATE;
 
 import android.content.Intent;
@@ -14,14 +13,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.text.method.ScrollingMovementMethod;
+
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
@@ -36,8 +34,12 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.Body;
+import retrofit2.http.POST;
 
-public class SchoolTasksFragment extends Fragment implements NetworkReceiver.NetworkChangeListener{
+public class SchoolTasksFragment extends Fragment implements NetworkReceiver.NetworkChangeListener {
     private NetworkReceiver networkReceiver;
     private static final String PREFS_BLOGS = "PrefsBlogs";
     private static final String KEY_LAST_FETCH = "lastFetchDate";
@@ -50,15 +52,16 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
     private ProgressBar loadingIndicator;
 
     private PromptsAdapter promptsAdapter;
-    private List<String> promptsList;
+    private List<String> displayPromptsList;
+    private List<String> actualPromptsList;
 
     private final List<BlogResponse> blogs = new ArrayList<>();
     private int loadingTasksRemaining = 0;
 
-
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_school_tasks, container, false);
 
         TextView schoolTasksButton = view.findViewById(R.id.SchoolTasksButton);
@@ -84,14 +87,23 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
         promptsRecyclerView = view.findViewById(R.id.promptsRecyclerView);
         promptsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        promptsList = Arrays.asList(
+
+        displayPromptsList = Arrays.asList(
                 "Suggest a quick study tip",
                 "How can I stay organized in my studies?",
                 "Give me advice on balancing chores with studying",
                 "How to make studying less stressful?",
                 "Share a tip for keeping my work clean and tidy"
         );
-        promptsAdapter = new PromptsAdapter(promptsList, this::showPopup);
+        actualPromptsList = Arrays.asList(
+                "As a student counselor, share a quick, research-backed study technique that helps students maximize learning in minimal time. Focus on cognitive science principles of memory and retention.",
+                "Provide a comprehensive yet concise organizational system for a college student struggling with managing multiple courses, assignments, and personal commitments. Include digital and physical organization techniques.",
+                "Develop a realistic approach for a student balancing academic workload with personal responsibilities. Include time-blocking techniques, prioritization methods, and stress reduction strategies.",
+                "Outline practical, immediate stress-reduction techniques specifically tailored to academic environments. Address mental health, study environment optimization, and emotional regulation.",
+                "Create a systematic approach to maintaining a clean, productive study space that enhances focus and reduces mental clutter. Include both physical organization and psychological strategies."
+        );
+
+        promptsAdapter = new PromptsAdapter(displayPromptsList, actualPromptsList, this::showPopup);
         promptsRecyclerView.setAdapter(promptsAdapter);
 
         // Set initial active state for buttons
@@ -105,7 +117,7 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
             }
         });
 
-// Home Tasks Button Click
+        // Home Tasks Button Click
         homeTasksButton.setOnClickListener(v -> {
             setActiveButton(homeTasksButton, schoolTasksButton);
             if (getActivity() instanceof SchoolHomeTasksActivity) {
@@ -113,21 +125,12 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
             }
         });
         ImageView profileIcon = view.findViewById(R.id.profileIcon);
-        CardView calendarCard = view.findViewById(R.id.CalendarFromTasksButton);
-        profileIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(requireContext(), ProfileActivity.class);
-                startActivity(intent);
-            }
+
+        profileIcon.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), ProfileActivity.class);
+            startActivity(intent);
         });
-        calendarCard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(requireContext(), SchoolHomeCalendarActivity.class);
-                startActivity(intent);
-            }
-        });
+
         return view;
     }
 
@@ -136,8 +139,6 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
         Log.d("SchoolTasksActivity", "Network restored. Checking data...");
         reloadDataIfNeeded();  // Reload only if data is not already cached
     }
-
-
 
     private void reloadDataIfNeeded() {
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
@@ -169,7 +170,6 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
             loadingIndicator.setVisibility(View.GONE); // Hide the loading indicator
         }
     }
-
 
     @Override
     public void onDestroyView() {
@@ -206,7 +206,6 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
         }
     }
 
-
     private void fetchBlogsWithFallback() {
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
@@ -224,7 +223,6 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
     interface OnFetchCompleteListener {
         void onFetchComplete(boolean success);
     }
-
 
     private void fetchBlogsFromApi(SharedPreferences prefs, int todayDate, OnFetchCompleteListener listener) {
         if (!isAdded()) return; // Ensure Fragment is attached
@@ -321,7 +319,6 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
         return false;
     }
 
-
     private void fetchUserInfo(BlogsApi api, String userId, OnUserFullNameFetched callback) {
         api.getUserInfo(userId).enqueue(new Callback<UserInfo>() {
             @Override
@@ -341,7 +338,6 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
             }
         });
     }
-
 
     private void setupBlogsRecyclerView() {
         articleRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
@@ -373,12 +369,14 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
         blogAdapter.notifyDataSetChanged();
         noBlogsImage.setVisibility(View.GONE);
     }
+
     private void saveBlogsToCache(SharedPreferences prefs, List<BlogResponse> blogs, int todayDate) {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(PREFS_BLOGS, BlogResponse.toJsonList(blogs));
         editor.putInt(KEY_LAST_FETCH, todayDate);
         editor.apply();
     }
+
     private void showNoBlogsAvailable() {
         if (blogs.isEmpty()) {
             noBlogsImage.setVisibility(View.VISIBLE);
@@ -386,6 +384,7 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
             taskCompleted();
         }
     }
+
     private synchronized void taskCompleted() {
         loadingTasksRemaining--;
         if (loadingTasksRemaining <= 0) {
@@ -393,18 +392,47 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
         }
     }
 
-    private void showPopup(String prompt) {
-        AIContentDialog dialog = AIContentDialog.newInstance(prompt, "This is placeholder content for AI response.");
-        dialog.show(getParentFragmentManager(), "AIContentDialog");
+
+    private void showPopup(String displayPrompt, String actualPrompt) {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://updatedservice-621971573276.us-central1.run.app/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        AIService aiService = retrofit.create(AIService.class);
+        AIPromptRequest request = new AIPromptRequest(actualPrompt);
+
+        aiService.getAIResponse(request).enqueue(new Callback<AIResponse>() {
+            @Override
+            public void onResponse(Call<AIResponse> call, Response<AIResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String aiResponse = response.body().getResponse();
+                    AIContentDialog dialog = AIContentDialog.newInstance(displayPrompt, aiResponse);
+                    dialog.show(getParentFragmentManager(), "AIContentDialog");
+                } else {
+                    Toast.makeText(getContext(), "Failed to get AI response", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AIResponse> call, Throwable t) {
+                Toast.makeText(getContext(), "Error connecting to AI server", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     // Prompts RecyclerView Adapter
     public static class PromptsAdapter extends RecyclerView.Adapter<PromptsAdapter.ViewHolder> {
-        private final List<String> prompts;
+        private final List<String> displayPrompts;
+        private final List<String> actualPrompts;
         private final OnPromptClickListener listener;
 
-        public PromptsAdapter(List<String> prompts, OnPromptClickListener listener) {
-            this.prompts = prompts;
+        public PromptsAdapter(List<String> displayPrompts, List<String> actualPrompts, OnPromptClickListener listener) {
+            if (displayPrompts.size() != actualPrompts.size()) {
+                throw new IllegalArgumentException("Both lists must have the same number of items.");
+            }
+            this.displayPrompts = displayPrompts;
+            this.actualPrompts = actualPrompts;
             this.listener = listener;
         }
 
@@ -417,14 +445,14 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            String prompt = prompts.get(position);
-            holder.promptText.setText(prompt);
-            holder.itemView.setOnClickListener(v -> listener.onClick(prompt));
+            String displayText = displayPrompts.get(position);
+            holder.promptText.setText(displayText);
+            holder.itemView.setOnClickListener(v -> listener.onClick(displayPrompts.get(position), actualPrompts.get(position)));
         }
 
         @Override
         public int getItemCount() {
-            return prompts.size();
+            return displayPrompts.size();
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {
@@ -437,7 +465,7 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
         }
 
         public interface OnPromptClickListener {
-            void onClick(String prompt);
+            void onClick(String displayPrompt, String actualPrompt);
         }
     }
 
@@ -466,10 +494,48 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
             assert getArguments() != null;
             titleView.setText(getArguments().getString(TITLE_KEY));
             contentView.setText(getArguments().getString(CONTENT_KEY));
+            ScrollingMovementMethod scrollable = new ScrollingMovementMethod();
+            contentView.setMovementMethod(scrollable);
+
 
             closeButton.setOnClickListener(v -> dismiss());
             return view;
         }
+    }
+
+    // --- AI API Models and Interface ---
+
+    public static class AIPromptRequest {
+        private String prompt;
+
+        public AIPromptRequest(String prompt) {
+            this.prompt = prompt;
+        }
+
+        public String getPrompt() {
+            return prompt;
+        }
+
+        public void setPrompt(String prompt) {
+            this.prompt = prompt;
+        }
+    }
+
+    public static class AIResponse {
+        private String response;
+
+        public String getResponse() {
+            return response;
+        }
+
+        public void setResponse(String response) {
+            this.response = response;
+        }
+    }
+
+    public interface AIService {
+        @POST("run-prompt")
+        Call<AIResponse> getAIResponse(@Body AIPromptRequest request);
     }
 
     /**
@@ -487,6 +553,4 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
         inactiveButton.setBackgroundResource(R.drawable.toggle_button_unselected);
         inactiveButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.dark_blue));
     }
-
 }
-
