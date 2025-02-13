@@ -21,18 +21,22 @@ public class TwitterAuthManager{
     private Activity activity;
     private Callback callback;
 
-    private TwitterAuthManager(Activity activity, Callback callback) {
-        this.activity = activity;
-        this.firebaseAuth = FirebaseAuth.getInstance();
-        this.provider = OAuthProvider.newBuilder("twitter.com");
-        this.callback = callback;
+    private TwitterAuthManager() {
     }
 
     public static TwitterAuthManager getInstance(Activity activity, Callback callback) {
         if (instance == null) {
-            instance = new TwitterAuthManager(activity, callback);
+            instance = new TwitterAuthManager();
         }
+        instance.init(activity,callback);
         return instance;
+    }
+
+    private void init(Activity activity, Callback callback){
+        this.activity = activity;
+        this.firebaseAuth = FirebaseAuth.getInstance();
+        this.provider = OAuthProvider.newBuilder("twitter.com");
+        this.callback = callback;
     }
 
     public void signIn() {
@@ -42,10 +46,7 @@ public class TwitterAuthManager{
                     @Override
                     public void onSuccess(AuthResult authResult) {
                         FirebaseUser user = firebaseAuth.getCurrentUser();
-                        Toast.makeText(activity, "Signed In Successfully with X.", Toast.LENGTH_SHORT).show();
-                        if (callback != null) {
-                            callback.updateUI(user);
-                        }
+                        callback.updateUI(user);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {

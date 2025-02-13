@@ -104,7 +104,12 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
         facebookIcon.setOnClickListener(v -> signUpWithFacebook());
 
         // Handle Twitter Sign-Up Button Click
-        twitterIcon.setOnClickListener(v -> signUpWithTwitter());
+        twitterIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                twitterAuthManager.signIn();
+            }
+        });
 
         return view;
     }
@@ -145,12 +150,12 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
 
             @Override
             public void onCancel() {
-                Toast.makeText(getContext(), "Facebook signup canceled", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Facebook Sign-In Successful", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onError(FacebookException error) {
-                Toast.makeText(getContext(), "Facebook signup failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Facebook Sign-In Failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -164,16 +169,12 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        Toast.makeText(getContext(), "Facebook Login Successful", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Facebook Sign-In Successful", Toast.LENGTH_SHORT).show();
                         navigateToDashboard(user);
                     } else {
-                        Toast.makeText(getContext(), "Facebook Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Facebook Sign-In Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
-    }
-
-    private void signUpWithTwitter() {
-        twitterAuthManager.signIn();
     }
 
     @Override
@@ -216,7 +217,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                     firebaseAuthWithGoogle(account);
                 }
             } catch (Exception e) {
-                Toast.makeText(getContext(), "Google Sign-Up failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "Google Sign-In Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -233,7 +234,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            Toast.makeText(getContext(), "Google Sign-Up successful!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), "Google Sign-In Successful!", Toast.LENGTH_SHORT).show();
 
                             // Get the user's display name
                             String userName = account.getDisplayName();
@@ -247,7 +248,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                             }
                         }
                     } else {
-                        Toast.makeText(getContext(), "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Google Sign-In Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -302,7 +303,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                             user.updateProfile(profileUpdates)
                                     .addOnCompleteListener(updateTask -> {
                                         if (updateTask.isSuccessful()) {
-                                            Toast.makeText(getContext(), "Sign-up successful!", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(getContext(), "Sign-In Successful!", Toast.LENGTH_SHORT).show();
                                             // Navigate to Dashboard
                                             Intent intent = new Intent(getActivity(), DashboardActivity.class);
                                             intent.putExtra("USER_NAME", name);
@@ -314,7 +315,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                                     });
                         }
                     } else {
-                        Toast.makeText(getContext(), "Sign-up failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Sign-In Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }

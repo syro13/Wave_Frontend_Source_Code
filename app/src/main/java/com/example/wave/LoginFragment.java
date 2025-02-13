@@ -117,11 +117,11 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                                     GoogleSignInAccount account = task.getResult();
                                     authenticateWithFirebase(account);
                                 } else {
-                                    Toast.makeText(getContext(), "Google Sign-In failed", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(getContext(), "Google Login Failed", Toast.LENGTH_LONG).show();
                                 }
                             });
                 } else {
-                    Toast.makeText(getContext(), "Google Sign-In cancelled", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Google Login Cancelled", Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -138,29 +138,34 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                         // Sign-in successful
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
+                            Toast.makeText(getContext(), "Google Login Successful!", Toast.LENGTH_SHORT).show();
                             String displayName = account.getDisplayName(); // Get name from Google account
+                            if (user.getDisplayName() == null || user.getDisplayName().isEmpty()) {
+                                // Update display name in Firebase Authentication
+                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                        .setDisplayName(displayName)
+                                        .build();
 
-                            // Update display name in Firebase Authentication
-                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                    .setDisplayName(displayName)
-                                    .build();
+                                user.updateProfile(profileUpdates)
+                                        .addOnCompleteListener(updateTask -> {
+                                            if (updateTask.isSuccessful()) {
+                                                Toast.makeText(getContext(), "Display name updated", Toast.LENGTH_SHORT).show();
 
-                            user.updateProfile(profileUpdates)
-                                    .addOnCompleteListener(updateTask -> {
-                                        if (updateTask.isSuccessful()) {
-                                            Toast.makeText(getContext(), "Display name updated", Toast.LENGTH_SHORT).show();
-                                            // Proceed to dashboard
-                                            Intent intent = new Intent(getActivity(), DashboardActivity.class);
-                                            intent.putExtra("USER_NAME", displayName);
-                                            startActivity(intent);
-                                            getActivity().finish();
-                                        } else {
-                                            Toast.makeText(getContext(), "Failed to update display name", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
+                                            } else {
+                                                Toast.makeText(getContext(), "Failed to update display name", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                            }
+                            // Proceed to dashboard
+                            if (getActivity() != null) {
+                                Intent intent = new Intent(getActivity(), DashboardActivity.class);
+                                intent.putExtra("USER_NAME", displayName);
+                                startActivity(intent);
+                                getActivity().finish();
+                            }
                         }
                     } else {
-                        Toast.makeText(getContext(), "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Google Login Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -193,12 +198,12 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
 
             @Override
             public void onCancel() {
-                Toast.makeText(getContext(), "Facebook login canceled", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Facebook login Canceled", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onError(FacebookException error) {
-                Toast.makeText(getContext(), "Facebook login failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Facebook login Failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -212,7 +217,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                         Toast.makeText(getContext(), "Facebook Login Successful", Toast.LENGTH_SHORT).show();
                         navigateToDashboard(user);
                     } else {
-                        Toast.makeText(getContext(), "Facebook Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Facebook Login Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -274,7 +279,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                             getActivity().finish();
                         }
                     } else {
-                        Toast.makeText(getContext(), "Login failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Login Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
