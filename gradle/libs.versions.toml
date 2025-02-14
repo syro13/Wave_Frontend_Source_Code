@@ -26,8 +26,6 @@ espressoIntents = "3.6.1"
 fragmentTesting = "1.8.5"
 activity = "1.9.3"
 facebook-login="16.3.0"
-fragmentTesting = "1.8.5"
-espressoIntents = "3.6.1"
 espressoContrib = "3.6.1"
 
 
@@ -59,8 +57,6 @@ espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents"
 fragment-testing = { group = "androidx.fragment", name = "fragment-testing", version.ref = "fragmentTesting" }
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 facebook-login = { module = "com.facebook.android:facebook-login", version.ref = "facebook-login" }
-fragment-testing = { group = "androidx.fragment", name = "fragment-testing", version.ref = "fragmentTesting" }
-espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espressoIntents" }
 espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espressoContrib" }
 
 [plugins]
