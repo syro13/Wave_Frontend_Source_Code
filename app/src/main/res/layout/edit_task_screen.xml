@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:text="@string/edit_task"
         android:textStyle="bold"
-        android:textSize="22sp"
+        android:textSize="@dimen/text_large"
         android:textColor="@color/black"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -41,7 +41,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/task_type"
-        android:textSize="18sp"
+        android:textSize="@dimen/text_medium"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
         android:textColor="@color/black"
@@ -75,7 +75,8 @@
             android:textSize="18sp"
             android:layout_margin="8dp"
             android:textAllCaps="false"
-            android:elevation="2dp" />
+            android:elevation="2dp"
+            android:minWidth="120dp" />
 
 
 
@@ -94,7 +95,8 @@
             android:textSize="18sp"
             android:layout_margin="8dp"
             android:textAllCaps="false"
-            android:elevation="2dp" />
+            android:elevation="2dp"
+            android:minWidth="120dp" />
     </LinearLayout>
 
     <!-- Task Priority -->
@@ -103,7 +105,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/task_priority"
-        android:textSize="18sp"
+        android:textSize="@dimen/text_medium"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
         android:textColor="@color/black"
@@ -134,7 +136,9 @@
             app:iconTint="@null"
             app:iconGravity="textStart"
             android:text="@string/high"
-            android:textColor="@color/black" />
+            android:textColor="@color/black"
+            android:minWidth="120dp"
+            />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/mediumPriorityButton"
@@ -150,7 +154,9 @@
             app:iconGravity="textStart"
             android:layout_marginStart="8dp"
             android:text="@string/medium"
-            android:textColor="@color/black" />
+            android:textColor="@color/black"
+            android:minWidth="120dp"
+            />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/lowPriorityButton"
@@ -166,7 +172,9 @@
             app:iconGravity="textStart"
             android:layout_marginStart="8dp"
             android:text="@string/low"
-            android:textColor="@color/black" />
+            android:textColor="@color/black"
+            android:minWidth="120dp" />
+
     </LinearLayout>
 
     <!-- Due By Section -->
@@ -176,7 +184,7 @@
         android:layout_height="wrap_content"
         android:text="@string/due_by"
         android:textColor="@color/black"
-        android:textSize="18sp"
+        android:textSize="@dimen/text_medium"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
         android:fontFamily="@font/roboto_medium"
@@ -285,7 +293,7 @@
         android:layout_height="wrap_content"
         android:text="@string/repeat"
         android:textColor="@color/black"
-        android:textSize="18sp"
+        android:textSize="@dimen/text_medium"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
         app:layout_constraintTop_toBottomOf="@id/dueDateContainer"
@@ -320,7 +328,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/remind"
-            android:textSize="18sp"
+            android:textSize="@dimen/text_medium"
             android:textColor="@color/black"
             android:layout_marginEnd="8dp"/>
 
@@ -341,7 +349,9 @@
             android:layout_weight="2"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"
+            android:paddingEnd="16dp"
+            />
 
     </LinearLayout>
 
@@ -361,6 +371,7 @@
         app:layout_constraintTop_toBottomOf="@id/remindSection"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        android:minWidth="120dp"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
