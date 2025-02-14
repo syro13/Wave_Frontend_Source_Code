@@ -25,5 +25,5 @@
     <color name="light_yellow">#FFFAA0</color>
     <color name="light_purple">#E6E6FA</color>
     <color name="transparent">#00000000</color>
-
+    <color name="default_stroke">#E4EAF0</color>
 </resources>
