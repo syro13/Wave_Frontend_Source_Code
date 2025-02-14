@@ -83,6 +83,6 @@ public class BudgetPlannerActivity extends BaseActivity {
 
     @Override
     protected int getCurrentMenuItemId() {
-        return R.id.nav_index; // The menu item ID for the Home tab
+        return -1; // No selection
     }
 }

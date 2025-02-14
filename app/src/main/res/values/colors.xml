@@ -22,6 +22,9 @@
     <color name="spinner_selected">#0130F8</color>
     <color name="semi_transparent_blue">#66339CFF</color>
     <color name="light_green">#D5F2DD</color>
+    <color name="dark_green">#35E974</color>
     <color name="light_yellow">#FFFAA0</color>
+    <color name="yellow">#F3F209</color>
     <color name="light_purple">#E6E6FA</color>
+    <color name="dark_purple">#9448F6</color>"
 </resources>

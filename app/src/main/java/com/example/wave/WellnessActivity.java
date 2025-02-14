@@ -103,8 +103,9 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
     }
     @Override
     protected int getCurrentMenuItemId() {
-        return R.id.nav_index; // The menu item ID for the Home tab
+        return -1; // No selection
     }
+
 
     @Override
     public void onNetworkRestored() {

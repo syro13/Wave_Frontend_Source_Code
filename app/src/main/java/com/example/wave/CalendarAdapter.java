@@ -17,12 +17,14 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.Calend
     private String selectedDate = ""; // Keeps track of the currently selected date
     private Set<String> schoolTaskDates;
     private Set<String> homeTaskDates;
+    private String currentCategory;
 
-    public CalendarAdapter(List<String> calendarDates, OnDateClickListener listener, Set<String> schoolTaskDates, Set<String> homeTaskDates) {
+    public CalendarAdapter(List<String> calendarDates, OnDateClickListener listener, Set<String> schoolTaskDates, Set<String> homeTaskDates, String currentCategory) {
         this.calendarDates = calendarDates;
         this.listener = listener;
         this.schoolTaskDates = schoolTaskDates;
         this.homeTaskDates = homeTaskDates;
+        this.currentCategory = currentCategory;
     }
 
     @NonNull
@@ -49,14 +51,24 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.Calend
         notifyDataSetChanged();
     }
 
-    // Method to dynamically update school task dates and refresh the calendar
     public void updateSchoolTaskDates(Set<String> newSchoolTaskDates) {
         this.schoolTaskDates = newSchoolTaskDates;
-        notifyDataSetChanged();  // Refresh the view
+        notifyDataSetChanged();
     }
+
     public void updateHomeTaskDates(Set<String> newHomeTaskDates) {
         this.homeTaskDates = newHomeTaskDates;
-        notifyDataSetChanged();  // Refresh the view
+        notifyDataSetChanged();
+    }
+
+    public void updateCategory(String newCategory) {
+        this.currentCategory = newCategory;
+        notifyDataSetChanged();
+    }
+
+    public void setSelectedDate(String date) {
+        this.selectedDate = date;
+        notifyDataSetChanged();  // Refresh the calendar to show the selected date
     }
 
     public class CalendarViewHolder extends RecyclerView.ViewHolder {
@@ -70,38 +82,50 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.Calend
         public void bind(String date) {
             dateText.setText(date);
 
-            // Hide empty cells (padding for the first week of the month)
             if (date.isEmpty()) {
                 dateText.setVisibility(View.INVISIBLE);
+                itemView.setOnClickListener(null);
             } else {
                 dateText.setVisibility(View.VISIBLE);
                 dateText.setBackground(null);  // Clear any previous background
+                dateText.setForeground(null);  // Clear any previous foreground selection
+                dateText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.black)); // Reset default text color
+
+                // Highlight dates based on tasks
+                if (currentCategory.equals("Both")) {
+                    if (homeTaskDates.contains(date) && schoolTaskDates.contains(date)) {
+                        dateText.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.both_circle));
+                    } else if (homeTaskDates.contains(date)) {
+                        dateText.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.yellow_circle));
+                    } else if (schoolTaskDates.contains(date)) {
+                        dateText.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.green_circle));
+                    }
+                } else if (currentCategory.equals("School")) {
+                    if (schoolTaskDates.contains(date)) {
+                        dateText.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.green_circle));
+                    }
+                } else if (currentCategory.equals("Home")) {
+                    if (homeTaskDates.contains(date)) {
+                        dateText.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.yellow_circle));
+                    }
+                }
 
                 // Highlight selected date
                 if (date.equals(selectedDate)) {
-                    dateText.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.circle_background_selected));
-                }
-                // Prioritize highlighting based on active task list
-                else if (homeTaskDates != null && homeTaskDates.contains(date)) {
-                    dateText.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.yellow_circle));
-                }
-                else if (schoolTaskDates != null && schoolTaskDates.contains(date)) {
-                    dateText.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.green_circle));
+                    dateText.setForeground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.circle_background_selected));
+                    dateText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.dark_blue));
                 }
 
-                // Handle date click
                 itemView.setOnClickListener(v -> {
-                    selectedDate = date;
-                    notifyDataSetChanged(); // Refresh RecyclerView to update selection
-                    listener.onDateClick(date); // Pass clicked date to listener
+                    selectedDate = date;  // Update selected date
+                    listener.onDateClick(date);  // Notify the listener
+                    notifyDataSetChanged();  // Refresh the calendar
                 });
             }
         }
-
     }
 
     public interface OnDateClickListener {
-        void onDateClick(String date); // Callback for date clicks
+        void onDateClick(String date);
     }
-    }
-
+}

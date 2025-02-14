@@ -24,8 +24,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Enter Task Title *"
+        android:textColorHint="@android:color/black"
         android:background="@drawable/edit_text_background_white"
         android:padding="12dp"
+        android:textColor="@color/black"
         app:layout_constraintTop_toBottomOf="@id/addTaskTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -105,18 +107,20 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintTop_toBottomOf="@id/taskPriorityLabel"
-        app:layout_constraintStart_toStartOf="parent"
-       >
+        app:layout_constraintStart_toStartOf="parent">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/highPriorityButton"
-            android:background="@drawable/edit_text_background_white"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:backgroundTint="#E4EAF0"
+            android:layout_height="40dp"
+            android:minWidth="72dp"
+            android:minHeight="40dp"
+            android:paddingHorizontal="8dp"
+            android:textSize="13sp"
+            app:backgroundTint="@color/white"
             android:textAllCaps="false"
             app:icon="@drawable/ic_high_priority"
-            app:iconSize="18dp"
+            app:iconSize="10dp"
             app:iconTint="@null"
             app:iconGravity="textStart"
             android:text="High"
@@ -124,34 +128,42 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/mediumPriorityButton"
-            android:background="@drawable/edit_text_background_white"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:backgroundTint="#E4EAF0"
+            android:layout_height="40dp"
+            android:minWidth="72dp"
+            android:minHeight="40dp"
+            android:paddingHorizontal="8dp"
+            android:textSize="13sp"
+            app:backgroundTint="@color/white"
             android:textAllCaps="false"
             app:icon="@drawable/ic_medium_priority"
-            app:iconSize="18dp"
+            app:iconSize="10dp"
             app:iconTint="@null"
             app:iconGravity="textStart"
-            android:layout_marginStart="8dp"
             android:text="Medium"
-            android:textColor="@color/black" />
+            android:textColor="@color/black"
+            android:layout_marginStart="8dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/lowPriorityButton"
-            android:background="@drawable/edit_text_background_white"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:backgroundTint="#E4EAF0"
+            android:layout_height="40dp"
+            android:minWidth="72dp"
+            android:minHeight="40dp"
+            android:paddingHorizontal="8dp"
+            android:textSize="13sp"
+            app:backgroundTint="@color/white"
             android:textAllCaps="false"
             app:icon="@drawable/ic_low_priority"
-            app:iconSize="18dp"
+            app:iconSize="10dp"
             app:iconTint="@null"
             app:iconGravity="textStart"
-            android:layout_marginStart="8dp"
             android:text="Low"
-            android:textColor="@color/black" />
+            android:textColor="@color/black"
+            android:layout_marginStart="8dp" />
+
     </LinearLayout>
+
 
     <!-- Due By Section -->
     <TextView
@@ -161,7 +173,6 @@
         android:text="Due By*"
         android:textColor="@color/black"
         android:textSize="16sp"
-        android:fontFamily="@font/roboto_medium"
         app:layout_constraintTop_toBottomOf="@id/taskPriorityContainer"
         app:layout_constraintStart_toStartOf="parent"
         />
@@ -263,6 +274,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Remind"
+        android:textColor="@color/black"
         app:layout_constraintTop_toBottomOf="@id/repeatSpinner"
         app:layout_constraintStart_toStartOf="parent"
 

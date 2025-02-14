@@ -5,7 +5,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
-public class SchoolHomeTasksActivity extends AppCompatActivity {
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+public class SchoolHomeTasksActivity extends BaseActivity {
 
     private boolean isSchoolTasksActive = true; // Track active fragment
 
@@ -13,12 +15,21 @@ public class SchoolHomeTasksActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_school_tasks);
+        // Set up bottom navigation
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        setupBottomNavigation(bottomNavigationView);
 
         // Load the SchoolTasksFragment by default
         if (savedInstanceState == null) {
             loadFragment(new SchoolTasksFragment());
         }
     }
+
+    @Override
+    protected int getCurrentMenuItemId() {
+        return -1; // No selection
+    }
+
 
     /**
      * Load a fragment into the container.

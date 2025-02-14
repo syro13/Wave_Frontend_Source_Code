@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".HomeCalendarFragment">
+    tools:context=".HomeCalendarFragment"
+    android:background="@color/white">
 
     <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
@@ -140,7 +141,7 @@
                         android:id="@+id/selectedDateText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Mon, Nov 18"
+                        android:text="Tues 3rd February"
                         android:textColor="@android:color/black"
                         android:textStyle="bold"
                         android:textSize="20sp"
@@ -187,6 +188,7 @@
                     <Spinner
                         android:id="@+id/monthYearDropdown"
                         android:layout_width="0dp"
+                        android:textColor="@color/black"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:entries="@array/month_year_array"
