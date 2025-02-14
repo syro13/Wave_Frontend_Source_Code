@@ -39,8 +39,8 @@ public class OnboardingAdapter extends RecyclerView.Adapter<OnboardingAdapter.On
     // Making the OnboardingViewHolder class public for better visibility
     public static class OnboardingViewHolder extends RecyclerView.ViewHolder {
         private final ImageView slideImage;
-        private final TextView slideTitle;
-        private final TextView slideDescription;
+        final TextView slideTitle;
+        final TextView slideDescription;
 
         public OnboardingViewHolder(View itemView) {
             super(itemView);

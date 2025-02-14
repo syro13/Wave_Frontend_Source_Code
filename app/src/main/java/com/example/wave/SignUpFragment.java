@@ -222,29 +222,61 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
         }
     }
 
+    private void firebaseAuthWithGoogle(GoogleSignInAccount account) {
+        String email = account.getEmail(); // Get the email from the account
+
+        // Check if the email is already registered
+        mAuth.fetchSignInMethodsForEmail(email)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        boolean isExistingUser = !task.getResult().getSignInMethods().isEmpty();
+
+                        if (isExistingUser) {
+                            // User exists, treat it as a login
+                            Toast.makeText(getContext(), "Account already exists. Logging in...", Toast.LENGTH_SHORT).show();
+                            authenticateWithGoogle(account, false); // Sign-in flow
+                        } else {
+                            // User doesn't exist, treat it as a sign-up
+                            Toast.makeText(getContext(), "Creating new account...", Toast.LENGTH_SHORT).show();
+                            authenticateWithGoogle(account, true); // Sign-up flow
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Error checking user status: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
     /**
-     * Authenticate the Google account with Firebase.
+     * Authenticate the Google account with Firebase and differentiate between sign-up and login.
      *
      * @param account GoogleSignInAccount
+     * @param isSignUp Indicates whether this is a sign-up or sign-in
      */
-    private void firebaseAuthWithGoogle(GoogleSignInAccount account) {
+    private void authenticateWithGoogle(GoogleSignInAccount account, boolean isSignUp) {
         AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            Toast.makeText(getContext(), "Google Sign-In Successful!", Toast.LENGTH_SHORT).show();
-
-                            // Get the user's display name
-                            String userName = account.getDisplayName();
-
-                            // Navigate to DashboardActivity and pass the user name
-                            if (getActivity() != null) {
-                                Intent intent = new Intent(getActivity(), DashboardActivity.class);
-                                intent.putExtra("USER_NAME", userName); // Pass the user's name
-                                getActivity().finish();
-                                startActivity(intent);
+                            if (isSignUp) {
+                                // Handle additional sign-up logic (e.g., set display name)
+                                String displayName = account.getDisplayName();
+                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                        .setDisplayName(displayName)
+                                        .build();
+                                user.updateProfile(profileUpdates)
+                                        .addOnCompleteListener(updateTask -> {
+                                            if (updateTask.isSuccessful()) {
+                                                Toast.makeText(getContext(), "Sign-up successful!", Toast.LENGTH_SHORT).show();
+                                                navigateToDashboard(displayName);
+                                            } else {
+                                                Toast.makeText(getContext(), "Failed to update profile", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                            } else {
+                                // Proceed directly to the dashboard for login
+                                navigateToDashboard(user.getDisplayName());
                             }
                         }
                     } else {
@@ -252,6 +284,18 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                     }
                 });
     }
+
+    private void navigateToDashboard(String displayName) {
+        if (getActivity() != null) {
+            Intent intent = new Intent(getActivity(), DashboardActivity.class);
+            intent.putExtra("USER_NAME", displayName);
+            startActivity(intent);
+            getActivity().finish();
+        } else {
+            Toast.makeText(getContext(), "Navigation failed: Context is unavailable.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
 
     /**

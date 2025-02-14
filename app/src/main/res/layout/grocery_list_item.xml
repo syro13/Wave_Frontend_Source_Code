@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingVertical="8dp">
+
+    <ImageView
+        android:id="@+id/item_check"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:src="@drawable/toggle_button_unselected"
+        android:contentDescription="Check Item"
+        android:layout_marginEnd="16dp"
+        android:clickable="true"
+        android:focusable="true"/>
+
+    <TextView
+        android:id="@+id/item_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="16sp"
+        android:textColor="@color/black"/>
+
+    <ImageView
+        android:id="@+id/item_delete"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:src="@drawable/ic_delete"
+        android:contentDescription="Delete Item"
+        android:clickable="true"
+        android:focusable="true"/>
+
+</LinearLayout>
