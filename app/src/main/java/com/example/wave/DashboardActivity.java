@@ -2,9 +2,11 @@ package com.example.wave;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -36,12 +38,36 @@ public class DashboardActivity extends BaseActivity {
     private RecyclerView taskRecyclerView;
     private TaskAdapter taskAdapter;
     private List<Task> taskList;
+    private FirebaseAuth auth;
+    private FirebaseAuth.AuthStateListener authListener;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            refreshAuthToken(user);
+        }
 
+        auth = FirebaseAuth.getInstance();
+
+        // Listen for session expiration
+        authListener = firebaseAuth -> {
+            if (user == null) {
+                // User session expired (password change, account deleted, or forced logout)
+                Log.e("AUTH", "User session expired. Redirecting to Login.");
+
+                Toast.makeText(DashboardActivity.this, "Your session has expired. Please log in again.", Toast.LENGTH_LONG).show();
+
+                Intent intent = new Intent(DashboardActivity.this, LoginSignUpActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        };
+
+        
         // Set up bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         setupBottomNavigation(bottomNavigationView);
@@ -58,7 +84,6 @@ public class DashboardActivity extends BaseActivity {
             }
         });
         // Fetch the user's display name from Firebase Authentication
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             String displayName = user.getDisplayName();
             if (displayName != null && !displayName.isEmpty()) {
@@ -135,8 +160,21 @@ public class DashboardActivity extends BaseActivity {
                 startActivity(intent);
             }
         });
-    }
 
+    }
+    /**
+     * Refresh Firebase Auth Token if needed.
+     */
+    private void refreshAuthToken(FirebaseUser user) {
+        user.getIdToken(true).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                String newToken = task.getResult().getToken();
+                Log.d("SESSION", "New Token: " + newToken);
+            } else {
+                Log.e("SESSION", "Failed to refresh token", task.getException());
+            }
+        });
+    }
     @Override
     protected int getCurrentMenuItemId() {
         return R.id.nav_index; // The menu item ID for the Home tab
