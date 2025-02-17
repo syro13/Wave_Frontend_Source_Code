@@ -21,9 +21,14 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     protected void setupBottomNavigation(BottomNavigationView bottomNavigationView) {
         int currentMenuItemId = getCurrentMenuItemId();
-        bottomNavigationView.setSelectedItemId(currentMenuItemId); // Highlight current tab
+
+        if (currentMenuItemId != -1) {
+            bottomNavigationView.setSelectedItemId(currentMenuItemId);
+        }
+
         bottomNavigationView.setOnItemSelectedListener(this::onNavigationItemSelected);
     }
+
 
     private boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
@@ -43,6 +48,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         } else if (itemId == R.id.nav_profile) {
             intent = new Intent(this, ProfileActivity.class);
         }
+
 
 
         if (intent != null) {
