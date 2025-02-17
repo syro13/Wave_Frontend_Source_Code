@@ -2,9 +2,11 @@ package com.example.wave;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -36,11 +38,35 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
     private RecyclerView taskRecyclerView;
     private TaskAdapter taskAdapter;
     private List<Task> taskList;
+    private FirebaseAuth auth;
+    private FirebaseAuth.AuthStateListener authListener;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            refreshAuthToken(user);
+        }
+
+        auth = FirebaseAuth.getInstance();
+
+        // Listen for session expiration
+        authListener = firebaseAuth -> {
+            if (user == null) {
+                // User session expired (password change, account deleted, or forced logout)
+                Log.e("AUTH", "User session expired. Redirecting to Login.");
+
+                Toast.makeText(DashboardActivity.this, "Your session has expired. Please log in again.", Toast.LENGTH_LONG).show();
+
+                Intent intent = new Intent(DashboardActivity.this, LoginSignUpActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        };
+
 
         // Set up bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
@@ -58,7 +84,6 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
             }
         });
         // Fetch the user's display name from Firebase Authentication
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             String displayName = user.getDisplayName();
             if (displayName != null && !displayName.isEmpty()) {
@@ -132,8 +157,21 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
                 startActivity(intent);
             }
         });
-    }
 
+    }
+    /**
+     * Refresh Firebase Auth Token if needed.
+     */
+    private void refreshAuthToken(FirebaseUser user) {
+        user.getIdToken(true).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                String newToken = task.getResult().getToken();
+                Log.d("SESSION", "New Token: " + newToken);
+            } else {
+                Log.e("SESSION", "Failed to refresh token", task.getException());
+            }
+        });
+    }
     private void loadInitialTasks() {
         taskList.add(new Task("Math Assignment", "10:00 AM", "7", "February", "High", "School", false, 2025));
         taskList.add(new Task("Grocery Shopping", "12:00 PM", "8", "February", "Medium", "Home", true, 2025));

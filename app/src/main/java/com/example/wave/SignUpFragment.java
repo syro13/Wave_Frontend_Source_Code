@@ -1,6 +1,8 @@
 package com.example.wave;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -16,23 +18,35 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
 
-public class SignUpFragment extends Fragment {
+
+import java.util.Arrays;
+
+public class SignUpFragment extends Fragment implements TwitterAuthManager.Callback {
 
     private FirebaseAuth mAuth; // Firebase Authentication instance
     private EditText nameInput, emailInput, passwordInput, confirmPasswordInput;
     private GoogleSignInClient googleSignInClient;
     private static final int RC_SIGN_IN = 123; // Request code for Google Sign-In
+    private CallbackManager callbackManager;
+    private TwitterAuthManager twitterAuthManager;
 
     @Nullable
     @Override
@@ -41,6 +55,12 @@ public class SignUpFragment extends Fragment {
 
         // Initialize Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
+
+        // Initialize TwitterAuthManager with the Activity
+        twitterAuthManager = TwitterAuthManager.getInstance(requireActivity(), this);
+
+        // Initialize Facebook Callback Manager
+        callbackManager = CallbackManager.Factory.create();
 
         // Configure Google Sign-In
         configureGoogleSignIn();
@@ -54,6 +74,8 @@ public class SignUpFragment extends Fragment {
         TextView loginButton = view.findViewById(R.id.loginButton);
         TextView signupButton = view.findViewById(R.id.signupButton);
         ImageView googleIcon = view.findViewById(R.id.googleIcon);
+        ImageView facebookIcon = view.findViewById(R.id.facebookIcon);
+        ImageView twitterIcon = view.findViewById(R.id.twitterIcon);
 
         // Set initial active state
         setActiveButton(signupButton, loginButton);
@@ -78,8 +100,22 @@ public class SignUpFragment extends Fragment {
         // Handle Google Sign-Up Button Click
         googleIcon.setOnClickListener(v -> signUpWithGoogle());
 
+        // Handle Facebook Sign-Up Button Click
+        facebookIcon.setOnClickListener(v -> signUpWithFacebook());
+
+        // Handle Twitter Sign-Up Button Click
+        twitterIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                twitterAuthManager.signIn();
+            }
+        });
+
         return view;
     }
+
+
+
 
     /**
      * Configure Google Sign-In options.
@@ -100,10 +136,81 @@ public class SignUpFragment extends Fragment {
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
+    /**
+     * Handle Facebook Sign-In.
+     */
+    private void signUpWithFacebook(){
+        LoginManager.getInstance().logInWithReadPermissions(SignUpFragment.this, Arrays.asList("email","public_profile"));
+
+        LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                handleFacebookAccessToken(loginResult.getAccessToken());
+            }
+
+            @Override
+            public void onCancel() {
+                Toast.makeText(getContext(), "Facebook Sign-In Cancelled", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+                Toast.makeText(getContext(), "Facebook Sign-In Failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * Handle Facebook Access Token and authenticate with Firebase.
+     */
+    private void handleFacebookAccessToken(AccessToken token) {
+        AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            Toast.makeText(getContext(), "Facebook Sign-In Successful", Toast.LENGTH_SHORT).show();
+                            navigateToDashboard(user);
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Facebook Sign-In Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    @Override
+    public void updateUI(FirebaseUser user) {
+        if (user != null) {
+            Toast.makeText(getContext(), "Twitter Sign-In Successful: " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
+            navigateToDashboard(user);
+        } else {
+            Toast.makeText(getContext(), "Twitter Sign-In Failed", Toast.LENGTH_SHORT).show();
+        }
+    }
+    /**
+
+    /**
+     * Navigate to Dashboard after successful login.
+     */
+    private void navigateToDashboard(FirebaseUser user) {
+        if (getActivity() != null && user != null) {
+            Intent intent = new Intent(getActivity(), DashboardActivity.class);
+            intent.putExtra("USER_NAME", user.getDisplayName());
+            getActivity().finish();
+            startActivity(intent);
+        }
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+
+        // Handle Facebook Login Result
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+
         super.onActivityResult(requestCode, resultCode, data);
 
+        // Handle Google Sign-In Result
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
@@ -112,7 +219,7 @@ public class SignUpFragment extends Fragment {
                     firebaseAuthWithGoogle(account);
                 }
             } catch (Exception e) {
-                Toast.makeText(getContext(), "Google Sign-Up failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "Google Sign-In Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -175,7 +282,7 @@ public class SignUpFragment extends Fragment {
                             }
                         }
                     } else {
-                        Toast.makeText(getContext(), "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Google Sign-In Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -242,7 +349,7 @@ public class SignUpFragment extends Fragment {
                             user.updateProfile(profileUpdates)
                                     .addOnCompleteListener(updateTask -> {
                                         if (updateTask.isSuccessful()) {
-                                            Toast.makeText(getContext(), "Sign-up successful!", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(getContext(), "Sign-In Successful!", Toast.LENGTH_SHORT).show();
                                             // Navigate to Dashboard
                                             Intent intent = new Intent(getActivity(), DashboardActivity.class);
                                             intent.putExtra("USER_NAME", name);
@@ -254,7 +361,7 @@ public class SignUpFragment extends Fragment {
                                     });
                         }
                     } else {
-                        Toast.makeText(getContext(), "Sign-up failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Sign-In Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
