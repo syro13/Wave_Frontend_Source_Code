@@ -6,7 +6,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@drawable/rounded_bottom_sheet"
-    android:padding="16dp"
+    android:padding="0dp"
     android:layout_gravity="bottom">
 
     <!-- Handle Bar -->
@@ -87,7 +87,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center"
-        android:layout_marginTop="10dp">
+        android:layout_marginTop="0dp">
 
         <!-- Keypad Grid -->
         <GridLayout
@@ -98,7 +98,7 @@
             android:rowCount="4"
             android:alignmentMode="alignMargins"
             android:layout_gravity="center"
-            android:padding="8dp">
+            android:padding="4dp">
 
             <!-- Keypad Buttons -->
             <Button

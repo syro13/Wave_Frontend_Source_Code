@@ -43,6 +43,8 @@
     <string name="grocery_list">Grocery List</string>
     <string name="Home_hacks_and_guides"><![CDATA[Home Hacks & Guides\n]]></string>
     <string name="add_task">Add Task</string>
+    <string name="home_api_key">test</string>
+    <string name="school_api_key">test</string>
     <!-- Month-Year Array -->
         <string-array name="month_year_array">
             <item>January 2025</item>
