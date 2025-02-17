@@ -28,7 +28,6 @@
     <string name="wellness">Wellness\n</string>
     <string name="hello">Hello!</string>
     <string name="weather_api_key">42035aa61a1c72229ac148f2a197c138</string>
-    <string name="tasks_icon">tasks icon</string>
     <string name="no_blogs_available">No Blogs Available!</string>
     <string name="no_podcasts_available">No Podcasts Availabale.</string>
     <string name="facebook_app_id">1165164088675483</string>
@@ -44,6 +43,8 @@
     <string name="grocery_list">Grocery List</string>
     <string name="Home_hacks_and_guides"><![CDATA[Home Hacks & Guides\n]]></string>
     <string name="add_task">Add Task</string>
+    <string name="home_api_key">test</string>
+    <string name="school_api_key">test</string>
     <!-- Month-Year Array -->
         <string-array name="month_year_array">
             <item>January 2025</item>
