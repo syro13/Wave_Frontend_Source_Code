@@ -8,8 +8,11 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.OAuthProvider;
+
+import java.util.List;
 
 public class TwitterAuthManager{
 
@@ -52,11 +55,15 @@ public class TwitterAuthManager{
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(activity, "Sign In with X Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        if (e instanceof FirebaseAuthUserCollisionException) {
+                            // Firebase detects an existing account with the same email
+                            Toast.makeText(activity, "An account with this email already exists.", Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(activity, "Sign In with X Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
     }
-
 
     void showProfile(){
         FirebaseUser user = firebaseAuth.getCurrentUser();
