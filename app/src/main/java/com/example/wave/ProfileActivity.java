@@ -24,6 +24,6 @@ public class ProfileActivity extends BaseActivity {
 
     @Override
     protected int getCurrentMenuItemId() {
-        return R.id.nav_settings;
+        return R.id.nav_profile;
     }
 }

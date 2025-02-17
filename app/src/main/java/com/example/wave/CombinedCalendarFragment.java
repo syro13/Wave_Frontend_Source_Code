@@ -1,5 +1,6 @@
 package com.example.wave;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -134,6 +135,17 @@ public class CombinedCalendarFragment extends Fragment {
                 ((SchoolHomeCalendarActivity) getActivity()).showSchoolCalendarFragment();
             }
         });
+        // Set up profile icon
+        ImageView profileIcon = view.findViewById(R.id.profileIcon);
+
+        profileIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(requireContext(), ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
+
 
         setupToggleButtons();
         return view;
@@ -154,6 +166,7 @@ public class CombinedCalendarFragment extends Fragment {
             setActiveButton(bothToggleButton, schoolToggleButton, houseToggleButton);
             updateCurrentTasks();
         });
+
     }
 
     private void updateTasksForToday(int day) {
