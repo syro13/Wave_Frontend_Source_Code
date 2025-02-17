@@ -2,6 +2,7 @@ package com.example.wave;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +32,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.task_item_card, parent, false);
         return new TaskViewHolder(view);
     }
+
     public List<Task> getTaskList() {
         return taskList;
     }
@@ -54,6 +56,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 break;
         }
 
+
         // Priority icon handling
         switch (task.getPriority()) {
             case "High":
@@ -72,6 +75,19 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 holder.priorityFlag.setVisibility(View.GONE);
                 break;
         }
+
+
+        // Open Edit Task Screen when clicked
+        holder.taskCard.setOnClickListener(v -> {
+            Intent intent = new Intent(context, EditTasksActivity.class);
+            intent.putExtra("taskTitle", task.getTitle());
+            intent.putExtra("taskType", task.getCategory());
+            intent.putExtra("priority", task.getPriority());
+            intent.putExtra("date", task.getDate());
+            intent.putExtra("time", task.getTime());
+            intent.putExtra("remind", task.isRemind());
+            context.startActivity(intent);
+        });
 
         // Delete task on icon click
         holder.deleteTask.setOnClickListener(v -> showDeleteConfirmationDialog(task, position));
