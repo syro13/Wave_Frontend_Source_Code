@@ -104,10 +104,26 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
         // Handle Twitter Sign-Up Button Click
         twitterIcon.setOnClickListener(v -> loginWithTwitter());
 
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            refreshAuthToken(user);
+        }
 
         return view;
     }
-
+    /**
+     * Refresh Firebase Auth Token.
+     */
+    private void refreshAuthToken(FirebaseUser user) {
+        user.getIdToken(true).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                String newToken = task.getResult().getToken();
+                Log.d("SESSION", "New Token: " + newToken);
+            } else {
+                Log.e("SESSION", "Failed to refresh token", task.getException());
+            }
+        });
+    }
     private final ActivityResultLauncher<Intent> googleSignInLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == getActivity().RESULT_OK && result.getData() != null) {
@@ -187,7 +203,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
     public void updateUI(FirebaseUser user) {
         if (user != null) {
             Toast.makeText(getContext(), "Twitter Login Successful: " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
-            navigateToDashboard(user);
+            navigateToDashboard(user.getDisplayName());
         } else {
             Toast.makeText(getContext(), "Twitter Login Failed", Toast.LENGTH_SHORT).show();
         }
@@ -220,7 +236,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         Toast.makeText(getContext(), "Facebook Login Successful", Toast.LENGTH_SHORT).show();
-                        navigateToDashboard(user);
+                        navigateToDashboard(user.getDisplayName());
                     } else {
                         Toast.makeText(getContext(), "Facebook Login Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -229,15 +245,14 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
     /**
      * Navigate to Dashboard after successful login.
      */
-    private void navigateToDashboard(FirebaseUser user) {
-        if (getActivity() != null && user != null) {
+    private void navigateToDashboard(String displayName) {
+        if (getActivity() != null) {
             Intent intent = new Intent(getActivity(), DashboardActivity.class);
-            intent.putExtra("USER_NAME", user.getDisplayName());
-            getActivity().finish();
+            intent.putExtra("USER_NAME", displayName);
             startActivity(intent);
-        }
-      else {
-            Toast.makeText(requireContext(), "Context is unavailable. Try again.", Toast.LENGTH_SHORT).show();
+            getActivity().finish();
+        } else {
+            Toast.makeText(getContext(), "Navigation failed: Context is unavailable.", Toast.LENGTH_SHORT).show();
         }
     }
 
