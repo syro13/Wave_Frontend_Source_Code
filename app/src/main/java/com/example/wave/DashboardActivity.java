@@ -33,7 +33,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class DashboardActivity extends BaseActivity {
+public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTaskDeletedListener {
 
     private RecyclerView taskRecyclerView;
     private TaskAdapter taskAdapter;
@@ -67,7 +67,7 @@ public class DashboardActivity extends BaseActivity {
             }
         };
 
-        
+
         // Set up bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         setupBottomNavigation(bottomNavigationView);
@@ -93,20 +93,17 @@ public class DashboardActivity extends BaseActivity {
             }
         }
 
-        // Initialize RecyclerView
-        taskRecyclerView = findViewById(R.id.taskRecyclerView);
-        taskRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)); // Set to horizontal layout
-
         // Initialize Task List and Adapter
         taskList = new ArrayList<>();
-        taskAdapter = new TaskAdapter(taskList, position -> {
-            // Remove task from the list when delete icon is clicked
-            if (position >= 0 && position < taskList.size()) {
-                taskList.remove(position);
-                taskAdapter.notifyItemRemoved(position);
-                taskAdapter.notifyItemRangeChanged(position, taskList.size()); // Update the list
-            }
-        });
+        taskAdapter = new TaskAdapter(taskList, this, this);  // Pass 'this' as the context and listener
+
+        // Set up RecyclerView
+        taskRecyclerView = findViewById(R.id.taskRecyclerView);
+        taskRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        taskRecyclerView.setAdapter(taskAdapter);
+
+        // Load initial tasks (dummy or real data)
+        loadInitialTasks();
 
         taskRecyclerView.setAdapter(taskAdapter);
         SnapHelper snapHelper = new LinearSnapHelper();
@@ -174,6 +171,19 @@ public class DashboardActivity extends BaseActivity {
                 Log.e("SESSION", "Failed to refresh token", task.getException());
             }
         });
+    }
+    private void loadInitialTasks() {
+        taskList.add(new Task("Math Assignment", "10:00 AM", "7", "February", "High", "School", false, 2025));
+        taskList.add(new Task("Grocery Shopping", "12:00 PM", "8", "February", "Medium", "Home", true, 2025));
+        taskList.add(new Task("Team Meeting", "3:00 PM", "8", "February", "High", "School", false, 2025));
+
+        // Notify the adapter of the new tasks
+        taskAdapter.updateTasks(taskList);
+    }
+    @Override
+    public void onTaskDeleted(Task task) {
+        // Handle any updates after the task is deleted, e.g., refreshing data or UI
+        // For example, if needed, update any counters or reload task lists
     }
     @Override
     protected int getCurrentMenuItemId() {
