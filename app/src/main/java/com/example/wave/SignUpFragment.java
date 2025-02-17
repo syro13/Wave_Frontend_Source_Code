@@ -150,7 +150,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
 
             @Override
             public void onCancel() {
-                Toast.makeText(getContext(), "Facebook Sign-In Successful", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Facebook Sign-In Cancelled", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -169,8 +169,10 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        Toast.makeText(getContext(), "Facebook Sign-In Successful", Toast.LENGTH_SHORT).show();
-                        navigateToDashboard(user);
+                        if (user != null) {
+                            Toast.makeText(getContext(), "Facebook Sign-In Successful", Toast.LENGTH_SHORT).show();
+                            navigateToDashboard(user);
+                        }
                     } else {
                         Toast.makeText(getContext(), "Facebook Sign-In Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
