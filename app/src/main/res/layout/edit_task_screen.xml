@@ -371,11 +371,11 @@
 
         <!-- Create Task Button -->
         <Button
-            android:id="@+id/createTaskButton"
+            android:id="@+id/editTaskButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:background="@drawable/rounded_button"
-            android:text="@string/create_task"
+            android:text="@string/edit_task"
             android:textSize="18sp"
             android:textColor="@color/white"
             android:textStyle="bold"
