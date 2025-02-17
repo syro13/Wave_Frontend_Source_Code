@@ -1,5 +1,8 @@
 package com.example.wave;
 
+import static android.app.Activity.RESULT_OK;
+
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -14,6 +17,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -40,6 +45,8 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
     private Calendar calendar;
     private Spinner monthYearDropdown;
     private TextView homeCalendarButton, schoolCalendarButton; // Toggle buttons
+    private static final int REQUEST_EDIT_TASK = 1001; // Define a request code for editing tasks
+
 
     @Nullable
     @Override
@@ -152,7 +159,20 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
         calendarRecyclerView.setAdapter(calendarAdapter);
 
         // Initialize task adapters
-        taskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), this);
+        taskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), task -> {
+            Intent intent = new Intent(getContext(), EditTasksActivity.class);
+
+            // Pass task details to edit screen
+            intent.putExtra("taskTitle", task.getTitle());
+            intent.putExtra("taskType", task.getCategory());
+            intent.putExtra("priority", task.getPriority());
+            intent.putExtra("date", task.getDate());
+            intent.putExtra("time", task.getTime());
+            intent.putExtra("remind", task.isRemind());
+
+            startActivity(intent);
+        });
+
         weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), this);
 
         // Set adapters to RecyclerViews
@@ -389,7 +409,45 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
         return filteredTasks;
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
+        if (requestCode == REQUEST_EDIT_TASK && resultCode == RESULT_OK) {
+            if (data != null && data.hasExtra("updatedTask")) {
+                Task updatedTask = (Task) data.getSerializableExtra("updatedTask");
+
+                // Find and update the task in the list
+                for (int i = 0; i < taskList.size(); i++) {
+                    if (taskList.get(i).getTitle().equals(updatedTask.getTitle())) {
+                        taskList.set(i, updatedTask);
+                        break;
+                    }
+                }
+
+                // Refresh the task adapter
+                taskAdapter.updateTasks(taskList);
+            }
+        }
+    }
+
+    private final ActivityResultLauncher<Intent> editTaskLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Task updatedTask = (Task) result.getData().getSerializableExtra("updated_task");
+
+                    // Find and update the task in the list
+                    for (int i = 0; i < taskList.size(); i++) {
+                        if (taskList.get(i).getTitle().equals(updatedTask.getTitle())) {
+                            taskList.set(i, updatedTask);
+                            break;
+                        }
+                    }
+
+                    // Refresh UI
+                    taskAdapter.notifyDataSetChanged();
+                }
+            });
 
     private void filterTasksByWeek(String dateString) {
         try {
