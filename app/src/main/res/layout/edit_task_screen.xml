@@ -41,7 +41,7 @@
             android:padding="12dp"
             android:layout_marginTop="15dp"
             android:inputType="text"
-            app:layout_constraintTop_toBottomOf="@id/addTaskTitle"
+            app:layout_constraintTop_toBottomOf="@id/editTaskTitle"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             />
