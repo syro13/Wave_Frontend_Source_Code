@@ -77,6 +77,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
         ImageView googleSignInButton = view.findViewById(R.id.googleIcon); // Google sign-in button (ImageView)
         ImageView facebookIcon = view.findViewById(R.id.facebookIcon);
         ImageView twitterIcon = view.findViewById(R.id.twitterIcon);
+        TextView forgotPasswordText = view.findViewById(R.id.forgotPassword);
 
         // Set initial active state
         setActiveButton(loginButton, signupButton);
@@ -108,6 +109,12 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
         if (user != null) {
             refreshAuthToken(user);
         }
+
+        // Navigate to Forgot Password Screen when clicked
+        forgotPasswordText.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), ForgotPasswordActivity.class);
+            startActivity(intent);
+        });
 
         return view;
     }
