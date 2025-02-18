@@ -70,7 +70,7 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
 
         // Initialize Task List and Adapter
         taskList = new ArrayList<>();
-        taskAdapter = new TaskAdapter(taskList, this, this, this);  // Pass 'this' as the context and listener
+        taskAdapter = new TaskAdapter(taskList, this, this, this);
 
         // Set up RecyclerView
         taskRecyclerView = findViewById(R.id.taskRecyclerView);

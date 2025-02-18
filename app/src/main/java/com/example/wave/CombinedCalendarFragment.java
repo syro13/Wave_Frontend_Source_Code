@@ -108,21 +108,8 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         calendarRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 7));
         calendarRecyclerView.setAdapter(calendarAdapter);
 
-        taskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), task -> {
-            Intent intent = new Intent(getContext(), EditTasksActivity.class);
-
-            // Pass task details to edit screen
-            intent.putExtra("taskTitle", task.getTitle());
-            intent.putExtra("taskType", task.getCategory());
-            intent.putExtra("priority", task.getPriority());
-            intent.putExtra("date", task.getDate());
-            intent.putExtra("time", task.getTime());
-            intent.putExtra("remind", task.isRemind());
-
-            startActivity(intent);
-        }, this); // <-- Pass 'this' as OnTaskEditedListener
-
-       weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), this, this);
+        taskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), this, this);
+        weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), this, this);
 
         taskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         taskRecyclerView.setAdapter(taskAdapter);
