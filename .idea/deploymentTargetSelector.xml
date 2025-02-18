@@ -3,10 +3,6 @@
   <component name="deploymentTargetSelector">
     <selectionStates>
       <SelectionState runConfigName="SchoolHomeCalendarActivity">
-      <SelectionState runConfigName="app">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
-      <SelectionState runConfigName="DashboardActivity">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

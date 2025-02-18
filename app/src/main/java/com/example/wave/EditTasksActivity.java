@@ -2,7 +2,6 @@ package com.example.wave;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -23,9 +22,9 @@ public class EditTasksActivity extends AppCompatActivity {
     private SwitchMaterial remindSwitch;
     private Button editTaskButton;
     private Spinner repeatSpinner;
-    private String selectedTaskType = "School"; // Default task type
-    private String selectedPriority = "Medium"; // Default priority
-    private Task task; // The task being edited
+    private String selectedTaskType;
+    private String selectedPriority;
+    private Task task; // Task object being edited
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,9 +49,17 @@ public class EditTasksActivity extends AppCompatActivity {
         lowPriorityButton = findViewById(R.id.lowPriorityButton);
 
         // Retrieve the task passed from the previous activity
-        task = getIntent().getParcelableExtra("task");
-        if (task != null) {
-            populateTaskData(task);
+        if (getIntent().hasExtra("task")) {
+            task = getIntent().getParcelableExtra("task");
+
+            if (task != null) {
+                Log.d("EditTasksActivity", "Received Task: " + task.getTitle());
+                populateTaskData(task);
+            } else {
+                Log.e("EditTasksActivity", "Received Task is NULL");
+            }
+        } else {
+            Log.e("EditTasksActivity", "No Task received in Intent");
         }
 
         // Set click listeners
@@ -64,18 +71,20 @@ public class EditTasksActivity extends AppCompatActivity {
     }
 
     private void populateTaskData(Task task) {
+        Log.d("EditTasksActivity", "Populating task data...");
+
+        // Set text fields
         taskTitleInput.setText(task.getTitle());
         selectDate.setText(task.getFullDate());
         selectTime.setText(task.getTime());
         remindSwitch.setChecked(task.isRemind());
 
+        // Assign task values to selected variables
         selectedTaskType = task.getCategory();
         selectedPriority = task.getPriority();
 
-        // Set the selected category
+        // Set the selected category & priority
         highlightSelectedCategory(selectedTaskType);
-
-        // Set the selected priority
         highlightSelectedPriority(selectedPriority);
     }
 
@@ -112,14 +121,15 @@ public class EditTasksActivity extends AppCompatActivity {
         int blueColor = getResources().getColor(R.color.blue);
         int transparentColor = getResources().getColor(R.color.transparent);
 
+        schoolTaskButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
+        homeTaskButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
+
         if ("School".equals(category)) {
             schoolTaskButton.setStrokeColor(ColorStateList.valueOf(blueColor));
             schoolTaskButton.setStrokeWidth(4);
-            homeTaskButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
-        } else {
+        } else if ("Home".equals(category)) {
             homeTaskButton.setStrokeColor(ColorStateList.valueOf(blueColor));
             homeTaskButton.setStrokeWidth(4);
-            schoolTaskButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
         }
     }
 
