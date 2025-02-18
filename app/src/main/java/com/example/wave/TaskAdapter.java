@@ -19,11 +19,13 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     private final List<Task> taskList;
     private final Context context;
     private final OnTaskDeletedListener onTaskDeletedListener;
+    private final OnTaskEditedListener onTaskEditedListener; // NEW: Listener for editing tasks
 
-    public TaskAdapter(List<Task> taskList, Context context, OnTaskDeletedListener onTaskDeletedListener) {
+    public TaskAdapter(List<Task> taskList, Context context, OnTaskDeletedListener onTaskDeletedListener, OnTaskEditedListener onTaskEditedListener) {
         this.taskList = taskList;
         this.context = context;
         this.onTaskDeletedListener = onTaskDeletedListener;
+        this.onTaskEditedListener = onTaskEditedListener; // Assign the edit listener
     }
 
     @NonNull
@@ -31,10 +33,6 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public TaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.task_item_card, parent, false);
         return new TaskViewHolder(view);
-    }
-
-    public List<Task> getTaskList() {
-        return taskList;
     }
 
     @Override
@@ -56,7 +54,6 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 break;
         }
 
-
         // Priority icon handling
         switch (task.getPriority()) {
             case "High":
@@ -76,21 +73,21 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 break;
         }
 
-
         // Open Edit Task Screen when clicked
         holder.taskCard.setOnClickListener(v -> {
             Intent intent = new Intent(context, EditTasksActivity.class);
-            intent.putExtra("taskTitle", task.getTitle());
-            intent.putExtra("taskType", task.getCategory());
-            intent.putExtra("priority", task.getPriority());
-            intent.putExtra("date", task.getDate());
-            intent.putExtra("time", task.getTime());
-            intent.putExtra("remind", task.isRemind());
-            context.startActivity(intent);
+            intent.putExtra("task", task); // FIX: Pass the full task object
+            ((MainActivity) context).startActivityForResult(intent, 1); // FIX: Start activity for result
         });
 
         // Delete task on icon click
         holder.deleteTask.setOnClickListener(v -> showDeleteConfirmationDialog(task, position));
+    }
+
+    public void updateTasks(List<Task> newTasks) {
+        taskList.clear();  // Clear the old list
+        taskList.addAll(newTasks);  // Add updated tasks
+        notifyDataSetChanged();  // Notify RecyclerView to refresh
     }
 
     private void showDeleteConfirmationDialog(Task task, int position) {
@@ -125,10 +122,15 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         return taskList.size();
     }
 
-    public void updateTasks(List<Task> newTasks) {
-        taskList.clear();
-        taskList.addAll(newTasks);
-        notifyDataSetChanged();
+    // NEW: Method to update a task when it is edited
+    public void updateTask(Task updatedTask) {
+        for (int i = 0; i < taskList.size(); i++) {
+            if (taskList.get(i).getTitle().equals(updatedTask.getTitle())) { // Check by title (or ID if available)
+                taskList.set(i, updatedTask);
+                notifyItemChanged(i);
+                break;
+            }
+        }
     }
 
     public static class TaskViewHolder extends RecyclerView.ViewHolder {
@@ -148,6 +150,11 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             priorityFlag = itemView.findViewById(R.id.priorityFlag);
             categoryIcon = itemView.findViewById(R.id.categoryIcon);
         }
+    }
+
+    // NEW: Interface for handling task edits
+    public interface OnTaskEditedListener {
+        void onTaskEdited(Task updatedTask);
     }
 
     public interface OnTaskDeletedListener {
