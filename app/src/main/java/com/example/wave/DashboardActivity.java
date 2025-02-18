@@ -31,7 +31,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTaskDeletedListener {
+public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener  {
 
     private RecyclerView taskRecyclerView;
     private TaskAdapter taskAdapter;
@@ -70,7 +70,7 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
 
         // Initialize Task List and Adapter
         taskList = new ArrayList<>();
-        taskAdapter = new TaskAdapter(taskList, this, this);  // Pass 'this' as the context and listener
+        taskAdapter = new TaskAdapter(taskList, this, this, this);  // Pass 'this' as the context and listener
 
         // Set up RecyclerView
         taskRecyclerView = findViewById(R.id.taskRecyclerView);
@@ -132,6 +132,12 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
                 startActivity(intent);
             }
         });
+    }
+    @Override
+    public void onTaskEdited(Task updatedTask) {
+        if (taskAdapter != null) {
+            taskAdapter.updateTask(updatedTask); // Update RecyclerView
+        }
     }
 
     private void loadInitialTasks() {

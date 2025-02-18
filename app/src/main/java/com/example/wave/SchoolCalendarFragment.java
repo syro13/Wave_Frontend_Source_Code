@@ -35,7 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTaskDeletedListener {
+public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener  {
 
     private RecyclerView calendarRecyclerView, taskRecyclerView, weeklyTaskRecyclerView;
     private CalendarAdapter calendarAdapter;
@@ -158,7 +158,6 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
         calendarRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 7));
         calendarRecyclerView.setAdapter(calendarAdapter);
 
-        // Initialize task adapters
         taskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), task -> {
             Intent intent = new Intent(getContext(), EditTasksActivity.class);
 
@@ -171,10 +170,9 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
             intent.putExtra("remind", task.isRemind());
 
             startActivity(intent);
-        });
+        }, this); // <-- Pass 'this' as OnTaskEditedListener
 
-        weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), this);
-
+        weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), this, this);
         // Set adapters to RecyclerViews
         taskRecyclerView.setAdapter(taskAdapter);
         weeklyTaskRecyclerView.setAdapter(weeklyTaskAdapter);
@@ -221,6 +219,13 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
         return filteredTasks;
     }
 
+    @Override
+    public void onTaskEdited(Task task) {
+        // Handle the edited task update (e.g., refresh list)
+        if (taskAdapter != null) {
+            taskAdapter.notifyDataSetChanged();
+        }
+    }
 
 
     private Set<String> getSchoolTaskDates() {

@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class CombinedCalendarFragment extends Fragment {
+public class CombinedCalendarFragment extends Fragment implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener  {
 
     private RecyclerView calendarRecyclerView, taskRecyclerView, weeklyTaskRecyclerView;
     private CalendarAdapter calendarAdapter;
@@ -108,18 +108,21 @@ public class CombinedCalendarFragment extends Fragment {
         calendarRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 7));
         calendarRecyclerView.setAdapter(calendarAdapter);
 
-        // Initialize task adapters with OnTaskDeletedListener
-        taskAdapter = new TaskAdapter(combinedTaskList, requireContext(), task -> {
-            combinedTaskList.remove(task);
-            taskAdapter.notifyDataSetChanged();
-            updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
-        });
+        taskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), task -> {
+            Intent intent = new Intent(getContext(), EditTasksActivity.class);
 
-        weeklyTaskAdapter = new TaskAdapter(combinedTaskList, requireContext(), task -> {
-            combinedTaskList.remove(task);
-            weeklyTaskAdapter.notifyDataSetChanged();
-            updateWeeklyTasks();
-        });
+            // Pass task details to edit screen
+            intent.putExtra("taskTitle", task.getTitle());
+            intent.putExtra("taskType", task.getCategory());
+            intent.putExtra("priority", task.getPriority());
+            intent.putExtra("date", task.getDate());
+            intent.putExtra("time", task.getTime());
+            intent.putExtra("remind", task.isRemind());
+
+            startActivity(intent);
+        }, this); // <-- Pass 'this' as OnTaskEditedListener
+
+       weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), this, this);
 
         taskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         taskRecyclerView.setAdapter(taskAdapter);
@@ -193,6 +196,22 @@ public class CombinedCalendarFragment extends Fragment {
         });
 
     }
+
+    @Override
+    public void onTaskDeleted(Task task) {
+        // Update tasks for the selected day and week after deletion
+        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+        updateWeeklyTasks();
+    }
+
+    @Override
+    public void onTaskEdited(Task task) {
+        // Handle the edited task update (e.g., refresh list)
+        if (taskAdapter != null) {
+            taskAdapter.notifyDataSetChanged();
+        }
+    }
+
     private String getOrdinalSuffix(int day) {
         if (day >= 11 && day <= 13) {
             return "th"; // Special case for 11th, 12th, and 13th

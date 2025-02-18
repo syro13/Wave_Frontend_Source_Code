@@ -30,7 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTaskDeletedListener {
+public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener  {
 
     private RecyclerView calendarRecyclerView, taskRecyclerView, weeklyTaskRecyclerView;
     private CalendarAdapter calendarAdapter;
@@ -160,8 +160,21 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
 
 
         // Initialize task adapters
-        taskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), this);
-        weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), this);
+
+        taskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), task -> {
+            Intent intent = new Intent(getContext(), EditTasksActivity.class);
+
+            // Pass task details to edit screen
+            intent.putExtra("taskTitle", task.getTitle());
+            intent.putExtra("taskType", task.getCategory());
+            intent.putExtra("priority", task.getPriority());
+            intent.putExtra("date", task.getDate());
+            intent.putExtra("time", task.getTime());
+            intent.putExtra("remind", task.isRemind());
+
+            startActivity(intent);
+        }, this); // <-- Pass 'this' as OnTaskEditedListener
+
 
         // Set adapters to RecyclerViews
         taskRecyclerView.setAdapter(taskAdapter);
@@ -187,6 +200,14 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         // Perform any necessary actions after a task is deleted
         updateWeeklyTasks();
         updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+    }
+
+    @Override
+    public void onTaskEdited(Task task) {
+        // Handle the edited task update (e.g., refresh list)
+        if (taskAdapter != null) {
+            taskAdapter.notifyDataSetChanged();
+        }
     }
 
     private void updateTasksTitle(List<Task> selectedDateTasks, int selectedDay) {
