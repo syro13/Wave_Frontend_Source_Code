@@ -1,5 +1,6 @@
 package com.example.wave;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -9,9 +10,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.card.MaterialCardView;
+
 import java.util.List;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
@@ -19,13 +23,13 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     private final List<Task> taskList;
     private final Context context;
     private final OnTaskDeletedListener onTaskDeletedListener;
-    private final OnTaskEditedListener onTaskEditedListener; // NEW: Listener for editing tasks
+    private final OnTaskEditedListener onTaskEditedListener; // Listener for editing tasks
 
     public TaskAdapter(List<Task> taskList, Context context, OnTaskDeletedListener onTaskDeletedListener, OnTaskEditedListener onTaskEditedListener) {
         this.taskList = taskList;
         this.context = context;
         this.onTaskDeletedListener = onTaskDeletedListener;
-        this.onTaskEditedListener = onTaskEditedListener; // Assign the edit listener
+        this.onTaskEditedListener = onTaskEditedListener;
     }
 
     @NonNull
@@ -76,14 +80,20 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         // Open Edit Task Screen when clicked
         holder.taskCard.setOnClickListener(v -> {
             Intent intent = new Intent(context, EditTasksActivity.class);
-            intent.putExtra("task", task); // FIX: Pass the full task object
-            ((MainActivity) context).startActivityForResult(intent, 1); // FIX: Start activity for result
+            intent.putExtra("task", task); // Pass the full task object
+
+            if (context instanceof Activity) {
+                ((Activity) context).startActivityForResult(intent, 1); // Start activity for result
+            } else {
+                context.startActivity(intent);
+            }
         });
 
         // Delete task on icon click
         holder.deleteTask.setOnClickListener(v -> showDeleteConfirmationDialog(task, position));
     }
 
+    // Method to update tasks in the RecyclerView
     public void updateTasks(List<Task> newTasks) {
         taskList.clear();  // Clear the old list
         taskList.addAll(newTasks);  // Add updated tasks
@@ -122,7 +132,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         return taskList.size();
     }
 
-    // NEW: Method to update a task when it is edited
+    // Method to update a single task when edited
     public void updateTask(Task updatedTask) {
         for (int i = 0; i < taskList.size(); i++) {
             if (taskList.get(i).getTitle().equals(updatedTask.getTitle())) { // Check by title (or ID if available)
@@ -152,7 +162,6 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         }
     }
 
-    // NEW: Interface for handling task edits
     public interface OnTaskEditedListener {
         void onTaskEdited(Task updatedTask);
     }
