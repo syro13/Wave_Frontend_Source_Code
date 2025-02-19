@@ -41,6 +41,7 @@ public class AddExpenseBottomSheetFragment extends BottomSheetDialogFragment {
     private TextView expenseCategoryDropdown;
 
 
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
