@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
+        android:name=".AppController"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -15,8 +16,11 @@
         android:roundIcon="@mipmap/wave_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.Wave"
-        tools:targetApi="31"
-        tools:remove="android.adservices.AD_SERVICES_CONFIG">
+        tools:remove="android.adservices.AD_SERVICES_CONFIG"
+        tools:targetApi="31">
+        <activity
+            android:name=".ForgotPasswordActivity"
+            android:exported="true" />
         <activity
             android:name=".SettingsActivity"
             android:exported="true" />
@@ -39,58 +43,56 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <!-- OnboardingActivity: Separate onboarding screen without launcher intent -->
-        <activity android:name=".OnboardingActivity" android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-            android:exported="true"/>
-
-        <activity android:name=".LoginSignUpActivity"
-            android:exported="true"/>
-
-        <activity android:name=".IntroActivity"
-            android:exported="true"/>
-
-        <activity android:name=".MainActivity"
-            android:exported="true"/>
-
+        </activity> <!-- OnboardingActivity: Separate onboarding screen without launcher intent -->
+        <activity
+            android:name=".OnboardingActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".LoginSignUpActivity"
+            android:exported="true" />
+        <activity
+            android:name=".IntroActivity"
+            android:exported="true" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true" />
         <activity
             android:name=".DashboardActivity"
             android:exported="true"
-            android:theme="@style/Theme.Wave">
-        </activity>
+            android:theme="@style/Theme.Wave"></activity>
         <activity
             android:name=".SchoolHomeTasksActivity"
             android:exported="true"
-            android:theme="@style/Theme.Wave">
-        </activity>
+            android:theme="@style/Theme.Wave"></activity>
         <activity
             android:name=".WellnessActivity"
-            android:exported="true" />
-        <!-- Facebook App Configuration -->
+            android:exported="true" /> <!-- Facebook App Configuration -->
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/facebook_app_id"/>
+            android:value="@string/facebook_app_id" />
         <meta-data
             android:name="com.facebook.sdk.ClientToken"
-            android:value="@string/facebook_client_token"/>
-
-        <!-- Facebook Login Activity -->
-
-        <activity android:name="com.facebook.FacebookActivity"
-            android:configChanges=
-                "keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:value="@string/facebook_client_token" /> <!-- Facebook Login Activity -->
+        <activity
+            android:name="com.facebook.FacebookActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
             android:label="@string/app_name" />
         <activity
             android:name="com.facebook.CustomTabActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
-        <activity android:name=".SchoolHomeCalendarActivity"
-            android:exported="true"/>
+        <activity
+            android:name=".SchoolHomeCalendarActivity"
+            android:exported="true" />
     </application>
+
 </manifest>
