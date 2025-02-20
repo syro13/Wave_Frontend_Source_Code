@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -14,6 +13,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
+import java.util.List;
+
 public class EditTasksActivity extends AppCompatActivity {
 
     private EditText taskTitleInput, selectDate, selectTime;
@@ -22,9 +23,12 @@ public class EditTasksActivity extends AppCompatActivity {
     private SwitchMaterial remindSwitch;
     private Button editTaskButton;
     private Spinner repeatSpinner;
-    private String selectedTaskType;
-    private String selectedPriority;
-    private Task task; // Task object being edited
+
+    private String selectedTaskType = "School";
+    private String selectedPriority = "Medium";
+
+    // The Task being edited
+    private Task task;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,9 +41,9 @@ public class EditTasksActivity extends AppCompatActivity {
         selectTime = findViewById(R.id.selectTime);
         remindSwitch = findViewById(R.id.remindSwitch);
         editTaskButton = findViewById(R.id.editTaskButton);
-        repeatSpinner = findViewById(R.id.repeatSpinner);
+        repeatSpinner = findViewById(R.id.repeatSpinner); // if used
 
-        // Task Type Buttons
+        // Category Buttons
         schoolTaskButton = findViewById(R.id.schoolTaskButtonInput);
         homeTaskButton = findViewById(R.id.homeTaskButtonInput);
 
@@ -48,42 +52,39 @@ public class EditTasksActivity extends AppCompatActivity {
         mediumPriorityButton = findViewById(R.id.mediumPriorityButton);
         lowPriorityButton = findViewById(R.id.lowPriorityButton);
 
-        // Retrieve the task passed from the previous activity
+        // Retrieve the Task passed from the previous activity
         if (getIntent().hasExtra("task")) {
             task = getIntent().getParcelableExtra("task");
-
             if (task != null) {
                 Log.d("EditTasksActivity", "Received Task: " + task.getTitle());
                 populateTaskData(task);
             } else {
                 Log.e("EditTasksActivity", "Received Task is NULL");
+                finish();
             }
         } else {
             Log.e("EditTasksActivity", "No Task received in Intent");
+            finish();
         }
 
-        // Set click listeners
+        // Set up category & priority button clicks
         setupTaskTypeSelection();
         setupPrioritySelection();
 
-        // Handle task edit button click
+        // Handle the "Save" (edit) button
         editTaskButton.setOnClickListener(v -> saveEditedTask());
     }
 
     private void populateTaskData(Task task) {
         Log.d("EditTasksActivity", "Populating task data...");
-
-        // Set text fields
         taskTitleInput.setText(task.getTitle());
-        selectDate.setText(task.getFullDate());
+        selectDate.setText(task.getFullDate()); // e.g., "4/2/2025"
         selectTime.setText(task.getTime());
         remindSwitch.setChecked(task.isRemind());
 
-        // Assign task values to selected variables
         selectedTaskType = task.getCategory();
         selectedPriority = task.getPriority();
 
-        // Set the selected category & priority
         highlightSelectedCategory(selectedTaskType);
         highlightSelectedPriority(selectedPriority);
     }
@@ -93,7 +94,6 @@ public class EditTasksActivity extends AppCompatActivity {
             selectedTaskType = "School";
             highlightSelectedCategory(selectedTaskType);
         });
-
         homeTaskButton.setOnClickListener(v -> {
             selectedTaskType = "Home";
             highlightSelectedCategory(selectedTaskType);
@@ -105,12 +105,10 @@ public class EditTasksActivity extends AppCompatActivity {
             selectedPriority = "High";
             highlightSelectedPriority(selectedPriority);
         });
-
         mediumPriorityButton.setOnClickListener(v -> {
             selectedPriority = "Medium";
             highlightSelectedPriority(selectedPriority);
         });
-
         lowPriorityButton.setOnClickListener(v -> {
             selectedPriority = "Low";
             highlightSelectedPriority(selectedPriority);
@@ -121,8 +119,11 @@ public class EditTasksActivity extends AppCompatActivity {
         int blueColor = getResources().getColor(R.color.blue);
         int transparentColor = getResources().getColor(R.color.transparent);
 
+        // Reset both
         schoolTaskButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
         homeTaskButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
+        schoolTaskButton.setStrokeWidth(2);
+        homeTaskButton.setStrokeWidth(2);
 
         if ("School".equals(category)) {
             schoolTaskButton.setStrokeColor(ColorStateList.valueOf(blueColor));
@@ -137,9 +138,13 @@ public class EditTasksActivity extends AppCompatActivity {
         int blueColor = getResources().getColor(R.color.blue);
         int transparentColor = getResources().getColor(R.color.transparent);
 
+        // Reset all
         highPriorityButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
         mediumPriorityButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
         lowPriorityButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
+        highPriorityButton.setStrokeWidth(2);
+        mediumPriorityButton.setStrokeWidth(2);
+        lowPriorityButton.setStrokeWidth(2);
 
         switch (priority) {
             case "High":
@@ -157,43 +162,96 @@ public class EditTasksActivity extends AppCompatActivity {
         }
     }
 
+    private List<String> getMonthYearList() {
+        return List.of(
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+        );
+    }
+
     private void saveEditedTask() {
-        String updatedTitle = taskTitleInput.getText().toString();
-        String updatedDate = selectDate.getText().toString();
-        String updatedTime = selectTime.getText().toString();
+        String updatedTitle = taskTitleInput.getText().toString().trim();
+        String updatedDate = selectDate.getText().toString().trim();
+        String updatedTime = selectTime.getText().toString().trim();
         boolean updatedRemind = remindSwitch.isChecked();
 
-        if (updatedDate == null || updatedDate.isEmpty()) {
-            Log.e("EditTasksActivity", "updatedDate is null or empty!");
+        // Basic validation
+        if (updatedTitle.isEmpty()) {
+            Log.e("EditTasksActivity", "Title is empty!");
+            taskTitleInput.setError("Please enter a title");
+            return;
+        }
+        if (updatedDate.isEmpty()) {
+            Log.e("EditTasksActivity", "Date is empty!");
+            selectDate.setError("Please enter a valid date (DD/MM/YYYY)");
             return;
         }
 
-        // Split the date safely
         String[] dateParts = updatedDate.split("/");
-        if (dateParts.length == 3) {
-            String day = dateParts[0];
-            String month = dateParts[1];
-            int year = Integer.parseInt(dateParts[2]);
-
-            // Create updated task object
-            Task updatedTask = new Task(
-                    updatedTitle,
-                    updatedTime,
-                    day,
-                    month,
-                    selectedPriority,
-                    selectedTaskType,
-                    updatedRemind,
-                    year
-            );
-
-            // Send updated task back to fragment
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra("updatedTask", updatedTask);
-            setResult(RESULT_OK, resultIntent);
-            finish();
-        } else {
+        if (dateParts.length != 3) {
             Log.e("EditTasksActivity", "Invalid date format: " + updatedDate);
+            selectDate.setError("Please enter a valid date (DD/MM/YYYY)");
+            return;
         }
+
+        // Extract day, month, year
+        String dayStr = dateParts[0];
+        String monthStr = dateParts[1];
+        String yearStr = dateParts[2];
+
+        int day, month, year;
+        try {
+            day = Integer.parseInt(dayStr);
+            month = Integer.parseInt(monthStr);
+            year = Integer.parseInt(yearStr);
+        } catch (NumberFormatException e) {
+            Log.e("EditTasksActivity", "Error parsing date: " + e.getMessage());
+            selectDate.setError("Day, month, and year must be numbers");
+            return;
+        }
+
+        // Make sure day and month are in normal range
+        if (month < 1 || month > 12) {
+            selectDate.setError("Month must be between 1 and 12");
+            return;
+        }
+        if (day < 1 || day > 31) {
+            selectDate.setError("Day must be between 1 and 31");
+            return;
+        }
+
+        // Ensure we have a valid task object
+        if (task == null) {
+            Log.e("EditTasksActivity", "No existing task to update!");
+            finish();
+            return;
+        }
+
+        // Preserve the original ID
+        String taskId = task.getId();
+
+        // Build the updated task
+        Task updatedTask = new Task(
+                taskId, // <-- Keep the same ID
+                updatedTitle,
+                updatedTime,
+                String.valueOf(day),
+                getMonthYearList().get(month - 1),
+                selectedPriority,
+                selectedTaskType,
+                updatedRemind,
+                year
+        );
+
+        // Pass the updated task back
+        int position = getIntent().getIntExtra("position", -1);
+        Log.d("EditTasksActivity", "Returning updated task: " + updatedTask.getTitle()
+                + ", ID: " + updatedTask.getId());
+
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("updatedTask", updatedTask);
+        resultIntent.putExtra("position", position);
+        setResult(RESULT_OK, resultIntent);
+        finish();
     }
 }
