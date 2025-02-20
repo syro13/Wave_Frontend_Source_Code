@@ -6,7 +6,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSnapHelper;
@@ -18,12 +19,12 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -31,11 +32,25 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener  {
+public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener {
 
     private RecyclerView taskRecyclerView;
     private TaskAdapter taskAdapter;
     private List<Task> taskList;
+
+    // Use ActivityResultLauncher instead of deprecated startActivityForResult
+    private final ActivityResultLauncher<Intent> editTaskLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Task updatedTask = result.getData().getParcelableExtra("updatedTask");
+                    int position = result.getData().getIntExtra("position", -1);
+
+                    if (updatedTask != null && position != -1 && position < taskList.size()) {
+                        taskList.set(position, updatedTask);
+                        taskAdapter.notifyItemChanged(position);
+                    }
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,134 +65,87 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
         TextView greetingTextView = findViewById(R.id.greetingText);
         CardView schoolTasksCard = findViewById(R.id.schoolTasksCard);
 
-        schoolTasksCard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(DashboardActivity.this, SchoolTasksFragment.class);
-                startActivity(intent);
-            }
+        schoolTasksCard.setOnClickListener(v -> {
+            Intent intent = new Intent(DashboardActivity.this, SchoolTasksFragment.class);
+            startActivity(intent);
         });
+
         // Fetch the user's display name from Firebase Authentication
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             String displayName = user.getDisplayName();
-            if (displayName != null && !displayName.isEmpty()) {
-                greetingTextView.setText("Hello " + displayName + "!");
-            } else {
-                greetingTextView.setText("Hello User!"); // Default fallback
-            }
+            greetingTextView.setText(displayName != null && !displayName.isEmpty() ? "Hello " + displayName + "!" : "Hello User!");
         }
 
         // Initialize Task List and Adapter
         taskList = new ArrayList<>();
-        taskAdapter = new TaskAdapter(taskList, this, this, this);
+        taskAdapter = new TaskAdapter(taskList, this, this, this, editTaskLauncher); // Pass the launcher
 
         // Set up RecyclerView
         taskRecyclerView = findViewById(R.id.taskRecyclerView);
         taskRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         taskRecyclerView.setAdapter(taskAdapter);
 
-        // Load initial tasks (dummy or real data)
+        // Load initial tasks
         loadInitialTasks();
-
         taskRecyclerView.setAdapter(taskAdapter);
         SnapHelper snapHelper = new LinearSnapHelper();
         snapHelper.attachToRecyclerView(taskRecyclerView);
 
-        // Load Dummy Tasks for Testing
+        // Load additional tasks
         loadDummyTasks();
         loadCurrentDate();
-
-        // Load the weather icon
         loadWeatherIcon();
 
-        findViewById(R.id.homeTasksCard).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Start SchoolHomeTasksActivity
-                Intent intent = new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        findViewById(R.id.schoolTasksCard).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Start SchoolHomeTasksActivity
-                Intent intent = new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class);
-                startActivity(intent);
-            }
-        });
-        findViewById(R.id.wellnessTasksCard).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Start Wellness Activity
-                Intent intent = new Intent(DashboardActivity.this, WellnessActivity.class);
-                startActivity(intent);
-            }
-        });
-        findViewById(R.id.budgetTasksCard).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Start Budget Activity
-                Intent intent = new Intent(DashboardActivity.this, BudgetPlannerActivity.class);
-                startActivity(intent);
-            }
-        });
-        findViewById(R.id.profileIcon).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Start Budget Activity
-                Intent intent = new Intent(DashboardActivity.this, ProfileActivity.class);
-                startActivity(intent);
-            }
-        });
+        findViewById(R.id.homeTasksCard).setOnClickListener(v -> startActivity(new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class)));
+        findViewById(R.id.schoolTasksCard).setOnClickListener(v -> startActivity(new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class)));
+        findViewById(R.id.wellnessTasksCard).setOnClickListener(v -> startActivity(new Intent(DashboardActivity.this, WellnessActivity.class)));
+        findViewById(R.id.budgetTasksCard).setOnClickListener(v -> startActivity(new Intent(DashboardActivity.this, BudgetPlannerActivity.class)));
+        findViewById(R.id.profileIcon).setOnClickListener(v -> startActivity(new Intent(DashboardActivity.this, ProfileActivity.class)));
     }
+
     @Override
-    public void onTaskEdited(Task updatedTask) {
-        if (taskAdapter != null) {
-            taskAdapter.updateTask(updatedTask); // Update RecyclerView
+    public void onTaskEdited(Task updatedTask, int position) {
+        if (position >= 0 && position < taskList.size()) {
+            taskList.set(position, updatedTask);
+            taskAdapter.notifyItemChanged(position);
         }
     }
 
     private void loadInitialTasks() {
-        taskList.add(new Task("Math Assignment", "10:00 AM", "7", "February", "High", "School", false, 2025));
-        taskList.add(new Task("Grocery Shopping", "12:00 PM", "8", "February", "Medium", "Home", true, 2025));
-        taskList.add(new Task("Team Meeting", "3:00 PM", "8", "February", "High", "School", false, 2025));
+        taskList.add(new Task(UUID.randomUUID().toString(),"Math Assignment", "10:00 AM", "7", "February", "High", "School", false, 2025));
+        taskList.add(new Task(UUID.randomUUID().toString(),"Grocery Shopping", "12:00 PM", "8", "February", "Medium", "Home", true, 2025));
+        taskList.add(new Task(UUID.randomUUID().toString(),"Team Meeting", "3:00 PM", "8", "February", "High", "School", false, 2025));
 
         // Notify the adapter of the new tasks
         taskAdapter.updateTasks(taskList);
     }
+
     @Override
     public void onTaskDeleted(Task task) {
-        // Handle any updates after the task is deleted, e.g., refreshing data or UI
-        // For example, if needed, update any counters or reload task lists
+        // Handle UI updates after deletion if needed
     }
+
     @Override
     protected int getCurrentMenuItemId() {
         return R.id.nav_index; // The menu item ID for the Home tab
     }
 
     private void loadDummyTasks() {
-        taskList.add(new Task("Wireframes for Websites", "8:00 AM", "18", "January", "High", "School", true, 2025));
-        taskList.add(new Task("Clean Kitchen", "9:00 AM", "19", "January", "Low", "Home", false, 2025));
-        taskList.add(new Task("Do Groceries", "10:00 AM", "20", "January", "High", "Personal", true, 2025));
-        taskList.add(new Task("Math Assignments", "11:00 AM", "18", "January", "Medium", "School", false, 2025));
-
-
+        taskList.add(new Task(UUID.randomUUID().toString(),"Wireframes for Websites", "8:00 AM", "18", "January", "High", "School", true, 2025));
+        taskList.add(new Task(UUID.randomUUID().toString(),"Clean Kitchen", "9:00 AM", "19", "January", "Low", "Home", false, 2025));
+        taskList.add(new Task(UUID.randomUUID().toString(),"Do Groceries", "10:00 AM", "20", "January", "High", "Personal", true, 2025));
+        taskList.add(new Task(UUID.randomUUID().toString(),"Math Assignments", "11:00 AM", "18", "January", "Medium", "School", false, 2025));
 
         taskAdapter.notifyDataSetChanged();
     }
+
     private void loadCurrentDate() {
         TextView currentDate = findViewById(R.id.currentDate);
-
-        // Format the current date
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEE dd MMM", Locale.getDefault());
-        String formattedDate = dateFormat.format(new Date());
-
-        // Set the formatted date to the TextView
-        currentDate.setText(formattedDate);
+        currentDate.setText(dateFormat.format(new Date()));
     }
+
     private void loadWeatherIcon() {
         ImageView weatherIcon = findViewById(R.id.weatherIcon);
 
@@ -195,30 +163,21 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
             @Override
             public void onResponse(Call<WeatherResponse> call, Response<WeatherResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // Get weather icon code
                     String iconCode = response.body().weather[0].icon;
-
-                    // Build icon URL (OpenWeatherMap provides icons)
                     String iconUrl = "https://openweathermap.org/img/wn/" + iconCode + "@2x.png";
 
-                    // Load icon into ImageView using Glide
                     Glide.with(DashboardActivity.this)
                             .load(iconUrl)
                             .into(weatherIcon);
                 } else {
-                    // Fallback icon for errors
                     weatherIcon.setImageResource(R.drawable.ic_placeholder_weather);
                 }
             }
 
             @Override
             public void onFailure(Call<WeatherResponse> call, Throwable t) {
-                // Fallback icon for errors
                 weatherIcon.setImageResource(R.drawable.ic_placeholder_weather);
             }
         });
     }
-
-
 }
-;

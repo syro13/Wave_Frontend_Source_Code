@@ -1,5 +1,7 @@
 package com.example.wave;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -14,6 +16,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -29,6 +33,7 @@ import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener  {
 
@@ -40,6 +45,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     private Calendar calendar;
     private Spinner monthYearDropdown;
     private TextView homeCalendarButton, schoolCalendarButton; // Toggle buttons
+    public static final int REQUEST_EDIT_TASK = 1001;
 
     @Nullable
     @Override
@@ -159,8 +165,8 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         calendarRecyclerView.setAdapter(calendarAdapter);
 
 
-        taskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), this, this);
-        weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), getContext(), this, this);
+        taskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this, editTaskLauncher);
+        weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this, editTaskLauncher);
 
 
         // Set adapters to RecyclerViews
@@ -190,12 +196,44 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     }
 
     @Override
-    public void onTaskEdited(Task task) {
-        // Handle the edited task update (e.g., refresh list)
-        if (taskAdapter != null) {
-            taskAdapter.notifyDataSetChanged();
+    public void onTaskEdited(Task updatedTask, int position) {
+        updateExistingTask(updatedTask);
+        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+        updateWeeklyTasks();
+        taskAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * Finds the existing task in the list and updates it instead of adding a new one.
+     */
+    private void updateExistingTask(Task updatedTask) {
+        for (int i = 0; i < taskList.size(); i++) {
+            if (taskList.get(i).getId().equals(updatedTask.getId())) { // Ensure unique ID check
+                taskList.set(i, updatedTask);
+                return;
+            }
         }
     }
+
+    private final ActivityResultLauncher<Intent> editTaskLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == android.app.Activity.RESULT_OK && result.getData() != null) {
+                    Task updatedTask = result.getData().getParcelableExtra("updatedTask");
+                    int position = result.getData().getIntExtra("position", -1);
+
+                    Log.d("SchoolCalendarFragment", "Received updated task: " + (updatedTask != null ? updatedTask.getTitle() : "NULL"));
+
+                    if (updatedTask != null && position >= 0 && position < taskList.size()) {
+                        taskList.set(position, updatedTask);
+                        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                        updateWeeklyTasks();
+                        taskAdapter.notifyItemChanged(position);
+                    } else {
+                        Log.e("SchoolCalendarFragment", "Invalid task update: NULL or position out of bounds.");
+                    }
+                }
+            });
+
 
     private void updateTasksTitle(List<Task> selectedDateTasks, int selectedDay) {
         TextView tasksDueTodayTitle = getView().findViewById(R.id.tasksDueTodayTitle);
@@ -272,16 +310,16 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     }
 
 
-
-    // Add this method in SchoolCalendarFragment and HomeCalendarFragment
-
     public void addTaskToCalendar(String title, String priority, String date, String time, boolean remind, String taskType) {
         if (taskList == null) {
             taskList = new ArrayList<>();
         }
 
+        // Generate a unique ID for the task
+        String taskId = UUID.randomUUID().toString();
+
         // Parse the date to extract day, month, and year
-        String[] dateParts = date.split("/"); // Split the date string by "/"
+        String[] dateParts = date.split("/");
         if (dateParts.length != 3) {
             Log.e("addTaskToCalendar", "Invalid date format: " + date);
             Toast.makeText(requireContext(), "Invalid date format!", Toast.LENGTH_SHORT).show();
@@ -290,35 +328,35 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
 
         String day = dateParts[0];
         String month = dateParts[1];
-        String year = dateParts[2];
+        int year = Integer.parseInt(dateParts[2]); // Convert year to integer
 
-        // Create a new task
+        // Create a new task (Ensure correct parameter order)
         Task newTask = new Task(
-                title,
-                time,
-                day,
-                getMonthYearList().get(Integer.parseInt(month) - 1), // Convert month index to month name
-                priority,
-                taskType,
-                remind,
-                Integer.parseInt(year)
+                taskId,                                    // Unique Task ID (String)
+                title,                                     // Task Title
+                time,                                      // Time (String)
+                day,                                       // Date (String)
+                getMonthYearList().get(Integer.parseInt(month) - 1), // Month Name (String)
+                priority,                                  // Priority (String)
+                taskType,                                  // Task Type (String)
+                remind,                                    // Reminder (Boolean)
+                year                                       // Year (int)
         );
 
-        // Add task to the list
-        taskList.add(newTask);
+        // Check if task exists, update it instead of adding a duplicate
+        updateExistingTask(newTask);
 
-        // Update tasks for the selected date
+        // Update task lists
         int dayInt = Integer.parseInt(day);
         String monthName = getMonthYearList().get(Integer.parseInt(month) - 1);
         List<Task> selectedDateTasks = filterTasksByDate(dayInt, monthName);
         taskAdapter.updateTasks(selectedDateTasks);
-
-        // Update weekly tasks
         updateWeeklyTasks();
 
-        // Optionally, show a confirmation toast
+        // Confirmation
         Toast.makeText(requireContext(), "Task added: " + title, Toast.LENGTH_SHORT).show();
     }
+
 
     private void updateTasksForToday(int day) {
         // Get the current category directly (either Home or School based on fragment)
@@ -432,21 +470,21 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
 
 
     private void loadDummyTasks() {
-            taskList.add(new Task("Clean Bedroom", "10:00 AM", "25", "January", "Low", "Home", false, 2025));
-            taskList.add(new Task("Do Laundry", "2:00 PM", "26", "January", "High", "Home", true, 2025));
-            taskList.add(new Task("Organize Closet", "11:00 AM", "27", "January", "Low", "Home", false, 2025));
-            taskList.add(new Task("Grocery Shopping", "5:00 PM", "28", "January", "Medium", "Home", false, 2025));
-            taskList.add(new Task("Meal Prep", "3:00 PM", "29", "January", "Medium", "Home", false, 2025));
-            taskList.add(new Task("Vacuum Living Room", "4:00 PM", "30", "January", "Low", "Home", false, 2025));
-            taskList.add(new Task("Take Out Trash", "7:00 PM", "31", "January", "High", "Home", true, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Clean Bedroom", "10:00 AM", "25", "January", "Low", "Home", false, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Do Laundry", "2:00 PM", "26", "January", "High", "Home", true, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Organize Closet", "11:00 AM", "27", "January", "Low", "Home", false, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Grocery Shopping", "5:00 PM", "28", "January", "Medium", "Home", false, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Meal Prep", "3:00 PM", "29", "January", "Medium", "Home", false, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Vacuum Living Room", "4:00 PM", "30", "January", "Low", "Home", false, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Take Out Trash", "7:00 PM", "31", "January", "High", "Home", true, 2025));
 
-            taskList.add(new Task("Clean Kitchen", "9:00 AM", "1", "February", "High", "Home", true, 2025));
-            taskList.add(new Task("Water Plants", "11:00 AM", "2", "February", "High", "Home", true, 2025));
-            taskList.add(new Task("Dust Shelves", "1:00 PM", "3", "February", "Low", "Home", false, 2025));
-            taskList.add(new Task("Mop Floors", "10:00 AM", "4", "February", "Medium", "Home", false, 2025));
-            taskList.add(new Task("Wash Dishes", "6:00 PM", "5", "February", "High", "Home", true, 2025));
-            taskList.add(new Task("Organize Pantry", "2:00 PM", "6", "February", "Medium", "Home", false, 2025));
-            taskList.add(new Task("Clean Windows", "12:00 PM", "7", "February", "Low", "Home", false, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Clean Kitchen", "9:00 AM", "1", "February", "High", "Home", true, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Water Plants", "11:00 AM", "2", "February", "High", "Home", true, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Dust Shelves", "1:00 PM", "3", "February", "Low", "Home", false, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Mop Floors", "10:00 AM", "4", "February", "Medium", "Home", false, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Wash Dishes", "6:00 PM", "5", "February", "High", "Home", true, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Organize Pantry", "2:00 PM", "6", "February", "Medium", "Home", false, 2025));
+            taskList.add(new Task(UUID.randomUUID().toString(),"Clean Windows", "12:00 PM", "7", "February", "Low", "Home", false, 2025));
         }
 
 
