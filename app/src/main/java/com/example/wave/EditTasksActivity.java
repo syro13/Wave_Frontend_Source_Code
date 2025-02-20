@@ -1,5 +1,7 @@
 package com.example.wave;
 
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
@@ -13,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
+import java.util.Calendar;
 import java.util.List;
 
 public class EditTasksActivity extends AppCompatActivity {
@@ -66,6 +69,42 @@ public class EditTasksActivity extends AppCompatActivity {
             Log.e("EditTasksActivity", "No Task received in Intent");
             finish();
         }
+        // For date field
+        selectDate.setOnClickListener(v -> {
+            // Use current date as default
+            Calendar c = Calendar.getInstance();
+            int year = c.get(Calendar.YEAR);
+            int month = c.get(Calendar.MONTH);
+            int day = c.get(Calendar.DAY_OF_MONTH);
+
+            DatePickerDialog datePickerDialog = new DatePickerDialog(
+                    EditTasksActivity.this,
+                    (view, selectedYear, selectedMonth, selectedDay) -> {
+                        // Update the EditText with the selected date
+                        // Note: selectedMonth is 0-indexed so add 1
+                        selectDate.setText(selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear);
+                    },
+                    year, month, day);
+            datePickerDialog.show();
+        });
+
+// For time field
+        selectTime.setOnClickListener(v -> {
+            // Use current time as default
+            Calendar c = Calendar.getInstance();
+            int hour = c.get(Calendar.HOUR_OF_DAY);
+            int minute = c.get(Calendar.MINUTE);
+
+            TimePickerDialog timePickerDialog = new TimePickerDialog(
+                    EditTasksActivity.this,
+                    (view, selectedHour, selectedMinute) -> {
+                        // Update the EditText with the selected time, format as desired
+                        selectTime.setText(String.format("%02d:%02d", selectedHour, selectedMinute));
+                    },
+                    hour, minute, true);
+            timePickerDialog.show();
+        });
+
 
         // Set up category & priority button clicks
         setupTaskTypeSelection();
