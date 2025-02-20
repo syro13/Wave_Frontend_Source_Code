@@ -371,13 +371,20 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
 
 
     private void updateWeeklyTasks() {
+        // Ensure combinedTaskList is up-to-date:
+        combinedTaskList.clear();
+        combinedTaskList.addAll(schoolTaskList);
+        combinedTaskList.addAll(homeTaskList);
+
+        // Create a LocalDate based on the current calendar date.
         LocalDate currentDate = LocalDate.of(
                 calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH) + 1,
+                calendar.get(Calendar.MONTH) + 1,  // Calendar month is zero-indexed
                 calendar.get(Calendar.DAY_OF_MONTH)
         );
-        LocalDate startOfWeek = currentDate.with(DayOfWeek.SUNDAY);
-        LocalDate endOfWeek   = currentDate.with(DayOfWeek.SATURDAY);
+        // Define week boundaries (Monday to Sunday)
+        LocalDate startOfWeek = currentDate.with(DayOfWeek.MONDAY);
+        LocalDate endOfWeek = currentDate.with(DayOfWeek.SUNDAY);
 
         List<Task> weeklyTasks = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
@@ -394,6 +401,7 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         }
         weeklyTaskAdapter.updateTasks(weeklyTasks);
     }
+
 
     private int getMonthIndex(String month) {
         List<String> months = getMonthYearList();
