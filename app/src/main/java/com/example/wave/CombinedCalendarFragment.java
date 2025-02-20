@@ -10,9 +10,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -25,6 +27,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -129,22 +135,27 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         loadDummyTasks();
         updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
 //set up toggle buttons
-        // Set up month selection dropdown
+        // Show tasks for today's date
+        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+
+        // Setup month-year spinner
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_item, getMonthYearList());
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        monthYearDropdown.setAdapter(adapter);
         monthYearDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (view instanceof TextView) {
-                    ((TextView) view).setTextColor(Color.BLACK); // Force black text
+            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+                if (v instanceof TextView) {
+                    ((TextView) v).setTextColor(Color.BLACK);
                 }
                 calendar.set(Calendar.MONTH, position);
                 updateCalendar();
             }
-
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing
-            }
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
+
 
         homeCalendarButton.setOnClickListener(v -> {
             setActiveTopButton(homeCalendarButton, schoolCalendarButton);
@@ -194,38 +205,57 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
 
     @Override
     public void onTaskDeleted(Task task) {
-        // Update tasks for the selected day and week after deletion
+        // Remove from relevant lists
+        if ("School".equals(task.getCategory())) {
+            schoolTaskList.removeIf(t -> t.getId().equals(task.getId()));
+        } else if ("Home".equals(task.getCategory())) {
+            homeTaskList.removeIf(t -> t.getId().equals(task.getId()));
+        }
+        combinedTaskList.removeIf(t -> t.getId().equals(task.getId()));
+
+        // Refresh daily & weekly tasks
         updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         updateWeeklyTasks();
+        taskAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onTaskEdited(Task updatedTask, int position) {
-        // Determine which list the task belongs to and update it
-        if (updatedTask.getCategory().equals("School")) {
+        Log.d("CombinedCalendar", "onTaskEdited: " + updatedTask.getTitle());
+
+        // Update in the appropriate list(s)
+        if ("School".equals(updatedTask.getCategory())) {
             updateTaskInList(schoolTaskList, updatedTask);
-        } else if (updatedTask.getCategory().equals("Home")) {
+        } else if ("Home".equals(updatedTask.getCategory())) {
             updateTaskInList(homeTaskList, updatedTask);
         }
-
-        // Always update the combined list to keep it in sync
         updateTaskInList(combinedTaskList, updatedTask);
 
-        // Refresh the adapter based on the current selected category
-        updateCurrentTasks();
+        // If user changed the date, jump the calendar to that new date so the UI updates right away
+        try {
+            String updatedFullDate = updatedTask.getFullDate(); // e.g. "3/2/2025"
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+            LocalDate updatedLocalDate = LocalDate.parse(updatedFullDate, formatter);
 
-        // Notify the RecyclerView about the update
+            calendar.set(Calendar.YEAR, updatedLocalDate.getYear());
+            // LocalDate months are 1-based, Calendar is 0-based
+            calendar.set(Calendar.MONTH, updatedLocalDate.getMonthValue() - 1);
+            calendar.set(Calendar.DAY_OF_MONTH, updatedLocalDate.getDayOfMonth());
+
+        } catch (Exception e) {
+            Log.e("CombinedCalendar", "Error updating calendar date: " + e.getMessage());
+        }
+
+        // Refresh everything
+        updateCalendar();
+        updateWeeklyTasks();
         taskAdapter.notifyDataSetChanged();
     }
 
-
-    /**
-     * Updates a task within a specific list.
-     */
-    private void updateTaskInList(List<Task> taskList, Task updatedTask) {
-        for (int i = 0; i < taskList.size(); i++) {
-            if (taskList.get(i).getTitle().equals(updatedTask.getTitle())) {
-                taskList.set(i, updatedTask);
+    private void updateTaskInList(List<Task> tasks, Task updatedTask) {
+        for (int i = 0; i < tasks.size(); i++) {
+            if (tasks.get(i).getId().equals(updatedTask.getId())) {
+                tasks.set(i, updatedTask);
                 return;
             }
         }
@@ -233,23 +263,19 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
 
 
 
-    // New: ActivityResultLauncher for task editing
-    // Updated: ActivityResultLauncher for task editing
+
     private final ActivityResultLauncher<Intent> editTaskLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == android.app.Activity.RESULT_OK && result.getData() != null) {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Task updatedTask = result.getData().getParcelableExtra("updatedTask");
-
-                    Log.d("CombinedCalendarFragment", "Received updated task: " +
-                            (updatedTask != null ? updatedTask.getTitle() : "NULL"));
-
                     if (updatedTask != null) {
-                        onTaskEdited(updatedTask, -1); // -1 because we're searching by title instead of position
+                        onTaskEdited(updatedTask, -1);
                     } else {
-                        Log.e("CombinedCalendarFragment", "Invalid task update: NULL received.");
+                        Log.e("CombinedCalendar", "Received null updatedTask");
                     }
                 }
             });
+
 
 
 
@@ -277,24 +303,32 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
     }
 
     private List<Task> filterTasksByDateBasedOnCategory(int day, String currentCategory) {
-        List<Task> filteredTasks = new ArrayList<>();
-
-        switch (currentCategory) {
-            case "School":
-                filteredTasks.addAll(filterTasksByDate(day, getMonthYearList().get(calendar.get(Calendar.MONTH)), schoolTaskList));
-                break;
-            case "Home":
-                filteredTasks.addAll(filterTasksByDate(day, getMonthYearList().get(calendar.get(Calendar.MONTH)), homeTaskList));
-                break;
-            default: // Both
-                // Dynamically combine tasks from both lists
-                filteredTasks.addAll(filterTasksByDate(day, getMonthYearList().get(calendar.get(Calendar.MONTH)), schoolTaskList));
-                filteredTasks.addAll(filterTasksByDate(day, getMonthYearList().get(calendar.get(Calendar.MONTH)), homeTaskList));
-                break;
+        String currentMonthName = getMonthYearList().get(calendar.get(Calendar.MONTH));
+        List<Task> results = new ArrayList<>();
+        if ("School".equals(currentCategory)) {
+            results.addAll(filterTasksByDayAndMonth(schoolTaskList, day, currentMonthName));
+        } else if ("Home".equals(currentCategory)) {
+            results.addAll(filterTasksByDayAndMonth(homeTaskList, day, currentMonthName));
+        } else {
+            // Both: combine
+            results.addAll(filterTasksByDayAndMonth(schoolTaskList, day, currentMonthName));
+            results.addAll(filterTasksByDayAndMonth(homeTaskList, day, currentMonthName));
         }
-        return filteredTasks;
+        return results;
     }
 
+    /**
+     * Helper for filtering tasks by day & month in a specific list.
+     */
+    private List<Task> filterTasksByDayAndMonth(List<Task> tasks, int day, String monthName) {
+        List<Task> filtered = new ArrayList<>();
+        for (Task t : tasks) {
+            if (Integer.parseInt(t.getDate()) == day && t.getMonth().equalsIgnoreCase(monthName)) {
+                filtered.add(t);
+            }
+        }
+        return filtered;
+    }
 
 
     private void updateTasksForToday(int day) {
@@ -318,53 +352,49 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
     private void updateCalendar() {
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
 
-        // Refresh task dates for the current month
+        // Build sets for school & home tasks
         Set<String> schoolTaskDates = getSchoolTaskDates();
         Set<String> homeTaskDates = getHomeTaskDates();
+        String currentCategory = getCurrentSelectedCategory();
 
-        String currentCategory = getCurrentSelectedCategory(); // Get the currently active toggle state
-
-        // Initialize or update the CalendarAdapter
-        if (calendarAdapter == null) {
-            calendarAdapter = new CalendarAdapter(calendarDates, selectedDate -> {
-                int selectedDay = Integer.parseInt(selectedDate);
-                calendar.set(Calendar.DAY_OF_MONTH, selectedDay);
-                updateTasksForToday(selectedDay);
-            }, schoolTaskDates, homeTaskDates, currentCategory); // Pass the category
-            calendarRecyclerView.setAdapter(calendarAdapter);
-        } else {
+        // Update the adapter’s data
+        if (calendarAdapter != null) {
             calendarAdapter.updateData(calendarDates);
             calendarAdapter.updateSchoolTaskDates(schoolTaskDates);
             calendarAdapter.updateHomeTaskDates(homeTaskDates);
-            calendarAdapter.updateCategory(currentCategory);  // Update the adapter’s category dynamically
+            calendarAdapter.updateCategory(currentCategory);
         }
+        // Also update the daily tasks and weekly tasks
+        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+        updateWeeklyTasks();
     }
+
 
     private void updateWeeklyTasks() {
+        LocalDate currentDate = LocalDate.of(
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH) + 1,
+                calendar.get(Calendar.DAY_OF_MONTH)
+        );
+        LocalDate startOfWeek = currentDate.with(DayOfWeek.SUNDAY);
+        LocalDate endOfWeek   = currentDate.with(DayOfWeek.SATURDAY);
+
         List<Task> weeklyTasks = new ArrayList<>();
-        Calendar currentCalendar = Calendar.getInstance();
-
-        // Get the start and end date of the current week
-        int currentYear = currentCalendar.get(Calendar.YEAR);
-        int currentMonth = calendar.get(Calendar.MONTH);
-        int currentWeek = calendar.get(Calendar.WEEK_OF_MONTH);
-
-        for (Task task : combinedTaskList) {
-            Calendar taskCalendar = Calendar.getInstance();
-            taskCalendar.set(currentYear, getMonthIndex(task.getMonth()), Integer.parseInt(task.getDate()));
-
-            int taskWeek = taskCalendar.get(Calendar.WEEK_OF_MONTH);
-            int taskMonth = taskCalendar.get(Calendar.MONTH);
-
-            // Check if the task falls within the current week and month
-            if (taskMonth == currentMonth && taskWeek == currentWeek) {
-                weeklyTasks.add(task);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+        for (Task t : combinedTaskList) {
+            try {
+                String fullDate = t.getDate() + "/" + (getMonthIndex(t.getMonth()) + 1) + "/" + t.getYear();
+                LocalDate taskDate = LocalDate.parse(fullDate, formatter);
+                if (!taskDate.isBefore(startOfWeek) && !taskDate.isAfter(endOfWeek)) {
+                    weeklyTasks.add(t);
+                }
+            } catch (DateTimeParseException e) {
+                Log.e("updateWeeklyTasks", "Error parsing date: " + e.getMessage());
             }
         }
-
-        // Update weekly task adapter
         weeklyTaskAdapter.updateTasks(weeklyTasks);
     }
+
     private int getMonthIndex(String month) {
         List<String> months = getMonthYearList();
         return months.indexOf(month);
@@ -413,28 +443,46 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
 
         return dates;
     }
-    public void addTaskToCalendar(String taskTitle, String taskPriority, String taskDate, String taskTime, boolean remind, String taskType) {
-        // Generate a unique ID for the task
+    /**
+     * Called when user adds a new task.
+     */
+    public void addTaskToCalendar(String taskTitle, String taskPriority, String taskDate, String taskTime,
+                                  boolean remind, String taskType) {
         String taskId = UUID.randomUUID().toString();
-        // Add the task to the appropriate list based on its type
-        Task newTask = new Task(taskId, taskTitle, taskTime, taskDate, getMonthYearList().get(calendar.get(Calendar.MONTH)), taskPriority, taskType, remind, calendar.get(Calendar.YEAR));
+        // Suppose user typed "4/2/2025" => parse that
+        String[] dateParts = taskDate.split("/");
+        if (dateParts.length != 3) {
+            Toast.makeText(requireContext(), "Invalid date format!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String day = dateParts[0];
+        String month = dateParts[1];
+        int year = Integer.parseInt(dateParts[2]);
 
-        if (taskType.equals("School")) {
+        Task newTask = new Task(
+                taskId,
+                taskTitle,
+                taskTime,
+                day,
+                getMonthYearList().get(Integer.parseInt(month) - 1),
+                taskPriority,
+                taskType,
+                remind,
+                year
+        );
+        // Insert into relevant list
+        if ("School".equals(taskType)) {
             schoolTaskList.add(newTask);
-        } else if (taskType.equals("Home")) {
+        } else if ("Home".equals(taskType)) {
             homeTaskList.add(newTask);
         }
-        else if (taskType.equals("Combined")){
-            combinedTaskList.add(newTask);
-        }
-        // Always add to the combined list
+        // Always keep combined in sync
         combinedTaskList.add(newTask);
 
-        // Refresh the calendar and task views
+        // Refresh
         updateCalendar();
         updateCurrentTasks();
     }
-
 
     private List<String> getMonthYearList() {
         List<String> months = new ArrayList<>();
@@ -550,6 +598,7 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         // After updating buttons, update tasks
         updateCurrentTasks();
     }
+
     private String getCurrentSelectedCategory() {
         if (schoolToggleButton.isSelected()) {
             return "School";
