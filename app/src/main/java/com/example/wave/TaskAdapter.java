@@ -1,9 +1,9 @@
 package com.example.wave;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,19 +24,25 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     private final List<Task> taskList;
     private final Context context;
     private final OnTaskDeletedListener onTaskDeletedListener;
-    private final OnTaskEditedListener onTaskEditedListener; // Listener for editing tasks
+    private final OnTaskEditedListener onTaskEditedListener;
+    private final ActivityResultLauncher<Intent> editTaskLauncher;
 
-    public TaskAdapter(List<Task> taskList, Context context, OnTaskDeletedListener onTaskDeletedListener, OnTaskEditedListener onTaskEditedListener) {
+    public TaskAdapter(List<Task> taskList, Context context,
+                       OnTaskDeletedListener onTaskDeletedListener,
+                       OnTaskEditedListener onTaskEditedListener,
+                       ActivityResultLauncher<Intent> editTaskLauncher) {
         this.taskList = taskList;
         this.context = context;
         this.onTaskDeletedListener = onTaskDeletedListener;
         this.onTaskEditedListener = onTaskEditedListener;
+        this.editTaskLauncher = editTaskLauncher;
     }
 
     @NonNull
     @Override
     public TaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.task_item_card, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.task_item_card, parent, false);
         return new TaskViewHolder(view);
     }
 
@@ -45,7 +52,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         holder.taskTitle.setText(task.getTitle());
         holder.taskTime.setText(task.getTime());
 
-        // Handle category styling
+        // Category styling
         holder.categoryTag.setText(task.getCategory());
         switch (task.getCategory().toLowerCase()) {
             case "school":
@@ -58,7 +65,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 break;
         }
 
-        // Priority icon handling
+        // Priority icon
         switch (task.getPriority()) {
             case "High":
                 holder.priorityFlag.setVisibility(View.VISIBLE);
@@ -77,15 +84,15 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 break;
         }
 
-        // Open Edit Task Screen when clicked
+        // Edit Task on click
         holder.taskCard.setOnClickListener(v -> {
             Intent intent = new Intent(context, EditTasksActivity.class);
-            intent.putExtra("task", task); // Pass the full task object
-
-            if (context instanceof Activity) {
-                ((Activity) context).startActivityForResult(intent, 1); // Start activity for result
+            intent.putExtra("task", task);
+            intent.putExtra("position", holder.getAdapterPosition());
+            if (editTaskLauncher != null) {
+                editTaskLauncher.launch(intent);
             } else {
-                context.startActivity(intent);
+                Log.e("TaskAdapter", "editTaskLauncher is null, cannot launch edit task.");
             }
         });
 
@@ -93,54 +100,51 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         holder.deleteTask.setOnClickListener(v -> showDeleteConfirmationDialog(task, position));
     }
 
-    // Method to update tasks in the RecyclerView
-    public void updateTasks(List<Task> newTasks) {
-        taskList.clear();  // Clear the old list
-        taskList.addAll(newTasks);  // Add updated tasks
-        notifyDataSetChanged();  // Notify RecyclerView to refresh
-    }
-
     private void showDeleteConfirmationDialog(Task task, int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Delete Task");
-        builder.setMessage("Are you sure you want to delete this task?\n\nTask Title: " + task.getTitle());
-
-        builder.setPositiveButton("Delete", (dialog, which) -> {
-            deleteTask(task, position);
-            dialog.dismiss();
-        });
-
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-
-        AlertDialog dialog = builder.create();
-        dialog.show();
+        builder.setTitle("Delete Task")
+                .setMessage("Are you sure you want to delete this task?\n\nTask Title: " + task.getTitle())
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    deleteTask(task, position);
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
     }
 
     private void deleteTask(Task task, int position) {
         if (position >= 0 && position < taskList.size()) {
             taskList.remove(position);
             notifyItemRemoved(position);
-
             if (onTaskDeletedListener != null) {
                 onTaskDeletedListener.onTaskDeleted(task);
             }
         }
     }
 
+    // Updating the entire list
+    public void updateTasks(List<Task> newTasks) {
+        Log.d("TaskAdapter", "Updating adapter with " + newTasks.size() + " tasks.");
+        taskList.clear();
+        taskList.addAll(newTasks);
+        notifyDataSetChanged();
+    }
+
+    // Updating a single task by position
+    public void updateTask(Task updatedTask, int position) {
+        if (position >= 0 && position < taskList.size()) {
+            taskList.set(position, updatedTask);
+            notifyItemChanged(position);
+            Log.d("TaskAdapter", "Updated task at position " + position + ": " + updatedTask.getTitle());
+        } else {
+            Log.e("TaskAdapter", "Invalid position for task update.");
+        }
+    }
+
     @Override
     public int getItemCount() {
         return taskList.size();
-    }
-
-    // Method to update a single task when edited
-    public void updateTask(Task updatedTask) {
-        for (int i = 0; i < taskList.size(); i++) {
-            if (taskList.get(i).getTitle().equals(updatedTask.getTitle())) { // Check by title (or ID if available)
-                taskList.set(i, updatedTask);
-                notifyItemChanged(i);
-                break;
-            }
-        }
     }
 
     public static class TaskViewHolder extends RecyclerView.ViewHolder {
@@ -163,7 +167,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     }
 
     public interface OnTaskEditedListener {
-        void onTaskEdited(Task updatedTask);
+        void onTaskEdited(Task updatedTask, int position);
     }
 
     public interface OnTaskDeletedListener {
