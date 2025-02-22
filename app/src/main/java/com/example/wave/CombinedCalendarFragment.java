@@ -408,9 +408,17 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
             return;
         }
 
-        combinedTaskList.clear();
-        combinedTaskList.addAll(schoolTaskList);
-        combinedTaskList.addAll(homeTaskList);
+        // ✅ Select tasks based on the active category
+        String selectedCategory = getCurrentSelectedCategory();
+        List<Task> filteredTaskList;
+
+        if ("School".equals(selectedCategory)) {
+            filteredTaskList = new ArrayList<>(schoolTaskList);
+        } else if ("Home".equals(selectedCategory)) {
+            filteredTaskList = new ArrayList<>(homeTaskList);
+        } else { // "Both"
+            filteredTaskList = new ArrayList<>(combinedTaskList);
+        }
 
         LocalDate currentDate = LocalDate.of(
                 calendar.get(Calendar.YEAR),
@@ -424,7 +432,7 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         List<Task> weeklyTasks = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
 
-        for (Task t : combinedTaskList) {
+        for (Task t : filteredTaskList) { // ✅ Now uses filtered tasks
             try {
                 String fullDate = t.getDate() + "/" + (getMonthIndex(t.getMonth()) + 1) + "/" + t.getYear();
                 LocalDate taskDate = LocalDate.parse(fullDate, formatter);
@@ -453,6 +461,7 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
             weeklyTaskAdapter.notifyDataSetChanged();
         }
     }
+
 
     // ✅ Helper Function for Priority Sorting
     private int getPriorityValue(String priority) {
