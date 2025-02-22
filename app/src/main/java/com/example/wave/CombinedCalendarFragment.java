@@ -158,21 +158,38 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-
         homeCalendarButton.setOnClickListener(v -> {
-            setActiveTopButton(homeCalendarButton, schoolCalendarButton);
+            setActiveButton(homeCalendarButton, schoolCalendarButton);
             if (getActivity() instanceof SchoolHomeCalendarActivity) {
                 ((SchoolHomeCalendarActivity) getActivity()).showHomeCalendarFragment();
             }
+            updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         });
 
         schoolCalendarButton.setOnClickListener(v -> {
-            setActiveTopButton(schoolCalendarButton, homeCalendarButton);
+            setActiveButton(schoolCalendarButton, homeCalendarButton);
             if (getActivity() instanceof SchoolHomeCalendarActivity) {
                 ((SchoolHomeCalendarActivity) getActivity()).showSchoolCalendarFragment();
             }
+            updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         });
+        // Get today's date
+        int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
+        int todayMonth = calendar.get(Calendar.MONTH);
+        int todayYear = calendar.get(Calendar.YEAR);
 
+        // Set dropdown to today's month
+        monthYearDropdown.setSelection(todayMonth);
+
+        // Update selected date TextView to today's date
+        updateSelectedDateText(selectedDateText, todayDay);
+
+        // Auto-select today's date in the calendar adapter
+        calendarAdapter.setSelectedDate(String.valueOf(todayDay));
+
+        // Load today's tasks
+        updateTasksForToday(todayDay);
+        updateWeeklyTasks();
         ImageView profileIcon = view.findViewById(R.id.profileIcon);
         profileIcon.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), ProfileActivity.class);

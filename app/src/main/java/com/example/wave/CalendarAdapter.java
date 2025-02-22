@@ -66,9 +66,9 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.Calend
         notifyDataSetChanged();
     }
 
-    public void setSelectedDate(String date) {
-        this.selectedDate = date;
-        notifyDataSetChanged();  // Refresh the calendar to show the selected date
+    public void setSelectedDate(String selectedDate) {
+        this.selectedDate = selectedDate;
+        notifyDataSetChanged();
     }
 
     public class CalendarViewHolder extends RecyclerView.ViewHolder {

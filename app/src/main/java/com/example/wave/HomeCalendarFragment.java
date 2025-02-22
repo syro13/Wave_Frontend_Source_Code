@@ -56,7 +56,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         // Initialize calendar and task list
         calendar = Calendar.getInstance();
         taskList = new ArrayList<>();
-        loadDummyTasks(); // Or load tasks from your data source
+        loadDummyTasks();
 
         // Initialize views
         calendarRecyclerView = view.findViewById(R.id.calendarRecyclerView);
@@ -67,6 +67,8 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         ImageView previousMonth = view.findViewById(R.id.previousMonth);
         ImageView nextMonth = view.findViewById(R.id.nextMonth);
         TextView selectedDateText = view.findViewById(R.id.selectedDateText);
+
+        // ✅ Move this AFTER initializing selectedDateText
         updateSelectedDateText(selectedDateText, calendar.get(Calendar.DAY_OF_MONTH));
 
         // Toggle buttons
@@ -79,6 +81,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             if (getActivity() instanceof SchoolHomeCalendarActivity) {
                 ((SchoolHomeCalendarActivity) getActivity()).showHomeCalendarFragment();
             }
+            updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         });
 
         schoolCalendarButton.setOnClickListener(v -> {
@@ -86,6 +89,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             if (getActivity() instanceof SchoolHomeCalendarActivity) {
                 ((SchoolHomeCalendarActivity) getActivity()).showSchoolCalendarFragment();
             }
+            updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         });
 
         // Set up spinner
@@ -129,11 +133,15 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                     List<Task> selectedDateTasks = filterTasksByDateBasedOnCategory(selectedDay, "Home");
                     taskAdapter.updateTasks(selectedDateTasks);
                     updateTasksTitle(selectedDateTasks, selectedDay);
+                    updateWeeklyTasks(); // ✅ Add this to match school fragment behavior
                 },
-                getSchoolTaskDates(),
+                new HashSet<>(),
                 getHomeTaskDates(),
                 "Home"
         );
+
+
+
         calendarRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 7));
         calendarRecyclerView.setAdapter(calendarAdapter);
 
@@ -147,18 +155,31 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         weeklyTaskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false));
         weeklyTaskRecyclerView.setAdapter(weeklyTaskAdapter);
 
-        // Update tasks and calendar on startup
-        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
-        updateWeeklyTasks();
-        monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
+        // Get today's date
+        int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
+        int todayMonth = calendar.get(Calendar.MONTH);
+        int todayYear = calendar.get(Calendar.YEAR);
 
+        // ✅ Set dropdown to today's month (keep only once)
+        monthYearDropdown.setSelection(todayMonth);
+
+        // ✅ Auto-select today's date in the calendar adapter
+        calendarAdapter.setSelectedDate(String.valueOf(todayDay));
+
+        // ✅ Load today's tasks and weekly tasks (NO DUPLICATE CALLS)
+        updateTasksForToday(todayDay);
+        updateWeeklyTasks();
+
+        // Profile icon click listener
         ImageView profileIcon = view.findViewById(R.id.profileIcon);
         profileIcon.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), ProfileActivity.class);
             startActivity(intent);
         });
+
         return view;
     }
+
     private void updateSelectedDateText(TextView selectedDateText, int day) {
         String monthName = getMonthYearList().get(calendar.get(Calendar.MONTH));
         String formattedDate = getFormattedDayOfWeek(calendar) + " " + day + getOrdinalSuffix(day) + " " + monthName;
@@ -273,11 +294,36 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     }
 
     private void updateWeeklyTasks() {
+        if (getView() == null) {
+            Log.e("updateWeeklyTasks", "View is null, skipping UI updates.");
+            return;
+        }
+
         String currentDateString = calendar.get(Calendar.DAY_OF_MONTH) + "/"
                 + (calendar.get(Calendar.MONTH) + 1) + "/"
                 + calendar.get(Calendar.YEAR);
-        filterTasksByWeek(currentDateString);
-        weeklyTaskAdapter.updateTasks(taskList);
+
+        List<Task> weeklyTasks = filterTasksByWeek(currentDateString);
+
+        // ✅ Sort tasks by priority: "High" → "Medium" → "Low"
+        weeklyTasks.sort((t1, t2) -> {
+            return getPriorityValue(t1.getPriority()) - getPriorityValue(t2.getPriority());
+        });
+
+        View tasksTitle = getView().findViewById(R.id.tasksDueThisWeekTitle);
+        View weeklyRecyclerView = getView().findViewById(R.id.weeklyTaskRecyclerView);
+
+        if (weeklyTasks.isEmpty()) {
+            Log.d("updateWeeklyTasks", "No tasks this week. Hiding section.");
+            tasksTitle.setVisibility(View.GONE);
+            weeklyRecyclerView.setVisibility(View.GONE);
+        } else {
+            Log.d("updateWeeklyTasks", "Tasks found. Showing section.");
+            tasksTitle.setVisibility(View.VISIBLE);
+            weeklyRecyclerView.setVisibility(View.VISIBLE);
+            weeklyTaskAdapter.updateTasks(weeklyTasks);
+            weeklyTaskAdapter.notifyDataSetChanged();
+        }
     }
 
     public void addTaskToCalendar(String title, String priority, String date, String time, boolean remind, String taskType) {
@@ -328,12 +374,14 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
 
     private void updateCalendar() {
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
-        Set<String> taskDates = getHomeTaskDates();
+        Set<String> taskDates = getHomeTaskDates(); // ✅ Fixed
         calendarAdapter.updateHomeTaskDates(taskDates);
         calendarAdapter.updateData(calendarDates);
         updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         updateWeeklyTasks();
     }
+
+
 
     private List<String> getCalendarDates(int year, int month) {
         List<String> dates = new ArrayList<>();
@@ -375,29 +423,42 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         return filteredTasks;
     }
 
-    private void filterTasksByWeek(String dateString) {
+    private int getPriorityValue(String priority) {
+        switch (priority) {
+            case "High": return 1; // 🔴 Red (Most Important)
+            case "Medium": return 2; // 🟡 Yellow
+            case "Low": return 3; // 🟢 Green (Least Important)
+            default: return 4; // Fallback
+        }
+    }
+
+    private List<Task> filterTasksByWeek(String dateString) {
+        List<Task> weeklyTasks = new ArrayList<>();
+
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
             LocalDate selectedDate = LocalDate.parse(dateString, formatter);
             int selectedWeekOfYear = selectedDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-            List<Task> weeklyTasks = new ArrayList<>();
+            int selectedYear = selectedDate.getYear(); // ✅ Track year
+            int selectedMonth = selectedDate.getMonthValue(); // ✅ Track month
+
             for (Task t : taskList) {
-                try {
-                    String taskFullDate = t.getDate() + "/" + (getMonthIndex(t.getMonth()) + 1) + "/" + t.getYear();
-                    LocalDate taskDate = LocalDate.parse(taskFullDate, formatter);
-                    int taskWeekOfYear = taskDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-                    if (taskWeekOfYear == selectedWeekOfYear) {
-                        weeklyTasks.add(t);
-                    }
-                } catch (DateTimeParseException e) {
-                    Log.e("WeeklyTasks", "Error parsing task date: " + t.getDate() + " - " + e.getMessage());
+                String taskFullDate = t.getDate() + "/" + (getMonthIndex(t.getMonth()) + 1) + "/" + t.getYear();
+                LocalDate taskDate = LocalDate.parse(taskFullDate, formatter);
+                int taskWeekOfYear = taskDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+
+                // ✅ Ensure task is in the same week, month, and year
+                if (taskWeekOfYear == selectedWeekOfYear && taskDate.getYear() == selectedYear && taskDate.getMonthValue() == selectedMonth) {
+                    weeklyTasks.add(t);
                 }
             }
-            weeklyTaskAdapter.updateTasks(weeklyTasks);
         } catch (DateTimeParseException e) {
-            Log.e("WeeklyTasks", "Error parsing selected date: " + e.getMessage());
+            Log.e("WeeklyTasks", "Error parsing date: " + e.getMessage());
         }
+
+        return weeklyTasks;
     }
+
 
     private int getMonthIndex(String month) {
         return getMonthYearList().indexOf(month);
