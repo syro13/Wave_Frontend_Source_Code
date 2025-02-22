@@ -65,6 +65,8 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
         TextView tasksDueThisWeekTitle = view.findViewById(R.id.tasksDueThisWeekTitle);
         ImageView previousMonth = view.findViewById(R.id.previousMonth);
         ImageView nextMonth = view.findViewById(R.id.nextMonth);
+        TextView selectedDateText = view.findViewById(R.id.selectedDateText);
+        updateSelectedDateText(selectedDateText, calendar.get(Calendar.DAY_OF_MONTH));
 
         // Toggle buttons
         homeCalendarButton = view.findViewById(R.id.homeCalendarButton);
@@ -157,6 +159,17 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
         return view;
     }
 
+    private void updateSelectedDateText(TextView selectedDateText, int day) {
+        String monthName = getMonthYearList().get(calendar.get(Calendar.MONTH));
+        String formattedDate = getFormattedDayOfWeek(calendar) + " " + day + getOrdinalSuffix(day) + " " + monthName;
+
+        selectedDateText.setText(formattedDate);
+    }
+
+    // Get the day of the week (e.g., "Tuesday")
+    private String getFormattedDayOfWeek(Calendar calendar) {
+        return calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, java.util.Locale.getDefault());
+    }
     @Override
     public void onTaskDeleted(Task task) {
         taskList.removeIf(t -> t.getId().equals(task.getId()));

@@ -75,6 +75,8 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         houseToggleButton = view.findViewById(R.id.houseToggleButton);
         ImageView previousMonth = view.findViewById(R.id.previousMonth);
         ImageView nextMonth = view.findViewById(R.id.nextMonth);
+        TextView selectedDateText = view.findViewById(R.id.selectedDateText);
+        updateSelectedDateText(selectedDateText, calendar.get(Calendar.DAY_OF_MONTH));
 
         // Set up month navigation
         previousMonth.setOnClickListener(v -> {
@@ -181,6 +183,17 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         return view;
     }
 
+    private void updateSelectedDateText(TextView selectedDateText, int day) {
+        String monthName = getMonthYearList().get(calendar.get(Calendar.MONTH));
+        String formattedDate = getFormattedDayOfWeek(calendar) + " " + day + getOrdinalSuffix(day) + " " + monthName;
+
+        selectedDateText.setText(formattedDate);
+    }
+
+    // Get the day of the week (e.g., "Tuesday")
+    private String getFormattedDayOfWeek(Calendar calendar) {
+        return calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, java.util.Locale.getDefault());
+    }
 
     private void setupToggleButtons() {
         schoolToggleButton.setOnClickListener(v -> {
