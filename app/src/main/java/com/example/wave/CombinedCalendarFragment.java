@@ -145,22 +145,21 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
 
         // Setup month-year spinner
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_spinner_item, getMonthYearList());
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Create a custom adapter using your layout with text + dropdown icon
+        MonthYearSpinnerAdapter adapter = new MonthYearSpinnerAdapter(requireContext(), getMonthYearList());
         monthYearDropdown.setAdapter(adapter);
+
         monthYearDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-                if (v instanceof TextView) {
-                    ((TextView) v).setTextColor(Color.BLACK);
-                }
                 calendar.set(Calendar.MONTH, position);
                 updateCalendar();
             }
+
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
+
 
         homeCalendarButton.setOnClickListener(v -> {
             setActiveButton(homeCalendarButton, schoolCalendarButton);

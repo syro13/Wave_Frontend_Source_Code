@@ -92,10 +92,15 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         });
 
-        // Set up spinner
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, getMonthYearList());
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        MonthYearSpinnerAdapter adapter = new MonthYearSpinnerAdapter(requireContext(), getMonthYearList());
         monthYearDropdown.setAdapter(adapter);
+
+
+// Set dropdown style
+        adapter.setDropDownViewResource(R.layout.month_year_spinner_dropdown_item);
+
+        monthYearDropdown.setAdapter(adapter);
+
 
         monthYearDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -106,9 +111,11 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                 calendar.set(Calendar.MONTH, position);
                 updateCalendar();
             }
+
             @Override
             public void onNothingSelected(AdapterView<?> parent) { }
         });
+
 
         previousMonth.setOnClickListener(v -> {
             calendar.add(Calendar.MONTH, -1);
