@@ -109,12 +109,16 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
 
                         // Update the title for the selected date
                         updateTasksTitle(selectedDateTasks, selectedDay);
+
+                        // ✅ Now updates weekly tasks as well
+                        updateWeeklyTasks();
                     }
                 },
                 getSchoolTaskDates(),
                 getHomeTaskDates(),
                 getCurrentSelectedCategory()
         );
+
 
 
 
@@ -382,42 +386,44 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
     private void updateCalendar() {
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
 
-        // Build sets for school & home tasks
         Set<String> schoolTaskDates = getSchoolTaskDates();
         Set<String> homeTaskDates = getHomeTaskDates();
-        String currentCategory = getCurrentSelectedCategory();
 
-        // Update the adapter’s data
         if (calendarAdapter != null) {
             calendarAdapter.updateData(calendarDates);
             calendarAdapter.updateSchoolTaskDates(schoolTaskDates);
             calendarAdapter.updateHomeTaskDates(homeTaskDates);
-            calendarAdapter.updateCategory(currentCategory);
+            calendarAdapter.updateCategory(getCurrentSelectedCategory());
         }
-        // Also update the daily tasks and weekly tasks
+
         updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         updateWeeklyTasks();
     }
 
 
+
     private void updateWeeklyTasks() {
-        // Ensure combinedTaskList is up-to-date:
+        if (getView() == null) {
+            Log.e("updateWeeklyTasks", "View is null, skipping UI updates.");
+            return;
+        }
+
         combinedTaskList.clear();
         combinedTaskList.addAll(schoolTaskList);
         combinedTaskList.addAll(homeTaskList);
 
-        // Create a LocalDate based on the current calendar date.
         LocalDate currentDate = LocalDate.of(
                 calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH) + 1,  // Calendar month is zero-indexed
+                calendar.get(Calendar.MONTH) + 1,
                 calendar.get(Calendar.DAY_OF_MONTH)
         );
-        // Define week boundaries (Monday to Sunday)
+
         LocalDate startOfWeek = currentDate.with(DayOfWeek.MONDAY);
         LocalDate endOfWeek = currentDate.with(DayOfWeek.SUNDAY);
 
         List<Task> weeklyTasks = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+
         for (Task t : combinedTaskList) {
             try {
                 String fullDate = t.getDate() + "/" + (getMonthIndex(t.getMonth()) + 1) + "/" + t.getYear();
@@ -429,8 +435,35 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
                 Log.e("updateWeeklyTasks", "Error parsing date: " + e.getMessage());
             }
         }
-        weeklyTaskAdapter.updateTasks(weeklyTasks);
+
+        // ✅ Sort by priority (High → Medium → Low)
+        weeklyTasks.sort((t1, t2) -> getPriorityValue(t1.getPriority()) - getPriorityValue(t2.getPriority()));
+
+        // ✅ Update UI visibility
+        View tasksTitle = getView().findViewById(R.id.tasksDueThisWeekTitle);
+        View weeklyRecyclerView = getView().findViewById(R.id.weeklyTaskRecyclerView);
+
+        if (weeklyTasks.isEmpty()) {
+            tasksTitle.setVisibility(View.GONE);
+            weeklyRecyclerView.setVisibility(View.GONE);
+        } else {
+            tasksTitle.setVisibility(View.VISIBLE);
+            weeklyRecyclerView.setVisibility(View.VISIBLE);
+            weeklyTaskAdapter.updateTasks(weeklyTasks);
+            weeklyTaskAdapter.notifyDataSetChanged();
+        }
     }
+
+    // ✅ Helper Function for Priority Sorting
+    private int getPriorityValue(String priority) {
+        switch (priority) {
+            case "High": return 1; // 🔴 Red (Most Important)
+            case "Medium": return 2; // 🟡 Yellow
+            case "Low": return 3; // 🟢 Green (Least Important)
+            default: return 4;
+        }
+    }
+
 
 
     private int getMonthIndex(String month) {
