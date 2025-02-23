@@ -112,6 +112,7 @@
                 </LinearLayout>
 
                 <!-- New Three-Tiered Toggle -->
+                <!-- New Three-Tiered Toggle -->
                 <LinearLayout
                     android:id="@+id/combinedToggleContainer"
                     android:layout_width="280dp"
@@ -122,6 +123,7 @@
                     android:orientation="horizontal"
                     android:padding="2dp">
 
+                    <!-- School Button -->
                     <TextView
                         android:id="@+id/schoolToggleButton"
                         android:layout_width="0dp"
@@ -133,9 +135,16 @@
                         android:padding="8dp"
                         android:text="School"
                         android:textAllCaps="false"
-                        android:textColor="@color/gray"
+                        android:textColor="@color/dark_gray"
                         android:textStyle="bold" />
 
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="@color/border_gray"/>
+
+                    <!-- Both Button -->
                     <TextView
                         android:id="@+id/bothToggleButton"
                         android:layout_width="0dp"
@@ -147,9 +156,16 @@
                         android:padding="8dp"
                         android:text="Both"
                         android:textAllCaps="false"
-                        android:textColor="@color/gray"
+                        android:textColor="@color/dark_gray"
                         android:textStyle="bold" />
 
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="@color/border_gray"/>
+
+                    <!-- House Button -->
                     <TextView
                         android:id="@+id/houseToggleButton"
                         android:layout_width="0dp"
@@ -161,9 +177,10 @@
                         android:padding="8dp"
                         android:text="House"
                         android:textAllCaps="false"
-                        android:textColor="@color/gray"
+                        android:textColor="@color/dark_gray"
                         android:textStyle="bold" />
                 </LinearLayout>
+
             </LinearLayout>
 
             <!-- Rest of the Layout -->
