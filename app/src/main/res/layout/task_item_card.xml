@@ -124,7 +124,10 @@
                     android:textSize="10sp"
                     android:textColor="@color/black" />
             </LinearLayout>
-
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
             <!-- Category Tag -->
             <LinearLayout
                 android:id="@+id/categoryTagContainer"
