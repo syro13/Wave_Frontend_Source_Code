@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -34,6 +35,10 @@ public class SetBudgetBottomSheetFragment extends BottomSheetDialogFragment {
         Button submitButton = view.findViewById(R.id.submitButton);
         submitButton.setOnClickListener(v -> {
             String amount = amountDisplay.getText().toString();
+
+            if (!isValidBudget(amount)) {
+                return; // Stop execution if invalid
+            }
 
             // Send data to parent using FragmentManager
             Bundle result = new Bundle();
@@ -77,5 +82,37 @@ public class SetBudgetBottomSheetFragment extends BottomSheetDialogFragment {
                 keypadHelper.handleKeyPress(key);
             });
         }
+    }
+
+
+    private boolean isValidBudget(String amount) {
+        // Check if empty
+        if (amount.isEmpty()) {
+            showToast("Please enter a budget amount!");
+            return false;
+        }
+
+        try {
+            double budget = Double.parseDouble(amount);
+
+            // Check if the budget is valid (must be greater than zero)
+            if (budget <= 0) {
+                showToast("Budget must be greater than zero!");
+                return false;
+            }
+
+            return true; // Valid input
+
+        } catch (NumberFormatException e) {
+            showToast("Invalid number format!");
+            return false;
+        }
+    }
+
+    /**
+     * Helper function to show Toast messages
+     */
+    private void showToast(String message) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
     }
 }
