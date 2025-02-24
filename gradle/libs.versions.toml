@@ -27,7 +27,8 @@ fragmentTesting = "1.8.5"
 activity = "1.9.3"
 facebook-login="16.3.0"
 espressoContrib = "3.6.1"
-
+firebaseFirestore = "25.1.2"
+protobuf = "3.25.1"
 
 [libraries]
 appcompat-v170 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
@@ -58,6 +59,8 @@ fragment-testing = { group = "androidx.fragment", name = "fragment-testing", ver
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 facebook-login = { module = "com.facebook.android:facebook-login", version.ref = "facebook-login" }
 espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espressoContrib" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
