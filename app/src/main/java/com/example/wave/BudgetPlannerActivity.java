@@ -2,14 +2,18 @@ package com.example.wave;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,10 +30,19 @@ import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.Transaction;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.Body;
+import retrofit2.http.POST;
 
 public class BudgetPlannerActivity extends BaseActivity {
 
@@ -38,9 +51,12 @@ public class BudgetPlannerActivity extends BaseActivity {
     private TextView amountSpentValue, amountLeftValue, totalBudgetValue;
     private FloatingActionButton addExpenseButton;
     private Button editBudgetButton;
-    private RecyclerView expensesRecyclerView;
+    private RecyclerView expensesRecyclerView, promptsRecyclerView;
     private ExpenseAdapter expenseAdapter;
     private List<Expense> expenseList;
+    private PromptsAdapter promptsAdapter;
+    private List<String> displayPromptsList;
+    private List<String> actualPromptsList;
     private double totalBudget = 0;
     private double amountSpent = 0;
     private String userId;
@@ -70,12 +86,17 @@ public class BudgetPlannerActivity extends BaseActivity {
         addExpenseButton = findViewById(R.id.addExpenseButton);
         editBudgetButton = findViewById(R.id.editBudgetButton);
         expensesRecyclerView = findViewById(R.id.expensesRecyclerView);
+        promptsRecyclerView = findViewById(R.id.promptsRecyclerView);
+
 
         // Set up RecyclerView for expenses
         expensesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         expenseList = new ArrayList<>();
         expenseAdapter = new ExpenseAdapter(expenseList, totalBudget);
         expensesRecyclerView.setAdapter(expenseAdapter);
+
+        promptsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        setupPrompts();
 
         // Always initialize expense categories, even before budget
         initializeExpenseCategories();
@@ -326,4 +347,170 @@ public class BudgetPlannerActivity extends BaseActivity {
     protected int getCurrentMenuItemId() {
         return -1; // No selection
     }
+
+    private void setupPrompts() {
+        displayPromptsList = Arrays.asList(
+                "Suggest a budgeting tip",
+                "How can I save money effectively?",
+                "Give me advice on managing my monthly expenses",
+                "How to reduce unnecessary spending?",
+                "Share a strategy for long-term financial planning"
+        );
+
+        actualPromptsList = Arrays.asList(
+                "Provide a quick and effective budgeting technique to help users manage their money wisely. Focus on practical strategies.",
+                "Suggest a step-by-step approach to saving money effectively, including actionable savings habits.",
+                "Offer expert advice on balancing income and expenses to prevent overspending and financial stress.",
+                "Explain common spending pitfalls and provide methods to avoid them while maintaining a balanced budget.",
+                "Describe a structured approach for long-term financial stability, including investments, savings, and financial discipline."
+        );
+
+        promptsAdapter = new PromptsAdapter(displayPromptsList, actualPromptsList, this::showPopup);
+        promptsRecyclerView.setAdapter(promptsAdapter);
+    }
+    private void showPopup(String displayPrompt, String actualPrompt) {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://updatedservice-621971573276.us-central1.run.app/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        SchoolTasksFragment.AIService aiService = retrofit.create(SchoolTasksFragment.AIService.class);
+        SchoolTasksFragment.AIPromptRequest request = new SchoolTasksFragment.AIPromptRequest(actualPrompt);
+
+        aiService.getAIResponse(request).enqueue(new Callback<SchoolTasksFragment.AIResponse>() {
+            @Override
+            public void onResponse(Call<SchoolTasksFragment.AIResponse> call, Response<SchoolTasksFragment.AIResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String aiResponse = response.body().getResponse();
+                    SchoolTasksFragment.AIContentDialog dialog = SchoolTasksFragment.AIContentDialog.newInstance(displayPrompt, aiResponse);
+                    dialog.show(getSupportFragmentManager(), "AIContentDialog");
+                } else {
+                    Toast.makeText(BudgetPlannerActivity.this, "Failed to get AI response", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<SchoolTasksFragment.AIResponse> call, Throwable t) {
+                Toast.makeText(BudgetPlannerActivity.this, "Error connecting to AI server", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // Prompts RecyclerView Adapter
+    public static class PromptsAdapter extends RecyclerView.Adapter<SchoolTasksFragment.PromptsAdapter.ViewHolder> {
+        private final List<String> displayPrompts;
+        private final List<String> actualPrompts;
+        private final SchoolTasksFragment.PromptsAdapter.OnPromptClickListener listener;
+
+        public PromptsAdapter(List<String> displayPrompts, List<String> actualPrompts, SchoolTasksFragment.PromptsAdapter.OnPromptClickListener listener) {
+            if (displayPrompts.size() != actualPrompts.size()) {
+                throw new IllegalArgumentException("Both lists must have the same number of items.");
+            }
+            this.displayPrompts = displayPrompts;
+            this.actualPrompts = actualPrompts;
+            this.listener = listener;
+        }
+
+        @NonNull
+        @Override
+        public SchoolTasksFragment.PromptsAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_ai_prompt, parent, false);
+            return new SchoolTasksFragment.PromptsAdapter.ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull SchoolTasksFragment.PromptsAdapter.ViewHolder holder, int position) {
+            String displayText = displayPrompts.get(position);
+            holder.promptText.setText(displayText);
+            holder.itemView.setOnClickListener(v -> listener.onClick(displayPrompts.get(position), actualPrompts.get(position)));
+        }
+
+        @Override
+        public int getItemCount() {
+            return displayPrompts.size();
+        }
+
+        static class ViewHolder extends RecyclerView.ViewHolder {
+            TextView promptText;
+
+            public ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                promptText = itemView.findViewById(R.id.promptText);
+            }
+        }
+
+        public interface OnPromptClickListener {
+            void onClick(String displayPrompt, String actualPrompt);
+        }
+    }
+
+    // AIContentDialog Fragment
+    public static class AIContentDialog extends DialogFragment {
+        private static final String TITLE_KEY = "title";
+        private static final String CONTENT_KEY = "content";
+
+        public static SchoolTasksFragment.AIContentDialog newInstance(String title, String content) {
+            SchoolTasksFragment.AIContentDialog dialog = new SchoolTasksFragment.AIContentDialog();
+            Bundle args = new Bundle();
+            args.putString(TITLE_KEY, title);
+            args.putString(CONTENT_KEY, content);
+            dialog.setArguments(args);
+            return dialog;
+        }
+
+        @Override
+        public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            View view = inflater.inflate(R.layout.dialog_ai_content, container, false);
+
+            TextView titleView = view.findViewById(R.id.dialogTitle);
+            TextView contentView = view.findViewById(R.id.dialogContent);
+            View closeButton = view.findViewById(R.id.dialogCloseButton);
+
+            assert getArguments() != null;
+            titleView.setText(getArguments().getString(TITLE_KEY));
+            contentView.setText(getArguments().getString(CONTENT_KEY));
+            ScrollingMovementMethod scrollable = new ScrollingMovementMethod();
+            contentView.setMovementMethod(scrollable);
+
+
+            closeButton.setOnClickListener(v -> dismiss());
+            return view;
+        }
+    }
+
+    // --- AI API Models and Interface ---
+
+    public static class AIPromptRequest {
+        private String prompt;
+
+        public AIPromptRequest(String prompt) {
+            this.prompt = prompt;
+        }
+
+        public String getPrompt() {
+            return prompt;
+        }
+
+        public void setPrompt(String prompt) {
+            this.prompt = prompt;
+        }
+    }
+
+    public static class AIResponse {
+        private String response;
+
+        public String getResponse() {
+            return response;
+        }
+
+        public void setResponse(String response) {
+            this.response = response;
+        }
+    }
+
+    public interface AIService {
+        @POST("run-prompt")
+        Call<SchoolTasksFragment.AIResponse> getAIResponse(@Body SchoolTasksFragment.AIPromptRequest request);
+    }
+
 }
