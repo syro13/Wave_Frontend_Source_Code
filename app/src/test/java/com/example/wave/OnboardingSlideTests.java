@@ -54,7 +54,7 @@ public class OnboardingSlideTests {
     }
 
     // Tests the getTitle method with null
-    @Test
+    @Test // Should be reviewed
     public void testGetTitleWithNull() {
         // Arrange
         String title = null;
@@ -69,10 +69,10 @@ public class OnboardingSlideTests {
 
 
     // Tests the getTitle method with a long string
-    @Test
+    @Test // Should be reviewed
     public void testGetTitleWithLongString() {
         // Arrange
-        String title = "A".repeat(10000);
+        String title = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".repeat(10000);
         OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, title, "Test Description");
 
         // Act
@@ -83,7 +83,7 @@ public class OnboardingSlideTests {
     }
 
     // Tests the getTitle method with special characters
-    @Test
+    @Test // Needs to be fixed
     public void testGetTitleWithSpecialCharacters() {
         // Arrange
         String title = "!£$%^&**&^%$";
@@ -97,7 +97,7 @@ public class OnboardingSlideTests {
     }
 
     // Tests the getTitle method with whitespace only
-    @Test
+    @Test // Needs to be fixed
     public void testGetTitleWithWhitespaceOnly() {
         // Arrange
         String title = "   ";
@@ -112,7 +112,7 @@ public class OnboardingSlideTests {
 
 
     // Tests the getTitle method with leading and trailing whitespace
-    @Test
+    @Test // Needs to be fixed
     public void testGetTitleWithLeadingTrailingWhitespace() {
         // Arrange
         String title = "  Test Title  ";
@@ -126,7 +126,7 @@ public class OnboardingSlideTests {
     }
 
     // Tests the getTitle method with an empty string
-    @Test
+    @Test // Needs to be fixed
     public void testGetTitleWithEmptyString() {
         // Arrange
         String title = "";
@@ -148,6 +148,104 @@ public class OnboardingSlideTests {
     public void testGetDescription() {
         // Arrange
         String description = "Test Description";
+        OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, "Test Title", description);
+
+        // Act
+        String result = slide.getDescription();
+
+        // Assert
+        assertEquals(description, result);
+    }
+
+    // Tests the getDescription with empty description
+    @Test // Possibly Okay to pass but should be reviewed
+    public void testGetEmptyDescription() {
+        // Arrange
+        String description = "";
+        OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, "Test Title", description);
+
+        // Act
+        String result = slide.getDescription();
+
+        // Assert
+        assertEquals(description, result);
+    }
+
+    // Tests the getDescription with empty description
+    @Test // Should be reviewed
+    public void testGetDescriptionWithWhitespace() {
+        // Arrange
+        String description = "                           ";
+        OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, "Test Title", description);
+
+        // Act
+        String result = slide.getDescription();
+
+        // Assert
+        assertEquals(description, result);
+    }
+
+    // Tests the getDescription with a trailing and leading whitespace description
+    @Test // Should be reviewed
+    public void testGetDescriptionTailingAndLeadingWhitespace() {
+        // Arrange
+        String description = "  test  ";
+        OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, "Test Title", description);
+
+        // Act
+        String result = slide.getDescription();
+
+        // Assert
+        assertEquals(description, result);
+    }
+
+    // Tests the getDescription with a trailing and leading whitespace description
+    @Test // Should be reviewed
+    public void testGetDescriptionWithSpecialCharacters() {
+        // Arrange
+        String description = "£$%^&*()";
+        OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, "Test Title", description);
+
+        // Act
+        String result = slide.getDescription();
+
+        // Assert
+        assertEquals(description, result);
+    }
+
+    // Tests the getDescription with a short description
+    @Test // Possibly okay but should be reviewed
+    public void testGetShortDescription() {
+        // Arrange
+        String description = "a";
+        OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, "Test Title", description);
+
+        // Act
+        String result = slide.getDescription();
+
+        // Assert
+        assertEquals(description, result);
+    }
+
+    // Tests the getDescription with a short description
+    @Test // Should be reviewed
+    public void testGetLongDescription() {
+        // Arrange
+        String description = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, "Test Title", description);
+
+        // Act
+        String result = slide.getDescription();
+
+        // Assert
+        assertEquals(description, result);
+    }
+
+    // Tests the getDescription with a null description
+    @Test // Possibly okay but should be reviewed
+    public void testGetNullDescription() {
+        // Arrange
+        String description = null;
         OnboardingSlide slide = new OnboardingSlide(R.drawable.image1, "Test Title", description);
 
         // Act

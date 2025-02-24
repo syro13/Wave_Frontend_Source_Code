@@ -39,3 +39,5 @@ public class QuoteResponseUnitTest {
         assertEquals("Test Author", quoteResponse.getAuthor());
     }
 }
+
+

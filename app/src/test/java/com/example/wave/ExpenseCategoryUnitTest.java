@@ -35,4 +35,24 @@ public class ExpenseCategoryUnitTest {
         // Assert the getIconResId method
         assertEquals(R.drawable.ic_shopping, category.getIconResId());
     }
+
+    // Test the getIconResId method of the ExpenseCategory class that has no name
+    @Test
+    public void testExpenseNoNameCategoryGetIcon() {
+        // Create an ExpenseCategory object
+        ExpenseCategory category = new ExpenseCategory("", R.drawable.ic_shopping);
+
+        // Assert the getIconResId method
+        assertEquals(R.drawable.ic_shopping, category.getIconResId());
+    }
+
+    // Test the getIconResId method of the ExpenseCategory class that has special characters
+    @Test
+    public void testExpenseSpecialCharacterCategoryGetIcon() {
+        // Create an ExpenseCategory object
+        ExpenseCategory category = new ExpenseCategory("!£$%^&*()^%", R.drawable.ic_shopping);
+
+        // Assert the getIconResId method
+        assertEquals(R.drawable.ic_shopping, category.getIconResId());
+    }
 }

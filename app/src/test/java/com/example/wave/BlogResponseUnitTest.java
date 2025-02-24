@@ -27,6 +27,78 @@ public class BlogResponseUnitTest {
         assertEquals("https://example.com/image.jpg", blog.getImageUrl());
     }
 
+    @Test
+    public void testEmptyGetters() {
+        BlogResponse blog = new BlogResponse(
+                "",
+                "",
+                "",
+                "",
+                ""
+        );
+
+        // Assert getter methods
+        assertEquals("", blog.getTitle());
+        assertEquals("", blog.getAuthor());
+        assertEquals("", blog.getTag());
+        assertEquals("", blog.getLink());
+        assertEquals("", blog.getImageUrl());
+    }
+
+    @Test
+    public void testWhitespaceGetters() {
+        BlogResponse blog = new BlogResponse(
+                " ",
+                " ",
+                " ",
+                " ",
+                " "
+        );
+
+        // Assert getter methods
+        assertEquals(" ", blog.getTitle());
+        assertEquals(" ", blog.getAuthor());
+        assertEquals(" ", blog.getTag());
+        assertEquals(" ", blog.getLink());
+        assertEquals(" ", blog.getImageUrl());
+    }
+
+    @Test
+    public void testSpecialCharacterGetters() {
+        BlogResponse blog = new BlogResponse(
+                "!£$%^&*()^&*()",
+                "!£$%^&*()^&*()",
+                "!£$%^&*()^&*()",
+                "!£$%^&*()^&*()",
+                "!£$%^&*()^&*()"
+        );
+
+        // Assert getter methods
+        assertEquals("!£$%^&*()^&*()", blog.getTitle());
+        assertEquals("!£$%^&*()^&*()", blog.getAuthor());
+        assertEquals("!£$%^&*()^&*()", blog.getTag());
+        assertEquals("!£$%^&*()^&*()", blog.getLink());
+        assertEquals("!£$%^&*()^&*()", blog.getImageUrl());
+    }
+
+    @Test
+    public void testTrailingLeadingWhitespaceGetters() {
+        BlogResponse blog = new BlogResponse(
+                "  Test Title  ",
+                "  Test Author  ",
+                "  Test Tag  ",
+                "  https://example.com  ",
+                "  https://example.com/image.jpg  "
+        );
+
+        // Assert getter methods
+        assertEquals("  Test Title  ", blog.getTitle());
+        assertEquals("  Test Author  ", blog.getAuthor());
+        assertEquals("  Test Tag  ", blog.getTag());
+        assertEquals("  https://example.com  ", blog.getLink());
+        assertEquals("  https://example.com/image.jpg  ", blog.getImageUrl());
+    }
+
     // Test the toJsonList and fromJsonList methods
     @Test
     public void testToJsonList() {

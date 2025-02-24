@@ -9,6 +9,7 @@ import org.mockito.Mockito;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 
+// Needs to be fixed
 public class KeypadHelperUnitTest {
 
     private KeypadHelper keypadHelper;
@@ -65,5 +66,19 @@ public class KeypadHelperUnitTest {
         keypadHelper.handleKeyPress("5");
         keypadHelper.handleKeyPress("6");
         verify(mockAmountDisplay).setText("0.56");
+    }
+
+    // Test the decimal point functionality
+    @Test
+    public void testHandleKeyPressLargeNumber() {
+        keypadHelper.handleKeyPress("11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
+        verify(mockAmountDisplay).setText("11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
+    }
+
+    // Test the decimal point functionality
+    @Test
+    public void testHandleKeyPressingALargeNumber() {
+        keypadHelper.handleKeyPress("1");
+        verify(mockAmountDisplay).setText("1");
     }
 }
