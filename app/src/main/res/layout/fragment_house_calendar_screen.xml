@@ -238,6 +238,7 @@
                     android:layout_marginTop="16dp"
                     app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                     app:spanCount="7" />
+
             </LinearLayout>
 
 
