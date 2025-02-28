@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -36,6 +37,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+
+
 public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener  {
 
     private RecyclerView calendarRecyclerView, taskRecyclerView, weeklyTaskRecyclerView;
@@ -47,16 +54,15 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     private Spinner monthYearDropdown;
     private TextView homeCalendarButton, schoolCalendarButton; // Toggle buttons
     public static final int REQUEST_EDIT_TASK = 1001;
+    private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_house_calendar_screen, container, false);
-
         // Initialize calendar and task list
         calendar = Calendar.getInstance();
         taskList = new ArrayList<>();
-        loadDummyTasks();
 
         // Initialize views
         calendarRecyclerView = view.findViewById(R.id.calendarRecyclerView);
@@ -187,6 +193,8 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         return view;
     }
 
+
+
     private void updateSelectedDateText(TextView selectedDateText, int day) {
         String monthName = getMonthYearList().get(calendar.get(Calendar.MONTH));
         String formattedDate = getFormattedDayOfWeek(calendar) + " " + day + getOrdinalSuffix(day) + " " + monthName;
@@ -198,13 +206,35 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     private String getFormattedDayOfWeek(Calendar calendar) {
         return calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, java.util.Locale.getDefault());
     }
+
     @Override
     public void onTaskDeleted(Task task) {
-        taskList.removeIf(t -> t.getId().equals(task.getId()));
-        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
-        updateWeeklyTasks();
-        taskAdapter.notifyDataSetChanged();
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot delete task");
+            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        db.collection("users")
+                .document(userId)  // 🔹 Ensure dynamic user ID
+                .collection("housetasks")  // 🔹 Ensure correct collection
+                .document(task.getId())
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    taskList.removeIf(t -> t.getId().equals(task.getId()));
+                    updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                    updateWeeklyTasks();
+                    taskAdapter.notifyDataSetChanged();
+                    Log.d("Firestore", "Task successfully deleted");
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error deleting task", e));
     }
+
+
 
     private Set<String> getSchoolTaskDates() {
         Set<String> schoolTaskDates = new HashSet<>();
@@ -224,7 +254,14 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         Set<String> homeTaskDates = new HashSet<>();
         String currentMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
         int currentYear = calendar.get(Calendar.YEAR);
+
         for (Task t : taskList) {
+            // Check if task data is null
+            if (t.getCategory() == null || t.getDate() == null || t.getMonth() == null) {
+                Log.e("getHomeTaskDates", "Skipping task due to missing fields: " + t);
+                continue;
+            }
+
             if ("Home".equals(t.getCategory())
                     && t.getMonth().equalsIgnoreCase(currentMonth)
                     && t.getYear() == currentYear) {
@@ -233,6 +270,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         }
         return homeTaskDates;
     }
+
 
     private List<Task> filterTasksByDateBasedOnCategory(int day, String category) {
         List<Task> filteredTasks = new ArrayList<>();
@@ -255,25 +293,41 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
      */
     private void updateExistingTask(Task updatedTask) {
         if (updatedTask.getId() == null) {
-            Log.e("updateExistingTask", "Updated task ID is null. Cannot update by id.");
+            Log.e("updateExistingTask", "Updated task ID is null. Cannot update by ID.");
             return;
         }
-        boolean taskFound = false;
-        for (int i = 0; i < taskList.size(); i++) {
-            if (taskList.get(i).getId().equals(updatedTask.getId())) {
-                taskList.set(i, updatedTask);
-                taskFound = true;
-                Log.d("updateExistingTask", "Task updated: " + updatedTask.getTitle());
-                break;
-            }
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot update task");
+            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
         }
-        if (!taskFound) {
-            Log.e("updateExistingTask", "Task not found for update: " + updatedTask.getTitle());
-        }
-        updateCalendar();
-        updateWeeklyTasks();
-        taskAdapter.notifyDataSetChanged();
+
+        db.collection("users")
+                .document(userId)
+                .collection("housetasks")
+                .document(updatedTask.getId())
+                .set(updatedTask)
+                .addOnSuccessListener(aVoid -> {
+                    for (int i = 0; i < taskList.size(); i++) {
+                        if (taskList.get(i).getId().equals(updatedTask.getId())) {
+                            taskList.set(i, updatedTask);
+                            break;
+                        }
+                    }
+                    updateCalendar();
+                    updateWeeklyTasks();
+                    taskAdapter.notifyDataSetChanged();
+                    Log.d("Firestore", "Task successfully updated");
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error updating task", e));
     }
+
+
 
     /**
      * Called from the editTask activity result.
@@ -310,33 +364,47 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                 + (calendar.get(Calendar.MONTH) + 1) + "/"
                 + calendar.get(Calendar.YEAR);
 
-        List<Task> weeklyTasks = filterTasksByWeek(currentDateString);
+        List<Task> allWeeklyTasks = filterTasksByWeek(currentDateString);
+
+        // ✅ Filter to only include tasks with category "Home"
+        List<Task> weeklyHomeTasks = new ArrayList<>();
+        for (Task task : allWeeklyTasks) {
+            if ("Home".equals(task.getCategory())) {
+                weeklyHomeTasks.add(task);
+            }
+        }
 
         // ✅ Sort tasks by priority: "High" → "Medium" → "Low"
-        weeklyTasks.sort((t1, t2) -> {
-            return getPriorityValue(t1.getPriority()) - getPriorityValue(t2.getPriority());
-        });
+        weeklyHomeTasks.sort((t1, t2) -> getPriorityValue(t1.getPriority()) - getPriorityValue(t2.getPriority()));
 
         View tasksTitle = getView().findViewById(R.id.tasksDueThisWeekTitle);
         View weeklyRecyclerView = getView().findViewById(R.id.weeklyTaskRecyclerView);
 
-        if (weeklyTasks.isEmpty()) {
-            Log.d("updateWeeklyTasks", "No tasks this week. Hiding section.");
+        if (weeklyHomeTasks.isEmpty()) {
+            Log.d("updateWeeklyTasks", "No home tasks this week. Hiding section.");
             tasksTitle.setVisibility(View.GONE);
             weeklyRecyclerView.setVisibility(View.GONE);
         } else {
-            Log.d("updateWeeklyTasks", "Tasks found. Showing section.");
+            Log.d("updateWeeklyTasks", "Home tasks found. Showing section.");
             tasksTitle.setVisibility(View.VISIBLE);
             weeklyRecyclerView.setVisibility(View.VISIBLE);
-            weeklyTaskAdapter.updateTasks(weeklyTasks);
+            weeklyTaskAdapter.updateTasks(weeklyHomeTasks);
             weeklyTaskAdapter.notifyDataSetChanged();
         }
     }
 
+
     public void addTaskToCalendar(String title, String priority, String date, String time, boolean remind, String taskType) {
-        if (taskList == null) {
-            taskList = new ArrayList<>();
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot add task");
+            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
         }
+
         String taskId = UUID.randomUUID().toString();
         String[] dateParts = date.split("/");
         if (dateParts.length != 3) {
@@ -344,29 +412,38 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             Toast.makeText(requireContext(), "Invalid date format!", Toast.LENGTH_SHORT).show();
             return;
         }
-        String day = dateParts[0];
-        String month = dateParts[1];
+
         int year = Integer.parseInt(dateParts[2]);
 
         Task newTask = new Task(
                 taskId,
                 title,
                 time,
-                day,
-                getMonthYearList().get(Integer.parseInt(month) - 1),
+                dateParts[0],
+                getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1),
                 priority,
                 taskType,
                 remind,
-                year
+                year,
+                0, // Default stability value
+                System.currentTimeMillis(), // 🔹 Firestore Timestamp Compatibility
+                dateParts[0] + "/" + dateParts[1] + "/" + year // Full date string
         );
-        taskList.add(newTask);
-        int dayInt = Integer.parseInt(day);
-        String monthName = getMonthYearList().get(Integer.parseInt(month) - 1);
-        List<Task> selectedDateTasks = filterTasksByDate(dayInt, monthName);
-        taskAdapter.updateTasks(selectedDateTasks);
-        updateWeeklyTasks();
-        Toast.makeText(requireContext(), "Task added: " + title, Toast.LENGTH_SHORT).show();
+
+        db.collection("users")
+                .document(userId)
+                .collection("housetasks")
+                .document(taskId)
+                .set(newTask)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Firestore", "Task successfully added!");
+                    listenForTaskUpdates(); // ✅ Ensures UI updates after adding a task
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error adding task", e));
     }
+
+
+
 
     private void updateTasksTitle(List<Task> selectedDateTasks, int selectedDay) {
         TextView tasksDueTodayTitle = getView().findViewById(R.id.tasksDueTodayTitle);
@@ -446,10 +523,12 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
             LocalDate selectedDate = LocalDate.parse(dateString, formatter);
             int selectedWeekOfYear = selectedDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-            int selectedYear = selectedDate.getYear(); // ✅ Track year
-            int selectedMonth = selectedDate.getMonthValue(); // ✅ Track month
+            int selectedYear = selectedDate.getYear();
+            int selectedMonth = selectedDate.getMonthValue();
 
             for (Task t : taskList) {
+                if (!"Home".equals(t.getCategory())) continue; // ✅ Ensure only "Home" tasks are considered
+
                 String taskFullDate = t.getDate() + "/" + (getMonthIndex(t.getMonth()) + 1) + "/" + t.getYear();
                 LocalDate taskDate = LocalDate.parse(taskFullDate, formatter);
                 int taskWeekOfYear = taskDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
@@ -465,6 +544,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
 
         return weeklyTasks;
     }
+
 
 
     private int getMonthIndex(String month) {
@@ -483,23 +563,75 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         }
     }
 
-    private void loadDummyTasks() {
-            taskList.add(new Task(UUID.randomUUID().toString(),"Clean Bedroom", "10:00 AM", "25", "January", "Low", "Home", false, 2025));
-            taskList.add(new Task(UUID.randomUUID().toString(),"Do Laundry", "2:00 PM", "26", "January", "High", "Home", true, 2025));
-            taskList.add(new Task(UUID.randomUUID().toString(),"Organize Closet", "11:00 AM", "27", "January", "Low", "Home", false, 2025));
-            taskList.add(new Task(UUID.randomUUID().toString(),"Grocery Shopping", "5:00 PM", "28", "January", "Medium", "Home", false, 2025));
-            taskList.add(new Task(UUID.randomUUID().toString(),"Meal Prep", "3:00 PM", "29", "January", "Medium", "Home", false, 2025));
-            taskList.add(new Task(UUID.randomUUID().toString(),"Vacuum Living Room", "4:00 PM", "30", "January", "Low", "Home", false, 2025));
-            taskList.add(new Task(UUID.randomUUID().toString(),"Take Out Trash", "7:00 PM", "31", "January", "High", "Home", true, 2025));
+    private void listenForTaskUpdates() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
 
-            taskList.add(new Task(UUID.randomUUID().toString(),"Clean Kitchen", "9:00 AM", "1", "February", "High", "Home", true, 2025));
-            taskList.add(new Task(UUID.randomUUID().toString(),"Water Plants", "11:00 AM", "2", "February", "High", "Home", true, 2025));
-            taskList.add(new Task(UUID.randomUUID().toString(),"Dust Shelves", "1:00 PM", "3", "February", "Low", "Home", false, 2025));
-            taskList.add(new Task(UUID.randomUUID().toString(),"Mop Floors", "10:00 AM", "4", "February", "Medium", "Home", false, 2025));
-            taskList.add(new Task(UUID.randomUUID().toString(),"Wash Dishes", "6:00 PM", "5", "February", "High", "Home", true, 2025));
-            taskList.add(new Task(UUID.randomUUID().toString(),"Organize Pantry", "2:00 PM", "6", "February", "Medium", "Home", false, 2025));
-            taskList.add(new Task(UUID.randomUUID().toString(),"Clean Windows", "12:00 PM", "7", "February", "Low", "Home", false, 2025));
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot listen for task updates");
+            return;
         }
+
+        db.collection("users")
+                .document(userId)
+                .collection("housetasks") // 🔹 Ensure correct collection
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Log.e("Firestore", "Listen failed.", error);
+                        return;
+                    }
+
+                    taskList.clear();
+                    for (QueryDocumentSnapshot doc : value) {
+                        Task task = doc.toObject(Task.class);
+                        taskList.add(task);
+                    }
+
+                    taskAdapter.updateTasks(taskList);
+                    taskAdapter.notifyDataSetChanged();
+
+                    // ✅ Refresh calendar to show task indicators
+                    updateCalendar();
+                });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("HomeCalendarFragment", "Resuming fragment, refreshing tasks.");
+        loadTasksFromFirestore(); // Ensure tasks reload when fragment is resumed
+    }
+
+    private void loadTasksFromFirestore() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot fetch tasks");
+            return;
+        }
+
+        db.collection("users")
+                .document(userId)
+                .collection("housetasks") // ✅ Ensures fetching home tasks
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    taskList.clear();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Task task = doc.toObject(Task.class);
+                        taskList.add(task);
+                    }
+
+                    Log.d("Firestore", "Tasks loaded: " + taskList.size());
+                    taskAdapter.updateTasks(taskList);
+                    taskAdapter.notifyDataSetChanged();
+                    updateCalendar(); // ✅ Refresh the calendar view
+                    updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching tasks", e));
+    }
 
 
 

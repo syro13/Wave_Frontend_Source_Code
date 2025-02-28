@@ -9,11 +9,14 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Calendar;
 import java.util.List;
@@ -32,6 +35,7 @@ public class EditTasksActivity extends AppCompatActivity {
 
     // The Task being edited
     private Task task;
+    private Task previousTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +48,7 @@ public class EditTasksActivity extends AppCompatActivity {
         selectTime = findViewById(R.id.selectTime);
         remindSwitch = findViewById(R.id.remindSwitch);
         editTaskButton = findViewById(R.id.editTaskButton);
-        repeatSpinner = findViewById(R.id.repeatSpinner); // if used
+        repeatSpinner = findViewById(R.id.repeatSpinner); // If used
 
         // Category Buttons
         schoolTaskButton = findViewById(R.id.schoolTaskButtonInput);
@@ -60,7 +64,7 @@ public class EditTasksActivity extends AppCompatActivity {
             task = getIntent().getParcelableExtra("task");
             if (task != null) {
                 Log.d("EditTasksActivity", "Received Task: " + task.getTitle());
-                populateTaskData(task);
+                populateTaskData(task); // Populate fields with existing data
             } else {
                 Log.e("EditTasksActivity", "Received Task is NULL");
                 finish();
@@ -69,9 +73,9 @@ public class EditTasksActivity extends AppCompatActivity {
             Log.e("EditTasksActivity", "No Task received in Intent");
             finish();
         }
-        // For date field
+
+        // Date Picker Dialog
         selectDate.setOnClickListener(v -> {
-            // Use current date as default
             Calendar c = Calendar.getInstance();
             int year = c.get(Calendar.YEAR);
             int month = c.get(Calendar.MONTH);
@@ -80,17 +84,15 @@ public class EditTasksActivity extends AppCompatActivity {
             DatePickerDialog datePickerDialog = new DatePickerDialog(
                     EditTasksActivity.this,
                     (view, selectedYear, selectedMonth, selectedDay) -> {
-                        // Update the EditText with the selected date
-                        // Note: selectedMonth is 0-indexed so add 1
-                        selectDate.setText(selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear);
+                        String formattedDate = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
+                        selectDate.setText(formattedDate);
                     },
                     year, month, day);
             datePickerDialog.show();
         });
 
-// For time field
+        // Time Picker Dialog
         selectTime.setOnClickListener(v -> {
-            // Use current time as default
             Calendar c = Calendar.getInstance();
             int hour = c.get(Calendar.HOUR_OF_DAY);
             int minute = c.get(Calendar.MINUTE);
@@ -98,13 +100,11 @@ public class EditTasksActivity extends AppCompatActivity {
             TimePickerDialog timePickerDialog = new TimePickerDialog(
                     EditTasksActivity.this,
                     (view, selectedHour, selectedMinute) -> {
-                        // Update the EditText with the selected time, format as desired
                         selectTime.setText(String.format("%02d:%02d", selectedHour, selectedMinute));
                     },
                     hour, minute, true);
             timePickerDialog.show();
         });
-
 
         // Set up category & priority button clicks
         setupTaskTypeSelection();
@@ -115,17 +115,35 @@ public class EditTasksActivity extends AppCompatActivity {
     }
 
     private void populateTaskData(Task task) {
-        Log.d("EditTasksActivity", "Populating task data...");
         taskTitleInput.setText(task.getTitle());
-        selectDate.setText(task.getFullDate()); // e.g., "4/2/2025"
+        selectDate.setText(task.getFullDate()); // Use full date
         selectTime.setText(task.getTime());
         remindSwitch.setChecked(task.isRemind());
 
-        selectedTaskType = task.getCategory();
-        selectedPriority = task.getPriority();
+        // Restore category selection
+        if ("School".equals(task.getCategory())) {
+            schoolTaskButton.performClick();
+        } else {
+            homeTaskButton.performClick();
+        }
 
-        highlightSelectedCategory(selectedTaskType);
-        highlightSelectedPriority(selectedPriority);
+        // Restore priority selection
+        switch (task.getPriority()) {
+            case "High":
+                highPriorityButton.performClick();
+                break;
+            case "Medium":
+                mediumPriorityButton.performClick();
+                break;
+            case "Low":
+                lowPriorityButton.performClick();
+                break;
+        }
+
+        // Set up repeat spinner (if used)
+        if (repeatSpinner != null) {
+            // TODO: Implement repeat logic
+        }
     }
 
     private void setupTaskTypeSelection() {
@@ -210,68 +228,24 @@ public class EditTasksActivity extends AppCompatActivity {
 
     private void saveEditedTask() {
         String updatedTitle = taskTitleInput.getText().toString().trim();
-        String updatedDate = selectDate.getText().toString().trim();
         String updatedTime = selectTime.getText().toString().trim();
+        String updatedDate = selectDate.getText().toString().trim();
         boolean updatedRemind = remindSwitch.isChecked();
 
-        // Basic validation
-        if (updatedTitle.isEmpty()) {
-            Log.e("EditTasksActivity", "Title is empty!");
-            taskTitleInput.setError("Please enter a title");
-            return;
-        }
-        if (updatedDate.isEmpty()) {
-            Log.e("EditTasksActivity", "Date is empty!");
-            selectDate.setError("Please enter a valid date (DD/MM/YYYY)");
+        if (updatedTitle.isEmpty() || updatedDate.isEmpty() || updatedTime.isEmpty()) {
+            Toast.makeText(this, "All fields must be filled!", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        // Parse the date
         String[] dateParts = updatedDate.split("/");
-        if (dateParts.length != 3) {
-            Log.e("EditTasksActivity", "Invalid date format: " + updatedDate);
-            selectDate.setError("Please enter a valid date (DD/MM/YYYY)");
-            return;
-        }
+        int day = Integer.parseInt(dateParts[0]);
+        int month = Integer.parseInt(dateParts[1]);
+        int year = Integer.parseInt(dateParts[2]);
 
-        // Extract day, month, year
-        String dayStr = dateParts[0];
-        String monthStr = dateParts[1];
-        String yearStr = dateParts[2];
-
-        int day, month, year;
-        try {
-            day = Integer.parseInt(dayStr);
-            month = Integer.parseInt(monthStr);
-            year = Integer.parseInt(yearStr);
-        } catch (NumberFormatException e) {
-            Log.e("EditTasksActivity", "Error parsing date: " + e.getMessage());
-            selectDate.setError("Day, month, and year must be numbers");
-            return;
-        }
-
-        // Make sure day and month are in normal range
-        if (month < 1 || month > 12) {
-            selectDate.setError("Month must be between 1 and 12");
-            return;
-        }
-        if (day < 1 || day > 31) {
-            selectDate.setError("Day must be between 1 and 31");
-            return;
-        }
-
-        // Ensure we have a valid task object
-        if (task == null) {
-            Log.e("EditTasksActivity", "No existing task to update!");
-            finish();
-            return;
-        }
-
-        // Preserve the original ID
-        String taskId = task.getId();
-
-        // Build the updated task
+        // Create the updated task
         Task updatedTask = new Task(
-                taskId, // <-- Keep the same ID
+                task.getId(), // Keep the same task ID
                 updatedTitle,
                 updatedTime,
                 String.valueOf(day),
@@ -279,18 +253,42 @@ public class EditTasksActivity extends AppCompatActivity {
                 selectedPriority,
                 selectedTaskType,
                 updatedRemind,
-                year
+                year,
+                task.getStability(), // Preserve existing stability
+                System.currentTimeMillis(),  // Update timestamp for last modification
+                updatedDate // Full date
         );
 
-        // Pass the updated task back
-        int position = getIntent().getIntExtra("position", -1);
-        Log.d("EditTasksActivity", "Returning updated task: " + updatedTask.getTitle()
-                + ", ID: " + updatedTask.getId());
+        // Get current user ID safely
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
 
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra("updatedTask", updatedTask);
-        resultIntent.putExtra("position", position);
-        setResult(RESULT_OK, resultIntent);
-        finish();
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot update task");
+            Toast.makeText(this, "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Determine correct collection based on task type
+        String collectionName = "School".equals(updatedTask.getCategory()) ? "schooltasks" : "housetasks";
+
+        // Update Firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("users")
+                .document(userId)
+                .collection(collectionName)
+                .document(task.getId())
+                .set(updatedTask)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Firestore", "Task successfully updated!");
+                    Toast.makeText(this, "Task updated!", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "Error updating task", e);
+                    Toast.makeText(this, "Failed to update task", Toast.LENGTH_SHORT).show();
+                });
     }
+
 }

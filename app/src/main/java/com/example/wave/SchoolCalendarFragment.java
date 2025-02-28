@@ -25,6 +25,10 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -46,6 +50,8 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
     private Spinner monthYearDropdown;
     private TextView homeCalendarButton, schoolCalendarButton; // Toggle buttons
     public static final int REQUEST_EDIT_TASK = 1001;
+    private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
+
 
     @Nullable
     @Override
@@ -55,7 +61,6 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
 
     calendar = Calendar.getInstance();
     taskList = new ArrayList<>();
-    loadDummyTasks();
 
     calendarRecyclerView = view.findViewById(R.id.calendarRecyclerView);
     taskRecyclerView = view.findViewById(R.id.taskRecyclerView);
@@ -65,6 +70,9 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
     ImageView previousMonth = view.findViewById(R.id.previousMonth);
     ImageView nextMonth = view.findViewById(R.id.nextMonth);
     TextView selectedDateText = view.findViewById(R.id.selectedDateText);
+
+
+    updateSelectedDateText(selectedDateText, calendar.get(Calendar.DAY_OF_MONTH));
 
     homeCalendarButton = view.findViewById(R.id.homeCalendarButton);
     schoolCalendarButton = view.findViewById(R.id.SchoolCalendarButton);
@@ -183,13 +191,34 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
     private String getFormattedDayOfWeek(Calendar calendar) {
         return calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, java.util.Locale.getDefault());
     }
+
     @Override
     public void onTaskDeleted(Task task) {
-        taskList.removeIf(t -> t.getId().equals(task.getId()));
-        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
-        updateWeeklyTasks();
-        taskAdapter.notifyDataSetChanged();
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot delete task");
+            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        db.collection("users")
+                .document(userId)  // 🔹 Ensure dynamic user ID
+                .collection("schooltasks")  // 🔹 Ensure correct collection
+                .document(task.getId())
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    taskList.removeIf(t -> t.getId().equals(task.getId()));
+                    updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                    updateWeeklyTasks();
+                    taskAdapter.notifyDataSetChanged();
+                    Log.d("Firestore", "Task successfully deleted");
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error deleting task", e));
     }
+
 
     private Set<String> getSchoolTaskDates() {
         Set<String> schoolTaskDates = new HashSet<>();
@@ -247,25 +276,41 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
      */
     private void updateExistingTask(Task updatedTask) {
         if (updatedTask.getId() == null) {
-            Log.e("updateExistingTask", "Updated task ID is null. Cannot update by id.");
+            Log.e("updateExistingTask", "Updated task ID is null. Cannot update by ID.");
             return;
         }
-        boolean taskFound = false;
-        for (int i = 0; i < taskList.size(); i++) {
-            if (taskList.get(i).getId().equals(updatedTask.getId())) {
-                taskList.set(i, updatedTask);
-                taskFound = true;
-                Log.d("updateExistingTask", "Task updated: " + updatedTask.getTitle());
-                break;
-            }
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot update task");
+            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
         }
-        if (!taskFound) {
-            Log.e("updateExistingTask", "Task not found for update: " + updatedTask.getTitle());
-        }
-        updateCalendar();
-        updateWeeklyTasks();
-        taskAdapter.notifyDataSetChanged();
+
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .document(updatedTask.getId())
+                .set(updatedTask)
+                .addOnSuccessListener(aVoid -> {
+                    for (int i = 0; i < taskList.size(); i++) {
+                        if (taskList.get(i).getId().equals(updatedTask.getId())) {
+                            taskList.set(i, updatedTask);
+                            break;
+                        }
+                    }
+                    updateCalendar();
+                    updateWeeklyTasks();
+                    taskAdapter.notifyDataSetChanged();
+                    Log.d("Firestore", "Task successfully updated");
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error updating task", e));
     }
+
+
 
     /**
      * Called from the editTask activity result.
@@ -342,9 +387,16 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
 
 
     public void addTaskToCalendar(String title, String priority, String date, String time, boolean remind, String taskType) {
-        if (taskList == null) {
-            taskList = new ArrayList<>();
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot add task");
+            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
         }
+
         String taskId = UUID.randomUUID().toString();
         String[] dateParts = date.split("/");
         if (dateParts.length != 3) {
@@ -352,29 +404,36 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
             Toast.makeText(requireContext(), "Invalid date format!", Toast.LENGTH_SHORT).show();
             return;
         }
-        String day = dateParts[0];
-        String month = dateParts[1];
+
         int year = Integer.parseInt(dateParts[2]);
 
         Task newTask = new Task(
                 taskId,
                 title,
                 time,
-                day,
-                getMonthYearList().get(Integer.parseInt(month) - 1),
+                dateParts[0],
+                getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1),
                 priority,
                 taskType,
                 remind,
-                year
+                year,
+                0, // Default stability value
+                System.currentTimeMillis(), // 🔹 Firestore Timestamp Compatibility
+                dateParts[0] + "/" + dateParts[1] + "/" + year // Full date string
         );
-        taskList.add(newTask);
-        int dayInt = Integer.parseInt(day);
-        String monthName = getMonthYearList().get(Integer.parseInt(month) - 1);
-        List<Task> selectedDateTasks = filterTasksByDate(dayInt, monthName);
-        taskAdapter.updateTasks(selectedDateTasks);
-        updateWeeklyTasks();
-        Toast.makeText(requireContext(), "Task added: " + title, Toast.LENGTH_SHORT).show();
+
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .document(taskId)
+                .set(newTask)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Firestore", "Task successfully added!");
+                    listenForTaskUpdates(); // ✅ Ensures UI updates after adding a task
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error adding task", e));
     }
+
 
     private void updateTasksTitle(List<Task> selectedDateTasks, int selectedDay) {
         TextView tasksDueTodayTitle = getView().findViewById(R.id.tasksDueTodayTitle);
@@ -386,6 +445,40 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
             tasksDueTodayTitle.setText("Tasks for " + formattedDate);
         }
     }
+
+    private void listenForTaskUpdates() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot listen for task updates");
+            return;
+        }
+
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks") // 🔹 Ensure correct collection
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Log.e("Firestore", "Listen failed.", error);
+                        return;
+                    }
+
+                    taskList.clear();
+                    for (QueryDocumentSnapshot doc : value) {
+                        Task task = doc.toObject(Task.class);
+                        taskList.add(task);
+                    }
+
+                    taskAdapter.updateTasks(taskList);
+                    taskAdapter.notifyDataSetChanged();
+
+                    // ✅ Refresh calendar to show task indicators
+                    updateCalendar();
+                });
+    }
+
 
     private void updateCalendar() {
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
@@ -480,24 +573,43 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
             default: return "th";
         }
     }
-
-    private void loadDummyTasks() {
-        taskList.add(new Task(UUID.randomUUID().toString(), "Complete Assignment", "9:00 AM", "24", "January", "High", "School", true, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Prepare Presentation", "10:00 AM", "25", "January", "High", "School", false, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Submit Assignment", "11:59 PM", "26", "January", "High", "School", true, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Attend Workshop", "2:00 PM", "27", "January", "Low", "School", false, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Complete Lab Report", "3:00 PM", "28", "January", "High", "School", true, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Group Study Session", "5:00 PM", "29", "January", "Medium", "School", false, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Faculty Meeting", "1:00 PM", "30", "January", "Low", "School", false, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Prepare Notes", "4:00 PM", "31", "January", "Medium", "School", true, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Join Webinar", "9:00 AM", "1", "February", "Medium", "School", true, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Library Visit", "10:00 AM", "2", "February", "Low", "School", false, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Schedule Exam", "11:00 AM", "3", "February", "High", "School", true, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Plan Project", "1:00 PM", "4", "February", "Medium", "School", false, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Team Presentation", "3:00 PM", "5", "February", "High", "School", true, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Mock Exam", "10:00 AM", "6", "February", "Low", "School", false, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(), "Classroom Discussion", "2:00 PM", "7", "February", "Medium", "School", false, 2025));
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("SchoolCalendarFragment", "Resuming fragment, refreshing tasks.");
+        loadTasksFromFirestore(); // ✅ Ensure tasks reload when fragment is resumed
     }
+
+    private void loadTasksFromFirestore() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot fetch school tasks");
+            return;
+        }
+
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks") // ✅ Ensures fetching school tasks
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    taskList.clear();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Task task = doc.toObject(Task.class);
+                        taskList.add(task);
+                    }
+
+                    Log.d("Firestore", "School tasks loaded: " + taskList.size());
+                    taskAdapter.updateTasks(taskList);
+                    taskAdapter.notifyDataSetChanged();
+                    updateCalendar(); // ✅ Refresh the calendar view
+                    updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching school tasks", e));
+    }
+
 
     private void setActiveButton(TextView activeButton, TextView inactiveButton) {
         activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
