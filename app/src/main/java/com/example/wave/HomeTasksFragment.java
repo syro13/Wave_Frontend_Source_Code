@@ -48,10 +48,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
 
-public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.SaveGroceryItemsCallback, NetworkReceiver.NetworkChangeListener {
+public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.SaveGroceryItemsCallback{
     private NetworkReceiver networkReceiver;
-    private static final String PREFS_BLOGS = "HomeTasksBlogs";
-    private static final String KEY_LAST_FETCH = "lastFetchDateHomeTasks";
     private static final String GroceryListPREFS_NAME = "GroceryListPrefs";
     private static final String GROCERY_LIST_KEY = "grocery_list";
     private Dialog dialog;
@@ -59,18 +57,12 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
     private GroceryItemAdapter adapter;
     private static final int MAX_BLOGS = 4;
     private static final String PREFS_NAME = "HomeTasksPrefs";
-    private RecyclerView articleRecyclerView, promptsRecyclerView;
-    private TextView noBlogsText;
-    private SchoolTasksBlogAdapter blogAdapter;
-    private ImageView noBlogsImage;
-    private ProgressBar loadingIndicator;
+    private RecyclerView  promptsRecyclerView;
 
     private List<String> displayPromptsList;
     private List<String> actualPromptsList;
 
     private PromptsAdapter promptsAdapter;
-    private final List<BlogResponse> blogs = new ArrayList<>();
-    private int loadingTasksRemaining = 0;
 
     @Nullable
     @Override
@@ -81,17 +73,6 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
         TextView homeTasksButton = view.findViewById(R.id.homeTasksButton);
 
         // RecyclerView setup for articles
-        articleRecyclerView = view.findViewById(R.id.articlesRecyclerView);
-        noBlogsImage = view.findViewById(R.id.noBlogsImage);
-        noBlogsText = view.findViewById(R.id.noBlogsText);
-        loadingIndicator = view.findViewById(R.id.loadingIndicator);
-        loadingIndicator.setVisibility(View.VISIBLE);
-        setupBlogsRecyclerView();
-        fetchBlogsWithFallback();
-
-        networkReceiver = new NetworkReceiver(this);
-        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        requireContext().registerReceiver(networkReceiver, filter);
 
         // RecyclerView setup for AI prompts
         promptsRecyclerView = view.findViewById(R.id.promptsRecyclerView);
@@ -218,178 +199,11 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
         return list;
     }
 
-    @Override
-    public void onNetworkRestored() {
-        Log.d("HomeTasksFragment", "Network restored. Checking data...");
-        reloadDataIfNeeded();
-    }
-
-    private void reloadDataIfNeeded() {
-        if (!isAdded()) {
-            Log.w("HomeTasksFragment", "Fragment not attached, skipping reloadDataIfNeeded");
-            return;
-        }
-        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
-        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
-        if (lastFetchDate != todayDate) {
-            Log.d("HomeTasksFragment", "Reloading Blogs...");
-            fetchBlogsWithFallback();
-        } else {
-            Log.d("HomeTasksFragment", "Blogs are up-to-date.");
-        }
-    }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         requireContext().unregisterReceiver(networkReceiver);
-    }
-
-    private void loadCachedBlogs() {
-        if (!isAdded()) {
-            Log.w("HomeTasksFragment", "Fragment not attached, skipping loadCachedBlogs");
-            return;
-        }
-        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
-        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
-        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
-        if (cachedBlogsJson != null && lastFetchDate == todayDate) {
-            blogs.clear();
-            blogs.addAll(BlogResponse.fromJsonList(cachedBlogsJson));
-            if (blogs.size() > MAX_BLOGS) {
-                blogs.subList(MAX_BLOGS, blogs.size()).clear();
-            }
-            blogAdapter.notifyDataSetChanged();
-            noBlogsImage.setVisibility(View.GONE);
-            noBlogsText.setVisibility(View.GONE);
-            Log.d("HomeTasksFragment", "Loaded blogs from cache.");
-        } else {
-            Log.d("HomeTasksFragment", "No valid cache found. Fetching from API...");
-            fetchBlogsWithFallback();
-        }
-    }
-
-    private void fetchBlogsWithFallback() {
-        if (!isAdded()) {
-            Log.w("HomeTasksFragment", "Fragment not attached, skipping fetchBlogsWithFallback");
-            return;
-        }
-        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
-        blogs.clear();
-        blogAdapter.notifyDataSetChanged();
-        loadingIndicator.setVisibility(View.VISIBLE);
-        fetchBlogsFromApi(prefs, todayDate, success -> {
-            if (!success) {
-                Log.d("HomeTasksFragment", "API fetch failed. Falling back to cached blogs...");
-                loadCachedBlogs();
-            }
-        });
-    }
-
-    private void fetchBlogsFromApi(SharedPreferences prefs, int todayDate, OnFetchCompleteListener listener) {
-        BlogsApi api = RetrofitClient.getRetrofitInstance(
-                requireContext(),
-                "https://medium2.p.rapidapi.com/",
-                "x-rapidapi-key",
-                getResources().getString(R.string.home_api_key)
-        ).create(BlogsApi.class);
-
-        String[] tags = {"home", "cleaning", "decorating"};
-        loadingTasksRemaining = tags.length;
-        for (String tag : tags) {
-            api.getRecommendedFeed(tag, 1).enqueue(new Callback<RecommendedFeedResponse>() {
-                @Override
-                public void onResponse(Call<RecommendedFeedResponse> call, Response<RecommendedFeedResponse> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        List<String> recommendedFeed = response.body().getRecommendedFeed();
-                        for (String articleId : recommendedFeed) {
-                            if (blogs.size() >= MAX_BLOGS) break;
-                            fetchArticleDetails(api, articleId, prefs, todayDate);
-                        }
-                        listener.onFetchComplete(true);
-                    } else {
-                        listener.onFetchComplete(false);
-                    }
-                    taskCompleted();
-                }
-                @Override
-                public void onFailure(Call<RecommendedFeedResponse> call, Throwable t) {
-                    taskCompleted();
-                    listener.onFetchComplete(false);
-                }
-            });
-        }
-    }
-
-    private void fetchArticleDetails(BlogsApi api, String articleId, SharedPreferences prefs, int todayDate) {
-        if (blogs.size() >= MAX_BLOGS || !isAdded()) {
-            taskCompleted();
-            return;
-        }
-        api.getArticleInfo(articleId).enqueue(new Callback<ArticleDetails>() {
-            @Override
-            public void onResponse(Call<ArticleDetails> call, Response<ArticleDetails> response) {
-                if (!isAdded()) {
-                    return;
-                }
-                if (response.isSuccessful() && response.body() != null) {
-                    ArticleDetails article = response.body();
-                    synchronized (blogs) {
-                        if (blogs.size() < MAX_BLOGS && !isDuplicateArticle(article)) {
-                            BlogResponse blog = new BlogResponse(
-                                    article.getTitle(),
-                                    article.getAuthor(),
-                                    "home-tasks",
-                                    article.getUrl(),
-                                    article.getImageUrl()
-                            );
-                            blogs.add(blog);
-                            blogAdapter.notifyDataSetChanged();
-                            saveBlogsToCache(prefs, blogs, todayDate);
-                        }
-                    }
-                }
-                taskCompleted();
-            }
-            @Override
-            public void onFailure(Call<ArticleDetails> call, Throwable t) {
-                taskCompleted();
-            }
-        });
-    }
-
-    private boolean isDuplicateArticle(ArticleDetails article) {
-        for (BlogResponse existingBlog : blogs) {
-            if (existingBlog.getTitle().equals(article.getTitle()) &&
-                    existingBlog.getAuthor().equals(article.getAuthor())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void saveBlogsToCache(SharedPreferences prefs, List<BlogResponse> blogs, int todayDate) {
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PREFS_BLOGS, BlogResponse.toJsonList(blogs));
-        editor.putInt(KEY_LAST_FETCH, todayDate);
-        editor.apply();
-    }
-
-    private void setupBlogsRecyclerView() {
-        articleRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
-        blogAdapter = new SchoolTasksBlogAdapter(requireContext(), blogs);
-        articleRecyclerView.setAdapter(blogAdapter);
-        blogAdapter.notifyDataSetChanged();
-    }
-
-    private synchronized void taskCompleted() {
-        loadingTasksRemaining--;
-        if (loadingTasksRemaining <= 0) {
-            loadingIndicator.setVisibility(View.GONE);
-        }
     }
 
     private void showPopup(String displayPrompt, String actualPrompt) {
