@@ -24,6 +24,7 @@ public class Task implements Parcelable {
     private String fullDate;
     private int stability;
     private long tasktimestamp;
+    private boolean completed;
 
     // Default constructor (needed for Firebase or other serialization)
     public Task() {}
@@ -31,7 +32,7 @@ public class Task implements Parcelable {
     // Full constructor
     public Task(String id, String title, String time, String date, String month,
                 String priority, String category, boolean remind, int year,
-                int stability, long tasktimestamp, String fullDate) {
+                int stability, long tasktimestamp, String fullDate, boolean completed) {
         this.id = id;
         this.title = title;
         this.time = time;
@@ -44,6 +45,8 @@ public class Task implements Parcelable {
         this.stability = stability;
         this.tasktimestamp = tasktimestamp;
         this.fullDate = fullDate;
+        this.completed = completed;
+
     }
 
     // --- PARCELABLE IMPLEMENTATION ---
@@ -60,6 +63,7 @@ public class Task implements Parcelable {
         fullDate = in.readString();
         stability = in.readInt();
         tasktimestamp = in.readLong();
+        completed = in.readByte() != 0;
     }
 
     @Override
@@ -76,6 +80,7 @@ public class Task implements Parcelable {
         dest.writeString(fullDate);
         dest.writeInt(stability);
         dest.writeLong(tasktimestamp);
+        dest.writeByte((byte) (completed ? 1 : 0));
     }
 
     public static final Creator<Task> CREATOR = new Creator<Task>() {
@@ -139,6 +144,13 @@ public class Task implements Parcelable {
             this.tasktimestamp = System.currentTimeMillis(); // Default to current time if unknown type
         }
     }
+    public boolean isCompleted() {
+        return completed;
+    }
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+
     public String getFullDate() {
         if (date == null || month == null) {
             Log.e("getFullDate", "Date or month is null, returning empty string.");
