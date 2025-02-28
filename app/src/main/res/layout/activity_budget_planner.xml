@@ -14,100 +14,118 @@
         android:layout_marginBottom="56dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-        <!-- Header Section -->
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/headerSection"
             android:layout_width="match_parent"
-            android:layout_height="220dp"
-            android:background="@drawable/header_pages">
+            android:layout_height="wrap_content">
 
-            <ImageView
-                android:id="@+id/waveLogo"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_wave_logo"
-                android:contentDescription="Wave Logo"
+            <!-- Header Section -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/headerSection"
+                android:layout_width="0dp"
+                android:layout_height="220dp"
+                android:background="@drawable/header_pages"
+                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_margin="16dp" />
+                app:layout_constraintEnd_toEndOf="parent">
 
-            <ImageView
-                android:id="@+id/profileIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_profile_placeholder"
-                android:contentDescription="Profile Icon"
+                <ImageView
+                    android:id="@+id/waveLogo"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_wave_logo"
+                    android:contentDescription="Wave Logo"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_margin="16dp" />
+
+                <ImageView
+                    android:id="@+id/profileIcon"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_profile_placeholder"
+                    android:contentDescription="Profile Icon"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_margin="16dp" />
+
+                <TextView
+                    android:id="@+id/budgetPlannerTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Budget Planner"
+                    android:textColor="@android:color/black"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="60dp" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Title Section with Icon -->
+            <LinearLayout
+                android:id="@+id/titleSection"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="16dp"
+                app:layout_constraintTop_toBottomOf="@id/headerSection"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_margin="16dp" />
-
-            <TextView
-                android:id="@+id/budgetPlannerTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginBottom="60dp"
-                android:text="Budget Planner"
-                android:textColor="@android:color/black"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:layout_marginEnd="16dp">
 
-        <!-- Title Section with Icon -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="2dp"
-            android:gravity="center_vertical">
+                <TextView
+                    android:id="@+id/spendingOverviewTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Spending Overview"
+                    android:fontFamily="@font/archivo_medium"
+                    android:textStyle="normal"
+                    android:textSize="20sp"
+                    android:textColor="@android:color/black" />
 
-            <TextView
-                android:id="@+id/spendingOverviewTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Spending Overview"
-                android:fontFamily="@font/archivo_medium"
-                android:textStyle="normal"
-                android:textSize="24sp"
-                android:layout_marginStart="16dp"
-                android:textColor="@android:color/black" />
+                <ImageView
+                    android:id="@+id/moneyIcon"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/money_icon" />
+            </LinearLayout>
 
-            <ImageView
-                android:id="@+id/moneyIcon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginBottom="8dp"
-                android:src="@drawable/money_icon" />
-        </LinearLayout>
             <!-- Radial Chart Section -->
             <LinearLayout
-                android:layout_width="match_parent"
+                android:id="@+id/radialChartSection"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                app:layout_constraintTop_toBottomOf="@id/titleSection"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="16dp">
 
                 <com.example.wave.SemiCircularProgressView
                     android:id="@+id/budgetSemiCircleChart"
                     android:layout_width="250dp"
                     android:layout_height="250dp"
                     android:layout_gravity="center" />
-
             </LinearLayout>
+
+            <!-- Amount Spent and Amount Left Cards -->
             <LinearLayout
-                android:layout_width="match_parent"
+                android:id="@+id/amountCardsSection"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginLeft="15dp"
-                android:layout_marginRight="15dp"
+                app:layout_constraintTop_toBottomOf="@id/radialChartSection"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
                 android:weightSum="2">
 
                 <!-- Amount Spent Card -->
@@ -118,7 +136,7 @@
                     android:orientation="vertical"
                     android:background="@drawable/card_background"
                     android:padding="10dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_marginEnd="8dp"
                     android:elevation="4dp">
 
                     <TextView
@@ -135,7 +153,7 @@
                         android:id="@+id/amountSpentValue"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="€20.00"
+                        android:text="€0.00"
                         android:textSize="28sp"
                         android:fontFamily="@font/inter_light"
                         android:textStyle="bold"
@@ -152,7 +170,7 @@
                     android:orientation="vertical"
                     android:background="@drawable/card_background"
                     android:padding="10dp"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="8dp"
                     android:elevation="4dp">
 
                     <TextView
@@ -169,7 +187,7 @@
                         android:id="@+id/amountLeftValue"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="€180.00"
+                        android:text="€0.00"
                         android:textSize="28sp"
                         android:fontFamily="@font/inter_light"
                         android:textStyle="bold"
@@ -179,34 +197,40 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Budget for the Week Section -->
             <TextView
                 android:id="@+id/budgetForTheWeekTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:text="Budget for the Week"
                 android:fontFamily="@font/archivo_medium"
                 android:textStyle="normal"
-                android:textSize="24sp"
-                android:layout_marginStart="16dp"
-                android:textColor="@android:color/black" />
+                android:textSize="20sp"
+                android:textColor="@android:color/black"
+                app:layout_constraintTop_toBottomOf="@id/amountCardsSection"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp" />
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:id="@+id/budgetForTheWeekSection"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="10dp"
-                android:padding="16dp"
                 android:background="@drawable/card_background"
                 android:elevation="4dp"
+                app:layout_constraintTop_toBottomOf="@id/budgetForTheWeekTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="8dp"
                 android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp">
+                android:layout_marginEnd="16dp"
+                android:padding="16dp">
 
                 <ImageView
                     android:id="@+id/budgetIllustration"
                     android:layout_width="match_parent"
                     android:layout_height="160dp"
-                    android:layout_marginTop="15dp"
                     android:scaleType="fitCenter"
                     android:src="@drawable/budget_week_image"
                     android:contentDescription="Budget Illustration" />
@@ -218,14 +242,14 @@
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:layout_marginTop="10dp">
+
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:padding="5dp"
-                        android:layout_marginEnd="8dp"
-                        android:elevation="4dp">
+                        android:layout_marginEnd="8dp">
 
                         <TextView
                             android:id="@+id/totalBudgetTitle"
@@ -241,20 +265,20 @@
                             android:id="@+id/totalBudgetValue"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="€200.00"
-                            android:textSize="28sp"
+                            android:text="€0.00"
+                            android:textSize="24sp"
                             android:fontFamily="@font/inter_light"
                             android:textStyle="bold"
                             android:textColor="@color/blue"
                             android:gravity="center"
                             android:layout_marginTop="8dp" />
                     </LinearLayout>
+
                     <Button
                         android:id="@+id/editBudgetButton"
                         android:layout_width="0dp"
                         android:layout_weight="1"
-                        android:layout_height="50dp"
-                        android:layout_marginTop="5dp"
+                        android:layout_height="48dp"
                         android:text="EDIT"
                         android:textAllCaps="false"
                         android:textSize="18sp"
@@ -264,27 +288,65 @@
                         android:padding="2dp"/>
                 </LinearLayout>
             </LinearLayout>
+
+            <!-- Expenses Section -->
             <TextView
                 android:id="@+id/expensesTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:text="Expenses"
                 android:fontFamily="@font/archivo_medium"
                 android:textStyle="normal"
-                android:textSize="24sp"
-                android:layout_marginStart="16dp"
-                android:textColor="@android:color/black" />
+                android:textSize="20sp"
+                android:textColor="@android:color/black"
+                app:layout_constraintTop_toBottomOf="@id/budgetForTheWeekSection"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/expensesRecyclerView"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
+                app:layout_constraintTop_toBottomOf="@id/expensesTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="8dp"
                 android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp" />
-        </LinearLayout>
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp" />
 
+            <!-- AI Prompts Section -->
+            <LinearLayout
+                android:id="@+id/aiPromptsSection"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintTop_toBottomOf="@id/expensesRecyclerView"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="100dp">
+
+                <TextView
+                    android:id="@+id/PromptsTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Quick Prompts"
+                    android:textSize="20sp"
+                    android:paddingBottom="10dp"
+                    android:textColor="@color/black" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/promptsRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="vertical"
+                    android:layout_marginBottom="100dp"/>
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 
     <!-- Floating Action Button -->
@@ -294,7 +356,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
         android:layout_marginBottom="76dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginEnd="16dp"
         android:contentDescription="Add Expense"
         android:src="@drawable/ic_add"
         app:backgroundTint="@color/blue"

@@ -44,6 +44,7 @@ android {
 }
 
 dependencies {
+    implementation(platform(libs.firebase.bom))
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.lottie)
@@ -55,16 +56,20 @@ dependencies {
     implementation(libs.fragment.testing)
     implementation(libs.espresso.intents)
     implementation(libs.espresso.contrib)
+    implementation(libs.firebase.firestore) {
+        exclude(group = "com.google.protobuf", module = "protobuf-lite")
+    }
     testImplementation(libs.junit)
     testImplementation(libs.ext.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation(libs.core.ktx)
-    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics) {
         exclude(group = "com.google.android.gms", module = "play-services-measurement-api")
     }
-    implementation (libs.play.services.auth.v2070)
+    implementation (libs.play.services.auth.v2070){
+        exclude(group = "com.google.protobuf", module = "protobuf-lite")
+    }
     coreLibraryDesugaring (libs.desugar.jdk.libs)
     implementation ("com.google.android.material:material:1.9.0")
     implementation (libs.recyclerview)
@@ -82,4 +87,13 @@ dependencies {
     implementation (libs.retrofit)
     implementation (libs.converter.gson)
     implementation (libs.material.v1120)
+    implementation("com.google.protobuf:protobuf-javalite:3.25.1")
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "com.google.protobuf" && requested.name == "protobuf-lite") {
+            useTarget("com.google.protobuf:protobuf-javalite:3.25.1") // ✅ Correct syntax
+        }
+    }
 }
