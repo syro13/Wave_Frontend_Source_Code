@@ -27,18 +27,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
-        buildFeatures {
-            viewBinding = true
-        }
-
-
-    compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    buildFeatures {
+        viewBinding = true
     }
 }
 
@@ -61,20 +55,31 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-    implementation (libs.play.services.auth.v2070)
-    coreLibraryDesugaring (libs.desugar.jdk.libs)
-    implementation ("com.google.android.material:material:1.9.0")
-    implementation (libs.recyclerview)
-    implementation (libs.retrofit)
-    implementation (libs.converter.gson)
-    implementation (libs.logging.interceptor)
-    implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation ("com.github.bumptech.glide:glide:4.15.1")
-    annotationProcessor ("com.github.bumptech.glide:compiler:4.15.1")
+    implementation(libs.play.services.auth.v2070)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+    implementation("com.google.android.material:material:1.9.0")
+    implementation(libs.recyclerview)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
     testImplementation("org.mockito:mockito-core:5.0.0")
     androidTestImplementation("org.mockito:mockito-android:5.0.0")
-    implementation (libs.logging.interceptor.v493)
-    implementation (libs.retrofit)
-    implementation (libs.converter.gson)
-    implementation (libs.material.v1120)
+    implementation(libs.logging.interceptor.v493)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.material.v1120)
+    implementation(libs.firebase.firestore) {
+        exclude(group = "com.google.protobuf", module = "protobuf-lite")
+    }
+    implementation(libs.protobuf.javalite)
+
+    configurations.all {
+        resolutionStrategy {
+            force("com.google.protobuf:protobuf-javalite:3.25.1")
+            exclude(group = "com.google.protobuf", module = "protobuf-lite")
+        }
+    }
 }
