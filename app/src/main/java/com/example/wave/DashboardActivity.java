@@ -113,13 +113,55 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
     }
 
     private void loadInitialTasks() {
-        taskList.add(new Task(UUID.randomUUID().toString(),"Math Assignment", "10:00 AM", "7", "February", "High", "School", false, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(),"Grocery Shopping", "12:00 PM", "8", "February", "Medium", "Home", true, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(),"Team Meeting", "3:00 PM", "8", "February", "High", "School", false, 2025));
+        taskList.add(new Task(
+                UUID.randomUUID().toString(),
+                "Math Assignment",
+                "10:00 AM",
+                "7",
+                "February",
+                "High",
+                "School",
+                false,
+                2025,
+                0, // Stability (default 0)
+                System.currentTimeMillis(), // Task timestamp
+                "7/2/2025" // Full date
+        ));
+
+        taskList.add(new Task(
+                UUID.randomUUID().toString(),
+                "Grocery Shopping",
+                "12:00 PM",
+                "8",
+                "February",
+                "Medium",
+                "Home",
+                true,
+                2025,
+                0, // Stability
+                System.currentTimeMillis(),
+                "8/2/2025"
+        ));
+
+        taskList.add(new Task(
+                UUID.randomUUID().toString(),
+                "Team Meeting",
+                "3:00 PM",
+                "8",
+                "February",
+                "High",
+                "School",
+                false,
+                2025,
+                0, // Stability
+                System.currentTimeMillis(),
+                "8/2/2025"
+        ));
 
         // Notify the adapter of the new tasks
         taskAdapter.updateTasks(taskList);
     }
+
 
     @Override
     public void onTaskDeleted(Task task) {
@@ -132,13 +174,70 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
     }
 
     private void loadDummyTasks() {
-        taskList.add(new Task(UUID.randomUUID().toString(),"Wireframes for Websites", "8:00 AM", "18", "January", "High", "School", true, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(),"Clean Kitchen", "9:00 AM", "19", "January", "Low", "Home", false, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(),"Do Groceries", "10:00 AM", "20", "January", "High", "Personal", true, 2025));
-        taskList.add(new Task(UUID.randomUUID().toString(),"Math Assignments", "11:00 AM", "18", "January", "Medium", "School", false, 2025));
+        taskList.add(new Task(
+                UUID.randomUUID().toString(),
+                "Wireframes for Websites",
+                "8:00 AM",
+                "18",
+                "January",
+                "High",
+                "School",
+                true,
+                2025,
+                0, // Stability (default 0)
+                System.currentTimeMillis(), // Task timestamp
+                "18/1/2025" // Full date
+        ));
 
+        taskList.add(new Task(
+                UUID.randomUUID().toString(),
+                "Clean Kitchen",
+                "9:00 AM",
+                "19",
+                "January",
+                "Low",
+                "Home",
+                false,
+                2025,
+                0, // Stability
+                System.currentTimeMillis(),
+                "19/1/2025"
+        ));
+
+        taskList.add(new Task(
+                UUID.randomUUID().toString(),
+                "Do Groceries",
+                "10:00 AM",
+                "20",
+                "January",
+                "High",
+                "Personal",
+                true,
+                2025,
+                0, // Stability
+                System.currentTimeMillis(),
+                "20/1/2025"
+        ));
+
+        taskList.add(new Task(
+                UUID.randomUUID().toString(),
+                "Math Assignments",
+                "11:00 AM",
+                "18",
+                "January",
+                "Medium",
+                "School",
+                false,
+                2025,
+                0, // Stability
+                System.currentTimeMillis(),
+                "18/1/2025"
+        ));
+
+        // Notify the adapter of the new tasks
         taskAdapter.notifyDataSetChanged();
     }
+
 
     private void loadCurrentDate() {
         TextView currentDate = findViewById(R.id.currentDate);
