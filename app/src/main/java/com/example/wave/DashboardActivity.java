@@ -32,7 +32,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener {
+public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener, TaskAdapter.OnTaskCompletedListener {
 
     private RecyclerView taskRecyclerView;
     private TaskAdapter taskAdapter;
@@ -79,7 +79,7 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
 
         // Initialize Task List and Adapter
         taskList = new ArrayList<>();
-        taskAdapter = new TaskAdapter(taskList, this, this, this, editTaskLauncher); // Pass the launcher
+        taskAdapter = new TaskAdapter(taskList, this, this, this, this,  editTaskLauncher); // Pass the launcher
 
         // Set up RecyclerView
         taskRecyclerView = findViewById(R.id.taskRecyclerView);
@@ -125,7 +125,8 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
                 2025,
                 0, // Stability (default 0)
                 System.currentTimeMillis(), // Task timestamp
-                "7/2/2025" // Full date
+                "7/2/2025",
+                false
         ));
 
         taskList.add(new Task(
@@ -140,7 +141,8 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
                 2025,
                 0, // Stability
                 System.currentTimeMillis(),
-                "8/2/2025"
+                "8/2/2025",
+                false
         ));
 
         taskList.add(new Task(
@@ -155,7 +157,8 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
                 2025,
                 0, // Stability
                 System.currentTimeMillis(),
-                "8/2/2025"
+                "8/2/2025",
+                false
         ));
 
         // Notify the adapter of the new tasks
@@ -166,6 +169,11 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
     @Override
     public void onTaskDeleted(Task task) {
         // Handle UI updates after deletion if needed
+    }
+
+    @Override
+    public void onTaskCompleted(Task task) {
+        // Handle UI updates after completion if needed
     }
 
     @Override
@@ -186,7 +194,9 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
                 2025,
                 0, // Stability (default 0)
                 System.currentTimeMillis(), // Task timestamp
-                "18/1/2025" // Full date
+                "18/1/2025",
+                false
+
         ));
 
         taskList.add(new Task(
@@ -201,7 +211,8 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
                 2025,
                 0, // Stability
                 System.currentTimeMillis(),
-                "19/1/2025"
+                "19/1/2025",
+                false
         ));
 
         taskList.add(new Task(
@@ -216,7 +227,8 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
                 2025,
                 0, // Stability
                 System.currentTimeMillis(),
-                "20/1/2025"
+                "20/1/2025",
+                false
         ));
 
         taskList.add(new Task(
@@ -231,7 +243,8 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
                 2025,
                 0, // Stability
                 System.currentTimeMillis(),
-                "18/1/2025"
+                "18/1/2025",
+                false
         ));
 
         // Notify the adapter of the new tasks

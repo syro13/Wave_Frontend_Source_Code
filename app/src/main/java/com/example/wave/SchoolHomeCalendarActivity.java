@@ -6,6 +6,7 @@ import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -27,10 +28,13 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.Objects;
 
-public class SchoolHomeCalendarActivity extends BaseActivity {
+
+public class SchoolHomeCalendarActivity extends BaseActivity implements TaskCompletionListener {
+
     private enum ActiveFragment { SCHOOL, HOME, COMBINED }
     private ActiveFragment activeFragment = ActiveFragment.COMBINED;
     private boolean isSchoolCalendarFragmentActive = true;
+    private HomeTasksFragment homeTasksFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +54,15 @@ public class SchoolHomeCalendarActivity extends BaseActivity {
         FloatingActionButton addTaskButton = findViewById(R.id.addTaskButton);
         addTaskButton.setOnClickListener(v -> showAddTaskDialog());
 
+        homeTasksFragment = new HomeTasksFragment();
+    }
 
+
+    @Override
+    public void onTaskCompletedUpdate() {
+        if (homeTasksFragment != null) {
+            homeTasksFragment.onTaskCompletedUpdate();
+        }
     }
 
     @Override

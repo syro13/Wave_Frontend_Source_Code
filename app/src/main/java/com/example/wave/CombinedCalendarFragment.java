@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class CombinedCalendarFragment extends Fragment implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener  {
+public class CombinedCalendarFragment extends Fragment implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener, TaskAdapter.OnTaskCompletedListener  {
 
     private RecyclerView calendarRecyclerView, taskRecyclerView, weeklyTaskRecyclerView;
     private CalendarAdapter calendarAdapter;
@@ -140,8 +140,8 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
 
         // Initialize TaskAdapter with editTaskLauncher
         // Initialize TaskAdapter with editTaskLauncher
-        taskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this, editTaskLauncher);
-        weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this, editTaskLauncher);
+        taskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this,this, editTaskLauncher);
+        weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this,this,  editTaskLauncher);
 
         taskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         taskRecyclerView.setAdapter(taskAdapter);
@@ -213,6 +213,11 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
 
         setupToggleButtons();
         return view;
+    }
+
+    @Override
+    public void onTaskCompleted(Task task) {
+        // Handle UI updates after completion if needed
     }
 
     private void toggleCalendarView(ImageView expandCollapseIcon) {
@@ -589,7 +594,9 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
                 year,
                 0, // Default stability value, update as needed
                 System.currentTimeMillis(), // Set task timestamp to current time
-                dateParts[0] + "/" + dateParts[1] + "/" + year // Full date string
+                dateParts[0] + "/" + dateParts[1] + "/" + year,
+                false
+
         );
         // Insert into relevant list
         if ("School".equals(taskType)) {
@@ -648,78 +655,78 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
             // School tasks
         // School tasks
         schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Math Homework", "10:00 AM", "25",
-                "January", "High", "School", false, 2025, 0, System.currentTimeMillis(), "25/01/2025"));
+                "January", "High", "School", false, 2025, 0, System.currentTimeMillis(), "25/01/2025", false));
 
         schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Science Project", "2:00 PM", "26",
-                "January", "Medium", "School", true, 2025, 0, System.currentTimeMillis(), "26/01/2025"));
+                "January", "Medium", "School", true, 2025, 0, System.currentTimeMillis(), "26/01/2025", false));
 
         schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Physics Lab Report", "11:00 AM", "1",
-                "February", "High", "School", false, 2025, 0, System.currentTimeMillis(), "01/02/2025"));
+                "February", "High", "School", false, 2025, 0, System.currentTimeMillis(), "01/02/2025", false));
 
         schoolTaskList.add(new Task(UUID.randomUUID().toString(), "History Assignment", "9:30 AM", "2",
-                "February", "Medium", "School", false, 2025, 0, System.currentTimeMillis(), "02/02/2025"));
+                "February", "Medium", "School", false, 2025, 0, System.currentTimeMillis(), "02/02/2025", false));
 
         schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Group Project Meeting", "3:00 PM", "3",
-                "February", "Low", "School", true, 2025, 0, System.currentTimeMillis(), "03/02/2025"));
+                "February", "Low", "School", true, 2025, 0, System.currentTimeMillis(), "03/02/2025", false));
 
         schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Biology Quiz Preparation", "4:00 PM", "4",
-                "February", "Medium", "School", false, 2025, 0, System.currentTimeMillis(), "04/02/2025"));
+                "February", "Medium", "School", false, 2025, 0, System.currentTimeMillis(), "04/02/2025", false));
 
         schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Chemistry Lab Prep", "10:00 AM", "5",
-                "February", "High", "School", true, 2025, 0, System.currentTimeMillis(), "05/02/2025"));
+                "February", "High", "School", true, 2025, 0, System.currentTimeMillis(), "05/02/2025", false));
 
         schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Essay Submission", "1:00 PM", "6",
-                "February", "High", "School", false, 2025, 0, System.currentTimeMillis(), "06/02/2025"));
+                "February", "High", "School", false, 2025, 0, System.currentTimeMillis(), "06/02/2025", false));
 
         schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Math Revision", "10:30 AM", "7",
-                "February", "Medium", "School", false, 2025, 0, System.currentTimeMillis(), "07/02/2025"));
+                "February", "Medium", "School", false, 2025, 0, System.currentTimeMillis(), "07/02/2025", false));
 
         schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Sports Practice", "5:00 PM", "7",
-                "February", "Low", "School", false, 2025, 0, System.currentTimeMillis(), "07/02/2025"));
+                "February", "Low", "School", false, 2025, 0, System.currentTimeMillis(), "07/02/2025", false));
 
         schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Computer Science Coding Assignment", "2:00 PM", "8",
-                "February", "High", "School", false, 2025, 0, System.currentTimeMillis(), "08/02/2025"));
+                "February", "High", "School", false, 2025, 0, System.currentTimeMillis(), "08/02/2025", false));
 
         schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Art Project Presentation", "12:00 PM", "9",
-                "February", "Medium", "School", true, 2025, 0, System.currentTimeMillis(), "09/02/2025"));
+                "February", "Medium", "School", true, 2025, 0, System.currentTimeMillis(), "09/02/2025", false));
 
 
 // Home tasks
         homeTaskList.add(new Task(UUID.randomUUID().toString(), "Clean Kitchen", "8:00 PM", "27",
-                "January", "Low", "Home", false, 2025, 0, System.currentTimeMillis(), "27/01/2025"));
+                "January", "Low", "Home", false, 2025, 0, System.currentTimeMillis(), "27/01/2025", false));
 
         homeTaskList.add(new Task(UUID.randomUUID().toString(), "Buy Groceries", "6:00 PM", "28",
-                "January", "High", "Home", true, 2025, 0, System.currentTimeMillis(), "28/01/2025"));
+                "January", "High", "Home", true, 2025, 0, System.currentTimeMillis(), "28/01/2025", false));
 
         homeTaskList.add(new Task(UUID.randomUUID().toString(), "Laundry", "9:00 AM", "1",
-                "February", "Medium", "Home", false, 2025, 0, System.currentTimeMillis(), "01/02/2025"));
+                "February", "Medium", "Home", false, 2025, 0, System.currentTimeMillis(), "01/02/2025", false));
 
         homeTaskList.add(new Task(UUID.randomUUID().toString(), "Pay Bills", "10:00 AM", "2",
-                "February", "High", "Home", true, 2025, 0, System.currentTimeMillis(), "02/02/2025"));
+                "February", "High", "Home", true, 2025, 0, System.currentTimeMillis(), "02/02/2025", false));
 
         homeTaskList.add(new Task(UUID.randomUUID().toString(), "Meal Prep", "5:30 PM", "3",
-                "February", "Medium", "Home", false, 2025, 0, System.currentTimeMillis(), "03/02/2025"));
+                "February", "Medium", "Home", false, 2025, 0, System.currentTimeMillis(), "03/02/2025", false));
 
         homeTaskList.add(new Task(UUID.randomUUID().toString(), "Organize Closet", "11:00 AM", "4",
-                "February", "Low", "Home", false, 2025, 0, System.currentTimeMillis(), "04/02/2025"));
+                "February", "Low", "Home", false, 2025, 0, System.currentTimeMillis(), "04/02/2025", false));
 
         homeTaskList.add(new Task(UUID.randomUUID().toString(), "Repair Leaky Faucet", "2:30 PM", "5",
-                "February", "High", "Home", true, 2025, 0, System.currentTimeMillis(), "05/02/2025"));
+                "February", "High", "Home", true, 2025, 0, System.currentTimeMillis(), "05/02/2025", false));
 
         homeTaskList.add(new Task(UUID.randomUUID().toString(), "Take Dog for a Walk", "7:00 AM", "6",
-                "February", "Low", "Home", false, 2025, 0, System.currentTimeMillis(), "06/02/2025"));
+                "February", "Low", "Home", false, 2025, 0, System.currentTimeMillis(), "06/02/2025", false));
 
         homeTaskList.add(new Task(UUID.randomUUID().toString(), "Wash Car", "10:00 AM", "7",
-                "February", "Medium", "Home", false, 2025, 0, System.currentTimeMillis(), "07/02/2025"));
+                "February", "Medium", "Home", false, 2025, 0, System.currentTimeMillis(), "07/02/2025", false));
 
         homeTaskList.add(new Task(UUID.randomUUID().toString(), "Clean Living Room", "1:00 PM", "8",
-                "February", "Low", "Home", false, 2025, 0, System.currentTimeMillis(), "08/02/2025"));
+                "February", "Low", "Home", false, 2025, 0, System.currentTimeMillis(), "08/02/2025", false));
 
         homeTaskList.add(new Task(UUID.randomUUID().toString(), "Grocery Shopping", "4:00 PM", "9",
-                "February", "Medium", "Home", true, 2025, 0, System.currentTimeMillis(), "09/02/2025"));
+                "February", "Medium", "Home", true, 2025, 0, System.currentTimeMillis(), "09/02/2025", false));
 
         homeTaskList.add(new Task(UUID.randomUUID().toString(), "Cook Dinner", "6:30 PM", "9",
-                "February", "High", "Home", false, 2025, 0, System.currentTimeMillis(), "09/02/2025"));
+                "February", "High", "Home", false, 2025, 0, System.currentTimeMillis(), "09/02/2025", false));
 
 
         combinedTaskList.addAll(schoolTaskList);

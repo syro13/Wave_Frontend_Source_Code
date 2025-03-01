@@ -256,7 +256,8 @@ public class EditTasksActivity extends AppCompatActivity {
                 year,
                 task.getStability(), // Preserve existing stability
                 System.currentTimeMillis(),  // Update timestamp for last modification
-                updatedDate // Full date
+                updatedDate,
+                false
         );
 
         // Get current user ID safely

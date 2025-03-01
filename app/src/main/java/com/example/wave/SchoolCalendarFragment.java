@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener  {
+public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener , TaskAdapter.OnTaskCompletedListener {
 
     private RecyclerView calendarRecyclerView, taskRecyclerView, weeklyTaskRecyclerView;
     private CalendarAdapter calendarAdapter;
@@ -158,8 +158,8 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
 
     updateSelectedDateText(selectedDateText, todayDay);
 
-    taskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this, editTaskLauncher);
-    weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this, editTaskLauncher);
+    taskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this, this, editTaskLauncher);
+    weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this,this,  editTaskLauncher);
 
         taskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         taskRecyclerView.setAdapter(taskAdapter);
@@ -205,19 +205,23 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
         }
 
         db.collection("users")
-                .document(userId)  // 🔹 Ensure dynamic user ID
-                .collection("schooltasks")  // 🔹 Ensure correct collection
+                .document(userId)
+                .collection("schooltasks")  // 🔹 Ensure correct Firestore collection
                 .document(task.getId())
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    taskList.removeIf(t -> t.getId().equals(task.getId()));
+                    taskList.removeIf(t -> t.getId().equals(task.getId()));  // ✅ Only update visible list
+
+                    // ✅ Update UI to reflect the removal
                     updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
                     updateWeeklyTasks();
                     taskAdapter.notifyDataSetChanged();
+
                     Log.d("Firestore", "Task successfully deleted");
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error deleting task", e));
     }
+
 
 
     private Set<String> getSchoolTaskDates() {
@@ -329,14 +333,16 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
 
     private void updateTasksForToday(int day) {
         List<Task> todayTasks = new ArrayList<>();
+
         for (Task t : taskList) {
-            if (Integer.parseInt(t.getDate()) == day && t.getCategory().equals("School")) {
+            if (!t.isCompleted() && Integer.parseInt(t.getDate()) == day && t.getCategory().equals("School")) {
                 todayTasks.add(t);
             }
         }
+
         taskAdapter.updateTasks(todayTasks);
-        taskAdapter.notifyDataSetChanged();
     }
+
 
     private void updateWeeklyTasks() {
         if (getView() == null) {
@@ -348,28 +354,35 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
                 + (calendar.get(Calendar.MONTH) + 1) + "/"
                 + calendar.get(Calendar.YEAR);
 
-        List<Task> weeklyTasks = filterTasksByWeek(currentDateString);
+        List<Task> allWeeklyTasks = filterTasksByWeek(currentDateString);
+
+        // ✅ Filter out completed tasks AFTER fetching weekly tasks
+        List<Task> weeklySchoolTasks = new ArrayList<>();
+        for (Task task : allWeeklyTasks) {
+            if ("School".equals(task.getCategory()) && !task.isCompleted()) {
+                weeklySchoolTasks.add(task);
+            }
+        }
 
         // ✅ Sort tasks by priority: "High" → "Medium" → "Low"
-        weeklyTasks.sort((t1, t2) -> {
-            return getPriorityValue(t1.getPriority()) - getPriorityValue(t2.getPriority());
-        });
+        weeklySchoolTasks.sort((t1, t2) -> getPriorityValue(t1.getPriority()) - getPriorityValue(t2.getPriority()));
 
         View tasksTitle = getView().findViewById(R.id.tasksDueThisWeekTitle);
         View weeklyRecyclerView = getView().findViewById(R.id.weeklyTaskRecyclerView);
 
-        if (weeklyTasks.isEmpty()) {
-            Log.d("updateWeeklyTasks", "No tasks this week. Hiding section.");
+        if (weeklySchoolTasks.isEmpty()) {
+            Log.d("updateWeeklyTasks", "No school tasks this week. Hiding section.");
             tasksTitle.setVisibility(View.GONE);
             weeklyRecyclerView.setVisibility(View.GONE);
         } else {
-            Log.d("updateWeeklyTasks", "Tasks found. Showing section.");
+            Log.d("updateWeeklyTasks", "School tasks found. Showing section.");
             tasksTitle.setVisibility(View.VISIBLE);
             weeklyRecyclerView.setVisibility(View.VISIBLE);
-            weeklyTaskAdapter.updateTasks(weeklyTasks);
+            weeklyTaskAdapter.updateTasks(weeklySchoolTasks);
             weeklyTaskAdapter.notifyDataSetChanged();
         }
     }
+
 
     private int getPriorityValue(String priority) {
         switch (priority) {
@@ -419,7 +432,8 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
                 year,
                 0, // Default stability value
                 System.currentTimeMillis(), // 🔹 Firestore Timestamp Compatibility
-                dateParts[0] + "/" + dateParts[1] + "/" + year // Full date string
+                dateParts[0] + "/" + dateParts[1] + "/" + year,
+                false
         );
 
         db.collection("users")
@@ -536,10 +550,12 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
             LocalDate selectedDate = LocalDate.parse(dateString, formatter);
             int selectedWeekOfYear = selectedDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-            int selectedYear = selectedDate.getYear(); // ✅ Track year
-            int selectedMonth = selectedDate.getMonthValue(); // ✅ Track month
+            int selectedYear = selectedDate.getYear();
+            int selectedMonth = selectedDate.getMonthValue();
 
             for (Task t : taskList) {
+                if (!"School".equals(t.getCategory())) continue; // ✅ Ensure only "School" tasks are considered
+
                 String taskFullDate = t.getDate() + "/" + (getMonthIndex(t.getMonth()) + 1) + "/" + t.getYear();
                 LocalDate taskDate = LocalDate.parse(taskFullDate, formatter);
                 int taskWeekOfYear = taskDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
@@ -555,6 +571,7 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
 
         return weeklyTasks;
     }
+
 
 
 
@@ -586,29 +603,67 @@ public class SchoolCalendarFragment extends Fragment implements TaskAdapter.OnTa
                 : null;
 
         if (userId == null) {
-            Log.e("Firestore", "User not logged in, cannot fetch school tasks");
+            Log.e("Firestore", "User not logged in, cannot fetch tasks");
             return;
         }
 
         db.collection("users")
                 .document(userId)
-                .collection("schooltasks") // ✅ Ensures fetching school tasks
+                .collection("schooltasks")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    taskList.clear();
+                    taskList.clear();  // ✅ Only track incomplete tasks
+
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         Task task = doc.toObject(Task.class);
-                        taskList.add(task);
+                        if (!task.isCompleted()) {  // ✅ Ignore completed tasks
+                            taskList.add(task);
+                        }
                     }
 
-                    Log.d("Firestore", "School tasks loaded: " + taskList.size());
                     taskAdapter.updateTasks(taskList);
                     taskAdapter.notifyDataSetChanged();
-                    updateCalendar(); // ✅ Refresh the calendar view
-                    updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+
+                    Log.d("Firestore", "Active (incomplete) tasks loaded: " + taskList.size());
                 })
-                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching school tasks", e));
+                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching tasks", e));
     }
+
+    @Override
+    public void onTaskCompleted(Task task) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot complete task");
+            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        boolean newStatus = !task.isCompleted();  // ✅ Toggle task completion
+
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .document(task.getId())
+                .update("completed", newStatus)  // ✅ Update Firestore
+                .addOnSuccessListener(aVoid -> {
+                    task.setCompleted(newStatus);  // ✅ Update local list
+
+                    if (newStatus) {
+                        taskList.remove(task);  // ✅ Remove from UI when completed
+                    } else {
+                        taskList.add(task);  // ✅ Add back if marked incomplete
+                    }
+
+                    taskAdapter.notifyDataSetChanged();
+
+                    Log.d("Firestore", "Task " + (newStatus ? "completed" : "incomplete") + ": " + task.getTitle());
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error updating task completion", e));
+    }
+
 
 
     private void setActiveButton(TextView activeButton, TextView inactiveButton) {
