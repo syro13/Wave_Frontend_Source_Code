@@ -16,6 +16,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
@@ -25,16 +27,20 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     private final Context context;
     private final OnTaskDeletedListener onTaskDeletedListener;
     private final OnTaskEditedListener onTaskEditedListener;
+    private final OnTaskCompletedListener onTaskCompletedListener; // ✅ Added completion listener
     private final ActivityResultLauncher<Intent> editTaskLauncher;
+    private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     public TaskAdapter(List<Task> taskList, Context context,
                        OnTaskDeletedListener onTaskDeletedListener,
                        OnTaskEditedListener onTaskEditedListener,
+                       OnTaskCompletedListener onTaskCompletedListener, // ✅ Pass the completion listener
                        ActivityResultLauncher<Intent> editTaskLauncher) {
         this.taskList = taskList;
         this.context = context;
         this.onTaskDeletedListener = onTaskDeletedListener;
         this.onTaskEditedListener = onTaskEditedListener;
+        this.onTaskCompletedListener = onTaskCompletedListener; // ✅ Assign it
         this.editTaskLauncher = editTaskLauncher;
     }
 
@@ -84,62 +90,91 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 break;
         }
 
-        // Edit Task on click
-        holder.taskCard.setOnClickListener(v -> {
-            Intent intent = new Intent(context, EditTasksActivity.class);
-            intent.putExtra("task", task);
-            intent.putExtra("position", holder.getAdapterPosition());
-            if (editTaskLauncher != null) {
-                editTaskLauncher.launch(intent);
-            } else {
-                Log.e("TaskAdapter", "editTaskLauncher is null, cannot launch edit task.");
-            }
-        });
-
-        // Delete task on icon click
-        holder.deleteTask.setOnClickListener(v -> showDeleteConfirmationDialog(task, position));
-    }
-
-    private void showDeleteConfirmationDialog(Task task, int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Delete Task")
-                .setMessage("Are you sure you want to delete this task?\n\nTask Title: " + task.getTitle())
-                .setPositiveButton("Delete", (dialog, which) -> {
-                    deleteTask(task, position);
-                    dialog.dismiss();
-                })
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                .create()
-                .show();
-    }
-
-    private void deleteTask(Task task, int position) {
-        if (position >= 0 && position < taskList.size()) {
-            taskList.remove(position);
-            notifyItemRemoved(position);
-            if (onTaskDeletedListener != null) {
-                onTaskDeletedListener.onTaskDeleted(task);
-            }
+        // ✅ Set the initial task completion state
+        if (task.isCompleted()) {
+            holder.taskCheckCircle.setImageResource(R.drawable.ic_task_completed);
+        } else {
+            holder.taskCheckCircle.setImageResource(R.drawable.ic_task_uncompleted);
         }
+
+        // ✅ Click listener to toggle task completion
+        holder.taskCheckCircle.setOnClickListener(v -> toggleTaskCompletion(task, holder.getAdapterPosition(), holder.taskCheckCircle));
     }
 
-    // Updating the entire list
+    // Add this to TaskAdapter
     public void updateTasks(List<Task> newTasks) {
         Log.d("TaskAdapter", "Updating adapter with " + newTasks.size() + " tasks.");
         taskList.clear();
         taskList.addAll(newTasks);
-        notifyDataSetChanged();
+        notifyDataSetChanged(); // Refresh UI
     }
 
-    // Updating a single task by position
-    public void updateTask(Task updatedTask, int position) {
-        if (position >= 0 && position < taskList.size()) {
-            taskList.set(position, updatedTask);
-            notifyItemChanged(position);
-            Log.d("TaskAdapter", "Updated task at position " + position + ": " + updatedTask.getTitle());
-        } else {
-            Log.e("TaskAdapter", "Invalid position for task update.");
+    public void removeTask(Task task) {
+        int position = -1;
+        for (int i = 0; i < taskList.size(); i++) {
+            if (taskList.get(i).getId().equals(task.getId())) {
+                position = i;
+                break;
+            }
         }
+
+        if (position != -1) {
+            taskList.remove(position);
+            notifyItemRemoved(position);
+            notifyItemRangeChanged(position, taskList.size());
+            Log.d("TaskAdapter", "Task removed: " + task.getTitle());
+        }
+    }
+
+
+
+    private void toggleTaskCompletion(Task task, int position, ImageView taskCheckCircle) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot update task completion");
+            return;
+        }
+
+        boolean newStatus = !task.isCompleted(); // ✅ Toggle completion status
+
+        db.collection("users")
+                .document(userId)
+                .collection("housetasks")
+                .document(task.getId())
+                .update("completed", newStatus)
+                .addOnSuccessListener(aVoid -> {
+                    task.setCompleted(newStatus);
+                    notifyItemChanged(position);
+
+                    if (newStatus) {
+                        removeTask(task); // ✅ Ensure task is removed from UI
+                        Log.d("TaskAdapter", "Task removed from list: " + task.getTitle());
+                    }
+
+                    if (onTaskCompletedListener != null) {
+                        onTaskCompletedListener.onTaskCompleted(task);
+                    }
+
+                    Log.d("Firestore", "Task completion updated: " + task.getTitle());
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error updating task completion", e));
+    }
+
+
+    // Interface for task completion listener
+    public interface OnTaskCompletedListener {
+        void onTaskCompleted(Task task);
+    }
+
+    public interface OnTaskEditedListener {
+        void onTaskEdited(Task updatedTask, int position);
+    }
+
+    public interface OnTaskDeletedListener {
+        void onTaskDeleted(Task task);
     }
 
     @Override
@@ -152,6 +187,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         TextView taskTitle, taskTime, categoryTag;
         LinearLayout categoryTagContainer;
         ImageView deleteTask, priorityFlag, categoryIcon;
+        ImageView taskCheckCircle;
 
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -163,14 +199,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             deleteTask = itemView.findViewById(R.id.deleteTask);
             priorityFlag = itemView.findViewById(R.id.priorityFlag);
             categoryIcon = itemView.findViewById(R.id.categoryIcon);
+            taskCheckCircle = itemView.findViewById(R.id.taskCheckCircle); // ✅ Ensure this ID exists in XML
         }
-    }
-
-    public interface OnTaskEditedListener {
-        void onTaskEdited(Task updatedTask, int position);
-    }
-
-    public interface OnTaskDeletedListener {
-        void onTaskDeleted(Task task);
     }
 }
