@@ -356,10 +356,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     }
 
 
-
-
-
-
     private void updateWeeklyTasks() {
         if (getView() == null) {
             Log.e("updateWeeklyTasks", "View is null, skipping UI updates.");
@@ -450,9 +446,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error adding task", e));
     }
-
-
-
 
     private void updateTasksTitle(List<Task> selectedDateTasks, int selectedDay) {
         TextView tasksDueTodayTitle = getView().findViewById(R.id.tasksDueTodayTitle);
