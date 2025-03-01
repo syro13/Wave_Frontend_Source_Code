@@ -2,6 +2,7 @@ package com.example.wave;
 
 import static android.app.Activity.RESULT_OK;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -43,13 +45,14 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 
 
-public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener  {
+public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTaskDeletedListener, TaskAdapter.OnTaskEditedListener, TaskAdapter.OnTaskCompletedListener   {
 
     private RecyclerView calendarRecyclerView, taskRecyclerView, weeklyTaskRecyclerView;
     private CalendarAdapter calendarAdapter;
     private TaskAdapter taskAdapter, weeklyTaskAdapter;
     private List<String> calendarDates;
     private List<Task> taskList;
+    private List<Task> completedTaskList;
     private Calendar calendar;
     private Spinner monthYearDropdown;
     private TextView homeCalendarButton, schoolCalendarButton; // Toggle buttons
@@ -63,6 +66,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         // Initialize calendar and task list
         calendar = Calendar.getInstance();
         taskList = new ArrayList<>();
+        completedTaskList = new ArrayList<>();
 
         // Initialize views
         calendarRecyclerView = view.findViewById(R.id.calendarRecyclerView);
@@ -101,12 +105,10 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         MonthYearSpinnerAdapter adapter = new MonthYearSpinnerAdapter(requireContext(), getMonthYearList());
         monthYearDropdown.setAdapter(adapter);
 
-
-// Set dropdown style
+        // Set dropdown style
         adapter.setDropDownViewResource(R.layout.month_year_spinner_dropdown_item);
 
         monthYearDropdown.setAdapter(adapter);
-
 
         monthYearDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -122,7 +124,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             public void onNothingSelected(AdapterView<?> parent) { }
         });
 
-
         previousMonth.setOnClickListener(v -> {
             calendar.add(Calendar.MONTH, -1);
             updateCalendar();
@@ -135,39 +136,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
         });
 
-        // Initialize calendar dates and adapters
-        calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
-
-        calendarAdapter = new CalendarAdapter(
-                calendarDates,
-                selectedDate -> {
-                    int selectedDay = Integer.parseInt(selectedDate);
-                    calendar.set(Calendar.DAY_OF_MONTH, selectedDay);
-                    List<Task> selectedDateTasks = filterTasksByDateBasedOnCategory(selectedDay, "Home");
-                    taskAdapter.updateTasks(selectedDateTasks);
-                    updateTasksTitle(selectedDateTasks, selectedDay);
-                    updateWeeklyTasks(); // ✅ Add this to match school fragment behavior
-                },
-                new HashSet<>(),
-                getHomeTaskDates(),
-                "Home"
-        );
-
-
-
-        calendarRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 7));
-        calendarRecyclerView.setAdapter(calendarAdapter);
-
-        // Initialize TaskAdapters with the editTaskLauncher
-        taskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this, editTaskLauncher);
-        weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this, editTaskLauncher);
-
-        taskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        taskRecyclerView.setAdapter(taskAdapter);
-
-        weeklyTaskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false));
-        weeklyTaskRecyclerView.setAdapter(weeklyTaskAdapter);
-
         // Get today's date
         int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
         int todayMonth = calendar.get(Calendar.MONTH);
@@ -176,12 +144,38 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         // ✅ Set dropdown to today's month (keep only once)
         monthYearDropdown.setSelection(todayMonth);
 
-        // ✅ Auto-select today's date in the calendar adapter
-        calendarAdapter.setSelectedDate(String.valueOf(todayDay));
+        // ✅ Initialize calendar adapter with empty data
+        calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
+        calendarAdapter = new CalendarAdapter(
+                calendarDates,
+                selectedDate -> {
+                    int selectedDay = Integer.parseInt(selectedDate);
+                    calendar.set(Calendar.DAY_OF_MONTH, selectedDay);
+                    List<Task> selectedDateTasks = filterTasksByDateBasedOnCategory(selectedDay, "Home");
+                    taskAdapter.updateTasks(selectedDateTasks);
+                    updateTasksTitle(selectedDateTasks, selectedDay);
+                    updateWeeklyTasks();
+                },
+                new HashSet<>(),
+                new HashSet<>(), // Empty set initially, tasks will be loaded
+                "Home"
+        );
 
-        // ✅ Load today's tasks and weekly tasks (NO DUPLICATE CALLS)
-        updateTasksForToday(todayDay);
-        updateWeeklyTasks();
+        calendarRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 7));
+        calendarRecyclerView.setAdapter(calendarAdapter);
+
+        // Initialize TaskAdapters with the editTaskLauncher
+        taskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this, this, editTaskLauncher);
+        weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this, this, editTaskLauncher);
+
+        taskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        taskRecyclerView.setAdapter(taskAdapter);
+
+        weeklyTaskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false));
+        weeklyTaskRecyclerView.setAdapter(weeklyTaskAdapter);
+
+        // ✅ Fetch tasks from Firestore and update the UI
+        loadTasksFromFirestore();
 
         // Profile icon click listener
         ImageView profileIcon = view.findViewById(R.id.profileIcon);
@@ -220,20 +214,23 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         }
 
         db.collection("users")
-                .document(userId)  // 🔹 Ensure dynamic user ID
-                .collection("housetasks")  // 🔹 Ensure correct collection
+                .document(userId)
+                .collection("housetasks")
                 .document(task.getId())
                 .delete()
                 .addOnSuccessListener(aVoid -> {
+                    // ✅ Only remove from taskList (completed tasks aren't in UI)
                     taskList.removeIf(t -> t.getId().equals(task.getId()));
+
+                    // ✅ Update the UI with the latest active tasks
                     updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
                     updateWeeklyTasks();
                     taskAdapter.notifyDataSetChanged();
+
                     Log.d("Firestore", "Task successfully deleted");
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error deleting task", e));
     }
-
 
 
     private Set<String> getSchoolTaskDates() {
@@ -256,20 +253,26 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         int currentYear = calendar.get(Calendar.YEAR);
 
         for (Task t : taskList) {
-            // Check if task data is null
+            // ✅ Ensure the task has valid data
             if (t.getCategory() == null || t.getDate() == null || t.getMonth() == null) {
                 Log.e("getHomeTaskDates", "Skipping task due to missing fields: " + t);
                 continue;
             }
 
-            if ("Home".equals(t.getCategory())
-                    && t.getMonth().equalsIgnoreCase(currentMonth)
-                    && t.getYear() == currentYear) {
-                homeTaskDates.add(t.getDate());
+            // ✅ Only add INCOMPLETE tasks that match the category and current month
+            if ("Home".equals(t.getCategory()) &&
+                    t.getMonth().equalsIgnoreCase(currentMonth) &&
+                    t.getYear() == currentYear &&
+                    !t.isCompleted()) {
+                homeTaskDates.add(t.getDate()); // ✅ Add only the DATE part
             }
         }
+
+        Log.d("getHomeTaskDates", "Home Task Dates Highlighted: " + homeTaskDates);
         return homeTaskDates;
     }
+
+
 
 
     private List<Task> filterTasksByDateBasedOnCategory(int day, String category) {
@@ -345,14 +348,24 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             });
 
     private void updateTasksForToday(int day) {
+        String activeCategory = homeCalendarButton.isSelected() ? "Home" : "School";
         List<Task> todayTasks = new ArrayList<>();
+
         for (Task t : taskList) {
-            if (Integer.parseInt(t.getDate()) == day && t.getCategory().equals("Home")) {
+            if (!t.isCompleted() && Integer.parseInt(t.getDate()) == day && t.getCategory().equals(activeCategory)) {
                 todayTasks.add(t);
             }
         }
+
+        Log.d("updateTasksForToday", "Updating daily task list with " + todayTasks.size() + " tasks.");
         taskAdapter.updateTasks(todayTasks);
+        taskAdapter.notifyDataSetChanged();
     }
+
+
+
+
+
 
     private void updateWeeklyTasks() {
         if (getView() == null) {
@@ -366,10 +379,10 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
 
         List<Task> allWeeklyTasks = filterTasksByWeek(currentDateString);
 
-        // ✅ Filter to only include tasks with category "Home"
+        // ✅ Ensure completed tasks are filtered out
         List<Task> weeklyHomeTasks = new ArrayList<>();
         for (Task task : allWeeklyTasks) {
-            if ("Home".equals(task.getCategory())) {
+            if ("Home".equals(task.getCategory()) && !task.isCompleted()) {
                 weeklyHomeTasks.add(task);
             }
         }
@@ -392,6 +405,8 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             weeklyTaskAdapter.notifyDataSetChanged();
         }
     }
+
+
 
 
     public void addTaskToCalendar(String title, String priority, String date, String time, boolean remind, String taskType) {
@@ -427,7 +442,8 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                 year,
                 0, // Default stability value
                 System.currentTimeMillis(), // 🔹 Firestore Timestamp Compatibility
-                dateParts[0] + "/" + dateParts[1] + "/" + year // Full date string
+                dateParts[0] + "/" + dateParts[1] + "/" + year,
+                false
         );
 
         db.collection("users")
@@ -458,13 +474,19 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
 
     private void updateCalendar() {
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
-        Set<String> taskDates = getHomeTaskDates(); // ✅ Fixed
+
+        // ✅ Get updated home task dates from taskList
+        Set<String> taskDates = getHomeTaskDates();
+
+        Log.d("updateCalendar", "Sending Task Dates to Adapter: " + taskDates);
+
         calendarAdapter.updateHomeTaskDates(taskDates);
         calendarAdapter.updateData(calendarDates);
+
+        // ✅ Update today's tasks after updating calendar
         updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         updateWeeklyTasks();
     }
-
 
 
     private List<String> getCalendarDates(int year, int month) {
@@ -527,8 +549,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             int selectedMonth = selectedDate.getMonthValue();
 
             for (Task t : taskList) {
-                if (!"Home".equals(t.getCategory())) continue; // ✅ Ensure only "Home" tasks are considered
-
                 String taskFullDate = t.getDate() + "/" + (getMonthIndex(t.getMonth()) + 1) + "/" + t.getYear();
                 LocalDate taskDate = LocalDate.parse(taskFullDate, formatter);
                 int taskWeekOfYear = taskDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
@@ -544,8 +564,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
 
         return weeklyTasks;
     }
-
-
 
     private int getMonthIndex(String month) {
         return getMonthYearList().indexOf(month);
@@ -575,26 +593,32 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
 
         db.collection("users")
                 .document(userId)
-                .collection("housetasks") // 🔹 Ensure correct collection
+                .collection("housetasks")
+                .whereEqualTo("completed", false) // ✅ Only fetch incomplete tasks
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
-                        Log.e("Firestore", "Listen failed.", error);
+                        Log.e("Firestore", "Firestore Listener Failed.", error);
                         return;
                     }
 
-                    taskList.clear();
+                    if (value == null) {
+                        Log.d("Firestore", "No tasks found");
+                        return;
+                    }
+
+                    taskList.clear(); // ✅ Ensure we reset the task list
                     for (QueryDocumentSnapshot doc : value) {
                         Task task = doc.toObject(Task.class);
                         taskList.add(task);
                     }
 
-                    taskAdapter.updateTasks(taskList);
-                    taskAdapter.notifyDataSetChanged();
-
-                    // ✅ Refresh calendar to show task indicators
+                    // ✅ Ensure the calendar highlights dates with tasks
                     updateCalendar();
                 });
     }
+
+
+
 
     @Override
     public void onResume() {
@@ -615,32 +639,103 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
 
         db.collection("users")
                 .document(userId)
-                .collection("housetasks") // ✅ Ensures fetching home tasks
+                .collection("housetasks")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     taskList.clear();
+
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         Task task = doc.toObject(Task.class);
-                        taskList.add(task);
+                        if (!task.isCompleted()) { // ✅ Only add incomplete tasks
+                            taskList.add(task);
+                        }
                     }
 
-                    Log.d("Firestore", "Tasks loaded: " + taskList.size());
-                    taskAdapter.updateTasks(taskList);
-                    taskAdapter.notifyDataSetChanged();
-                    updateCalendar(); // ✅ Refresh the calendar view
-                    updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                    // ✅ Update calendar with the newly fetched tasks
+                    updateCalendar();
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error fetching tasks", e));
     }
 
 
+    @Override
+    public void onTaskCompleted(Task task) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot complete task");
+            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        boolean newStatus = true; // ✅ Always set to TRUE when marking completed
+
+        Log.d("TaskCompletion", "Marking task as completed: " + task.getTitle());
+        Log.d("TaskCompletion", "Task ID: " + task.getId());
+
+        db.collection("users")
+                .document(userId)
+                .collection("housetasks")
+                .document(task.getId())
+                .update("completed", newStatus)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("TaskCompletion", "Firestore update SUCCESSFUL for: " + task.getTitle());
+
+                    // ✅ Remove the completed task from the list
+                    taskList.removeIf(t -> t.getId().equals(task.getId()));
+
+                    // ✅ Notify the adapter so the UI updates
+                    taskAdapter.updateTasks(taskList);
+                    taskAdapter.notifyDataSetChanged();
+
+                    // ✅ Refresh Firestore listener to ensure UI updates
+                    listenForTaskUpdates();
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error updating task completion", e));
+    }
+
+
+
+
+
+    private void notifyTaskCompletionChanged() {
+        if (getActivity() instanceof TaskCompletionListener) {
+            ((TaskCompletionListener) getActivity()).onTaskCompletedUpdate();
+        }
+
+        // ✅ Force UI refresh for the completed tasks counter
+        if (getView() != null) {
+            TextView tasksCountTextView = getView().findViewById(R.id.tasks_count);
+            if (tasksCountTextView != null) {
+                tasksCountTextView.setText(String.valueOf(getCompletedTaskCount()));
+            } else {
+                Log.e("notifyTaskCompletion", "tasks_count TextView is null, cannot update.");
+            }
+        }
+    }
+
+    // ✅ Helper method to count completed tasks
+    private int getCompletedTaskCount() {
+        int count = 0;
+        for (Task task : taskList) {
+            if (task.isCompleted()) {
+                count++;
+            }
+        }
+        return count;
+    }
 
 
     private void setActiveButton(TextView activeButton, TextView inactiveButton) {
+        Context context = requireContext();
+
         activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
-        activeButton.setTextColor(requireContext().getResources().getColor(android.R.color.white));
+        activeButton.setTextColor(ContextCompat.getColor(context, android.R.color.white));
 
         inactiveButton.setBackgroundResource(R.drawable.toggle_button_unselected);
-        inactiveButton.setTextColor(requireContext().getResources().getColor(R.color.dark_blue));
+        inactiveButton.setTextColor(ContextCompat.getColor(context, R.color.dark_blue));
     }
+
 }

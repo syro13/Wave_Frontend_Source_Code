@@ -32,6 +32,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -48,7 +51,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
 
-public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.SaveGroceryItemsCallback{
+public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.SaveGroceryItemsCallback, TaskCompletionListener {
     private NetworkReceiver networkReceiver;
     private static final String GroceryListPREFS_NAME = "GroceryListPrefs";
     private static final String GROCERY_LIST_KEY = "grocery_list";
@@ -58,9 +61,11 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
     private static final int MAX_BLOGS = 4;
     private static final String PREFS_NAME = "HomeTasksPrefs";
     private RecyclerView  promptsRecyclerView;
+    private List<Task> completedTaskList;
 
     private List<String> displayPromptsList;
     private List<String> actualPromptsList;
+    private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     private PromptsAdapter promptsAdapter;
 
@@ -72,8 +77,8 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
         TextView schoolTasksButton = view.findViewById(R.id.SchoolTasksButton);
         TextView homeTasksButton = view.findViewById(R.id.homeTasksButton);
 
-        // RecyclerView setup for articles
 
+        completedTaskList = new ArrayList<>();
         // RecyclerView setup for AI prompts
         promptsRecyclerView = view.findViewById(R.id.promptsRecyclerView);
         promptsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -114,6 +119,7 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
             startActivity(intent);
         });
         setupNotesCard(view);
+        listenForCompletedTaskUpdates();
         return view;
     }
 
@@ -203,8 +209,11 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        requireContext().unregisterReceiver(networkReceiver);
+        if (networkReceiver != null) {
+            requireContext().unregisterReceiver(networkReceiver);
+        }
     }
+
 
     private void showPopup(String displayPrompt, String actualPrompt) {
         Retrofit retrofit = new Retrofit.Builder()
@@ -335,12 +344,115 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
         Call<AIResponse> getAIResponse(@Body AIPromptRequest request);
     }
 
-    private void setActiveButton(TextView activeButton, TextView inactiveButton) {
-        activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
-        activeButton.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
-        inactiveButton.setBackgroundResource(R.drawable.toggle_button_unselected);
-        inactiveButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.dark_blue));
+    public void listenForCompletedTaskUpdates() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot listen for completed task updates");
+            return;
+        }
+
+        Log.d("Firestore", "Listening for completed task updates");
+        db.collection("users")
+                .document(userId)
+                .collection("housetasks")
+                .whereEqualTo("completed", true)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Log.e("Firestore", "Listen failed.", error);
+                        return;
+                    }
+
+                    if (value == null) {
+                        Log.d("Firestore", "No completed tasks found");
+                        return;
+                    }
+
+                    int completedCount = value.size();
+                    Log.d("Firestore", "Realtime Completed tasks count: " + completedCount);
+
+                    if (getView() != null) {
+                        TextView tasksCountTextView = getView().findViewById(R.id.tasks_count);
+                        if (tasksCountTextView != null) {
+                            tasksCountTextView.setText(String.valueOf(completedCount));
+                        }
+                    }
+
+                    // ✅ Refresh UI: Remove completed tasks from the active task list
+                    List<Task> newTaskList = new ArrayList<>();
+                    for (Task task : completedTaskList) {
+                        if (!task.isCompleted()) {
+                            newTaskList.add(task);
+                        }
+                    }
+
+                    completedTaskList = newTaskList; // ✅ Update the completed task list
+                    updateCompletedTaskCount(); // ✅ Refresh the UI count
+                });
     }
+
+
+
+    private void updateCompletedTaskCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot fetch completed task count");
+            return;
+        }
+
+        db.collection("users")
+                .document(userId)
+                .collection("housetasks")
+                .whereEqualTo("completed", true)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int completedCount = queryDocumentSnapshots.size();
+                    Log.d("Firestore", "Completed task count fetched: " + completedCount);
+
+                    if (getView() != null) {
+                        TextView completedTaskCount = getView().findViewById(R.id.tasks_count);
+                        if (completedTaskCount != null) {
+                            completedTaskCount.setText(String.valueOf(completedCount));
+                        } else {
+                            Log.e("updateCompletedTaskCount", "tasks_count TextView is null, cannot update.");
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching completed tasks", e));
+    }
+
+
+    @Override
+    public void onTaskCompletedUpdate() {
+        Log.d("HomeTasksFragment", "Task completed, refreshing UI...");
+
+        // ✅ Listen for task updates
+        listenForCompletedTaskUpdates();
+
+        // ✅ Refresh UI to remove completed tasks
+        if (getView() != null) {
+            RecyclerView tasksRecyclerView = getView().findViewById(R.id.taskRecyclerView);
+            if (tasksRecyclerView != null) {
+                tasksRecyclerView.getAdapter().notifyDataSetChanged();
+            }
+        }
+    }
+
+
+    private void setActiveButton(TextView activeButton, TextView inactiveButton) {
+        Context context = requireContext();
+        activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
+        activeButton.setTextColor(ContextCompat.getColor(context, android.R.color.white));
+
+        inactiveButton.setBackgroundResource(R.drawable.toggle_button_unselected);
+        inactiveButton.setTextColor(ContextCompat.getColor(context, R.color.dark_blue));
+    }
+
 
     public interface OnFetchCompleteListener {
         void onFetchComplete(boolean success);
