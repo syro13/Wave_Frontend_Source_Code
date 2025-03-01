@@ -63,6 +63,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_house_calendar_screen, container, false);
+
         // Initialize calendar and task list
         calendar = Calendar.getInstance();
         taskList = new ArrayList<>();
@@ -78,8 +79,13 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         ImageView nextMonth = view.findViewById(R.id.nextMonth);
         TextView selectedDateText = view.findViewById(R.id.selectedDateText);
 
-        // ✅ Move this AFTER initializing selectedDateText
-        updateSelectedDateText(selectedDateText, calendar.get(Calendar.DAY_OF_MONTH));
+        // Get today's date
+        int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
+        int todayMonth = calendar.get(Calendar.MONTH);
+        int todayYear = calendar.get(Calendar.YEAR);
+
+        // ✅ Ensure the UI shows today's date
+        updateSelectedDateText(selectedDateText, todayDay);
 
         // Toggle buttons
         homeCalendarButton = view.findViewById(R.id.homeCalendarButton);
@@ -88,26 +94,16 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
 
         homeCalendarButton.setOnClickListener(v -> {
             setActiveButton(homeCalendarButton, schoolCalendarButton);
-            if (getActivity() instanceof SchoolHomeCalendarActivity) {
-                ((SchoolHomeCalendarActivity) getActivity()).showHomeCalendarFragment();
-            }
             updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         });
 
         schoolCalendarButton.setOnClickListener(v -> {
             setActiveButton(schoolCalendarButton, homeCalendarButton);
-            if (getActivity() instanceof SchoolHomeCalendarActivity) {
-                ((SchoolHomeCalendarActivity) getActivity()).showSchoolCalendarFragment();
-            }
             updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         });
 
         MonthYearSpinnerAdapter adapter = new MonthYearSpinnerAdapter(requireContext(), getMonthYearList());
-        monthYearDropdown.setAdapter(adapter);
-
-        // Set dropdown style
         adapter.setDropDownViewResource(R.layout.month_year_spinner_dropdown_item);
-
         monthYearDropdown.setAdapter(adapter);
 
         monthYearDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -136,16 +132,11 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
         });
 
-        // Get today's date
-        int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
-        int todayMonth = calendar.get(Calendar.MONTH);
-        int todayYear = calendar.get(Calendar.YEAR);
-
-        // ✅ Set dropdown to today's month (keep only once)
+        // ✅ Set dropdown to today's month
         monthYearDropdown.setSelection(todayMonth);
 
         // ✅ Initialize calendar adapter with empty data
-        calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
+        calendarDates = getCalendarDates(todayYear, todayMonth);
         calendarAdapter = new CalendarAdapter(
                 calendarDates,
                 selectedDate -> {
@@ -164,6 +155,9 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         calendarRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 7));
         calendarRecyclerView.setAdapter(calendarAdapter);
 
+        // ✅ Auto-select today's date in the calendar adapter
+        calendarAdapter.setSelectedDate(String.valueOf(todayDay));
+
         // Initialize TaskAdapters with the editTaskLauncher
         taskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this, this, editTaskLauncher);
         weeklyTaskAdapter = new TaskAdapter(new ArrayList<>(), requireContext(), this, this, this, editTaskLauncher);
@@ -174,7 +168,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         weeklyTaskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false));
         weeklyTaskRecyclerView.setAdapter(weeklyTaskAdapter);
 
-        // ✅ Fetch tasks from Firestore and update the UI
+        // ✅ Load tasks from Firestore and update UI
         loadTasksFromFirestore();
 
         // Profile icon click listener
@@ -186,7 +180,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
 
         return view;
     }
-
 
 
     private void updateSelectedDateText(TextView selectedDateText, int day) {
@@ -475,18 +468,24 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     private void updateCalendar() {
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
 
-        // ✅ Get updated home task dates from taskList
+        // ✅ Get updated task dates to highlight days with tasks
         Set<String> taskDates = getHomeTaskDates();
 
-        Log.d("updateCalendar", "Sending Task Dates to Adapter: " + taskDates);
+        Log.d("updateCalendar", "Highlighting Task Dates: " + taskDates);
 
+        // ✅ Update calendar with highlighted task dates
         calendarAdapter.updateHomeTaskDates(taskDates);
         calendarAdapter.updateData(calendarDates);
 
-        // ✅ Update today's tasks after updating calendar
-        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+        // ✅ Ensure today is visually selected
+        int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
+        calendarAdapter.setSelectedDate(String.valueOf(todayDay));
+
+        // ✅ Ensure today's tasks are displayed immediately
+        updateTasksForToday(todayDay);
         updateWeeklyTasks();
     }
+
 
 
     private List<String> getCalendarDates(int year, int month) {
@@ -651,8 +650,20 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                         }
                     }
 
-                    // ✅ Update calendar with the newly fetched tasks
+                    // ✅ Update calendar to highlight task dates
                     updateCalendar();
+
+                    // ✅ Ensure today’s date is visually selected
+                    int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
+                    calendarAdapter.setSelectedDate(String.valueOf(todayDay));
+
+                    // ✅ Trigger today's tasks update AFTER Firestore data loads
+                    updateTasksForToday(todayDay);
+
+                    // ✅ Also update weekly tasks
+                    updateWeeklyTasks();
+
+                    Log.d("Firestore", "Tasks loaded. UI updated for today's tasks.");
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error fetching tasks", e));
     }
