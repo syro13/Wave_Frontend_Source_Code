@@ -89,6 +89,11 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 holder.priorityFlag.setVisibility(View.GONE);
                 break;
         }
+        holder.taskCard.setOnClickListener(v -> {
+            Intent editIntent = new Intent(context, EditTasksActivity.class);
+            editIntent.putExtra("task", task);
+            editTaskLauncher.launch(editIntent);
+        });
 
         // ✅ Set the initial task completion state
         if (task.isCompleted()) {
@@ -104,10 +109,17 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     // Add this to TaskAdapter
     public void updateTasks(List<Task> newTasks) {
         Log.d("TaskAdapter", "Updating adapter with " + newTasks.size() + " tasks.");
+
         taskList.clear();
-        taskList.addAll(newTasks);
+        for (Task task : newTasks) {
+            if (!task.isCompleted()) { // ✅ Ignore completed tasks
+                taskList.add(task);
+            }
+        }
+
         notifyDataSetChanged(); // Refresh UI
     }
+
 
     public void removeTask(Task task) {
         int position = -1;
@@ -122,9 +134,25 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             taskList.remove(position);
             notifyItemRemoved(position);
             notifyItemRangeChanged(position, taskList.size());
-            Log.d("TaskAdapter", "Task removed: " + task.getTitle());
+
+            // ✅ Remove task from Firestore when it's marked as completed
+            String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                    ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                    : null;
+
+            if (userId != null) {
+                String taskCollection = "Home".equals(task.getCategory()) ? "housetasks" : "schooltasks";
+                db.collection("users")
+                        .document(userId)
+                        .collection(taskCollection)
+                        .document(task.getId())
+                        .delete()
+                        .addOnSuccessListener(aVoid -> Log.d("TaskAdapter", "Task deleted from Firestore: " + task.getTitle()))
+                        .addOnFailureListener(e -> Log.e("Firestore", "Error deleting task", e));
+            }
         }
     }
+
 
 
 
@@ -139,21 +167,20 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         }
 
         boolean newStatus = !task.isCompleted(); // ✅ Toggle completion status
-
-        // ✅ Determine correct Firestore collection based on task category
         String taskCollection = "Home".equals(task.getCategory()) ? "housetasks" : "schooltasks";
 
         db.collection("users")
                 .document(userId)
-                .collection(taskCollection)  // ✅ Dynamically choose collection
+                .collection(taskCollection)
                 .document(task.getId())
                 .update("completed", newStatus)
                 .addOnSuccessListener(aVoid -> {
                     task.setCompleted(newStatus);
-                    notifyItemChanged(position);
 
                     if (newStatus) {
-                        removeTask(task); // ✅ Ensure task is removed from UI when completed
+                        removeTask(task); // ✅ Remove completed task from UI
+                    } else {
+                        notifyItemChanged(position); // ✅ Refresh UI if task is marked as incomplete again
                     }
 
                     if (onTaskCompletedListener != null) {
@@ -164,6 +191,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error updating task completion", e));
     }
+
 
 
 

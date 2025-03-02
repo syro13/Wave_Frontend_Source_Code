@@ -444,6 +444,7 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
     }
 
 
+
     private void setActiveButton(TextView activeButton, TextView inactiveButton) {
         Context context = requireContext();
         activeButton.setBackgroundResource(R.drawable.toggle_button_selected);

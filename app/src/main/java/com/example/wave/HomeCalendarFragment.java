@@ -94,13 +94,24 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
 
         homeCalendarButton.setOnClickListener(v -> {
             setActiveButton(homeCalendarButton, schoolCalendarButton);
+
+            if (getActivity() instanceof SchoolHomeCalendarActivity) {
+                // This actually swaps to the SchoolCalendarFragment
+                ((SchoolHomeCalendarActivity) getActivity()).showHomeCalendarFragment();
+            }
             updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         });
 
         schoolCalendarButton.setOnClickListener(v -> {
             setActiveButton(schoolCalendarButton, homeCalendarButton);
+
+            if (getActivity() instanceof SchoolHomeCalendarActivity) {
+                // This actually swaps to the SchoolCalendarFragment
+                ((SchoolHomeCalendarActivity) getActivity()).showSchoolCalendarFragment();
+            }
             updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         });
+
 
         MonthYearSpinnerAdapter adapter = new MonthYearSpinnerAdapter(requireContext(), getMonthYearList());
         adapter.setDropDownViewResource(R.layout.month_year_spinner_dropdown_item);
@@ -168,8 +179,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         weeklyTaskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false));
         weeklyTaskRecyclerView.setAdapter(weeklyTaskAdapter);
 
-        // ✅ Load tasks from Firestore and update UI
-        loadTasksFromFirestore();
 
         // Profile icon click listener
         ImageView profileIcon = view.findViewById(R.id.profileIcon);
@@ -340,7 +349,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                 }
             });
 
-    private void updateTasksForToday(int day) {
+    public void updateTasksForToday(int day) {
         String activeCategory = homeCalendarButton.isSelected() ? "Home" : "School";
         List<Task> todayTasks = new ArrayList<>();
 
@@ -395,9 +404,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         }
     }
 
-
-
-
     public void addTaskToCalendar(String title, String priority, String date, String time, boolean remind, String taskType) {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
@@ -442,10 +448,15 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                 .set(newTask)
                 .addOnSuccessListener(aVoid -> {
                     Log.d("Firestore", "Task successfully added!");
-                    listenForTaskUpdates(); // ✅ Ensures UI updates after adding a task
+
+                    // ✅ Instead of `listenForTaskUpdates()`, call UI refresh
+                    if (getActivity() instanceof SchoolHomeCalendarActivity) {
+                        ((SchoolHomeCalendarActivity) getActivity()).refreshTasks();
+                    }
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error adding task", e));
     }
+
 
     private void updateTasksTitle(List<Task> selectedDateTasks, int selectedDay) {
         TextView tasksDueTodayTitle = getView().findViewById(R.id.tasksDueTodayTitle);
@@ -573,51 +584,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         }
     }
 
-    private void listenForTaskUpdates() {
-        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
-                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
-                : null;
 
-        if (userId == null) {
-            Log.e("Firestore", "User not logged in, cannot listen for task updates");
-            return;
-        }
-
-        db.collection("users")
-                .document(userId)
-                .collection("housetasks")
-                .whereEqualTo("completed", false) // ✅ Only fetch incomplete tasks
-                .addSnapshotListener((value, error) -> {
-                    if (error != null) {
-                        Log.e("Firestore", "Firestore Listener Failed.", error);
-                        return;
-                    }
-
-                    if (value == null) {
-                        Log.d("Firestore", "No tasks found");
-                        return;
-                    }
-
-                    taskList.clear(); // ✅ Ensure we reset the task list
-                    for (QueryDocumentSnapshot doc : value) {
-                        Task task = doc.toObject(Task.class);
-                        taskList.add(task);
-                    }
-
-                    // ✅ Ensure the calendar highlights dates with tasks
-                    updateCalendar();
-                });
-    }
-
-
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d("HomeCalendarFragment", "Resuming fragment, refreshing tasks.");
-        loadTasksFromFirestore(); // Ensure tasks reload when fragment is resumed
-    }
 
     private void loadTasksFromFirestore() {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
@@ -674,8 +641,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             return;
         }
 
-        boolean newStatus = true; // ✅ Always set to TRUE when marking completed
-
         Log.d("TaskCompletion", "Marking task as completed: " + task.getTitle());
         Log.d("TaskCompletion", "Task ID: " + task.getId());
 
@@ -683,22 +648,25 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                 .document(userId)
                 .collection("housetasks")
                 .document(task.getId())
-                .update("completed", newStatus)
+                .update("completed", true)
                 .addOnSuccessListener(aVoid -> {
                     Log.d("TaskCompletion", "Firestore update SUCCESSFUL for: " + task.getTitle());
 
                     // ✅ Remove the completed task from the list
                     taskList.removeIf(t -> t.getId().equals(task.getId()));
 
-                    // ✅ Notify the adapter so the UI updates
+                    // ✅ Update the UI with the updated task list
                     taskAdapter.updateTasks(taskList);
                     taskAdapter.notifyDataSetChanged();
 
-                    // ✅ Refresh Firestore listener to ensure UI updates
-                    listenForTaskUpdates();
+                    // ✅ Trigger UI refresh through the activity
+                    if (getActivity() instanceof SchoolHomeCalendarActivity) {
+                        ((SchoolHomeCalendarActivity) getActivity()).refreshTasks();
+                    }
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error updating task completion", e));
     }
+
 
 
 
@@ -730,16 +698,66 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         }
         return count;
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("HomeCalendarFragment", "onResume() called, refreshing tasks.");
+        ((SchoolHomeCalendarActivity) requireActivity()).loadHomeTasksFromFirestore();
+    }
+
+
+    private void loadHomeTasksFromFirestore() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot fetch school tasks");
+            return;
+        }
+
+        db.collection("users")
+                .document(userId)
+                .collection("housetasks") //
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    taskList.clear(); // ✅ Ensure only home tasks are stored
+
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Task task = doc.toObject(Task.class);
+                        if (!task.isCompleted()) { // ✅ Only add incomplete tasks
+                            taskList.add(task);
+                        }
+                    }
+
+                    updateCalendar();
+                    updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                    updateWeeklyTasks();
+                    Log.d("Firestore", "Loaded school tasks successfully.");
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching school tasks", e));
+    }
+
+    public void updateTasks(List<Task> tasks) {
+        taskList.clear();
+        taskList.addAll(tasks);
+        updateCalendar(); // ✅ Update calendar highlights
+        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH)); // ✅ Refresh today's tasks
+    }
 
 
     private void setActiveButton(TextView activeButton, TextView inactiveButton) {
-        Context context = requireContext();
+        // Mark them as selected/deselected
+        activeButton.setSelected(true);
+        inactiveButton.setSelected(false);
 
+        // Then style them
         activeButton.setBackgroundResource(R.drawable.toggle_button_selected);
-        activeButton.setTextColor(ContextCompat.getColor(context, android.R.color.white));
-
+        activeButton.setTextColor(requireContext().getResources().getColor(android.R.color.white));
         inactiveButton.setBackgroundResource(R.drawable.toggle_button_unselected);
-        inactiveButton.setTextColor(ContextCompat.getColor(context, R.color.dark_blue));
+        inactiveButton.setTextColor(requireContext().getResources().getColor(R.color.dark_blue));
     }
+
+
 
 }

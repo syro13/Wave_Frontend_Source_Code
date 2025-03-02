@@ -1,5 +1,6 @@
 package com.example.wave;
 
+
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
@@ -23,8 +24,13 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -35,6 +41,7 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
     private ActiveFragment activeFragment = ActiveFragment.COMBINED;
     private boolean isSchoolCalendarFragmentActive = true;
     private HomeTasksFragment homeTasksFragment;
+    private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,15 +85,120 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
 
     public void showSchoolCalendarFragment() {
         if (activeFragment != ActiveFragment.SCHOOL) {
-            loadFragment(new SchoolCalendarFragment());
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+            SchoolCalendarFragment schoolCalendarFragment =
+                    (SchoolCalendarFragment) getSupportFragmentManager().findFragmentByTag("SCHOOL_FRAGMENT");
+
+            if (schoolCalendarFragment == null) {
+                schoolCalendarFragment = new SchoolCalendarFragment();
+                transaction.addToBackStack(null);
+            }
+
+            transaction.replace(R.id.home_school_calendar_container, schoolCalendarFragment, "SCHOOL_FRAGMENT");
+            transaction.commit();
+
             activeFragment = ActiveFragment.SCHOOL;
+
+            refreshTasks(); // ✅ Always refresh tasks when switching
         }
     }
 
     public void showHomeCalendarFragment() {
         if (activeFragment != ActiveFragment.HOME) {
-            loadFragment(new HomeCalendarFragment());
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+            HomeCalendarFragment homeCalendarFragment =
+                    (HomeCalendarFragment) getSupportFragmentManager().findFragmentByTag("HOME_FRAGMENT");
+
+            if (homeCalendarFragment == null) {
+                homeCalendarFragment = new HomeCalendarFragment();
+                transaction.addToBackStack(null);
+            }
+
+            transaction.replace(R.id.home_school_calendar_container, homeCalendarFragment, "HOME_FRAGMENT");
+            transaction.commit();
+
             activeFragment = ActiveFragment.HOME;
+
+            refreshTasks(); // ✅ Always refresh tasks when switching
+        }
+    }
+
+
+
+    public void loadSchoolTasksFromFirestore() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot fetch school tasks");
+            return;
+        }
+
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Task> schoolTasks = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Task task = doc.toObject(Task.class);
+                        if (!task.isCompleted()) {
+                            schoolTasks.add(task);
+                        }
+                    }
+
+                    Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.home_school_calendar_container);
+                    if (currentFragment instanceof SchoolCalendarFragment) {
+                        ((SchoolCalendarFragment) currentFragment).updateTasks(schoolTasks);
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching school tasks", e));
+    }
+
+    public void loadHomeTasksFromFirestore() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot fetch home tasks");
+            return;
+        }
+
+        db.collection("users")
+                .document(userId)
+                .collection("housetasks")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Task> homeTasks = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Task task = doc.toObject(Task.class);
+                        if (!task.isCompleted()) {
+                            homeTasks.add(task);
+                        }
+                    }
+
+                    Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.home_school_calendar_container);
+                    if (currentFragment instanceof HomeCalendarFragment) {
+                        ((HomeCalendarFragment) currentFragment).updateTasks(homeTasks);
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching home tasks", e));
+    }
+
+
+    public void refreshTasks() {
+        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.home_school_calendar_container);
+
+        if (activeFragment == ActiveFragment.SCHOOL && currentFragment instanceof SchoolCalendarFragment) {
+            ((SchoolCalendarFragment) currentFragment).updateTasksForToday(Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+            loadSchoolTasksFromFirestore(); // ✅ Force fresh load
+        } else if (activeFragment == ActiveFragment.HOME && currentFragment instanceof HomeCalendarFragment) {
+            ((HomeCalendarFragment) currentFragment).updateTasksForToday(Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+            loadHomeTasksFromFirestore(); // ✅ Force fresh load
         }
     }
 
@@ -257,6 +369,7 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
         }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true);
         timePickerDialog.show();
     }
+
 
 
 

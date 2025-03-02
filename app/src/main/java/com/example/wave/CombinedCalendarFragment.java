@@ -25,7 +25,9 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -150,8 +152,7 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         weeklyTaskRecyclerView.setAdapter(weeklyTaskAdapter);
 
         // Load tasks and update UI for the current day
-        loadDummyTasks();
-        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+         updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
 //set up toggle buttons
         // Show tasks for today's date
         updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
@@ -210,15 +211,47 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
             Intent intent = new Intent(requireContext(), ProfileActivity.class);
             startActivity(intent);
         });
-
+        loadTasksFromFirestore(); // ✅ Ensure Firestore tasks are loaded when fragment starts
         setupToggleButtons();
         return view;
     }
 
     @Override
     public void onTaskCompleted(Task task) {
-        // Handle UI updates after completion if needed
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot complete task");
+            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String taskCollection = "Home".equals(task.getCategory()) ? "housetasks" : "schooltasks";
+
+        db.collection("users")
+                .document(userId)
+                .collection(taskCollection)
+                .document(task.getId())
+                .update("completed", true) // ✅ Mark as completed in Firestore
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("TaskCompletion", "Task marked as completed: " + task.getTitle());
+
+                    // ✅ Remove from relevant lists
+                    schoolTaskList.removeIf(t -> t.getId().equals(task.getId()));
+                    homeTaskList.removeIf(t -> t.getId().equals(task.getId()));
+                    combinedTaskList.removeIf(t -> t.getId().equals(task.getId()));
+
+                    // ✅ Refresh UI
+                    updateCalendar();
+                    updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                    updateWeeklyTasks();
+                    taskAdapter.notifyDataSetChanged();
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error updating task completion", e));
     }
+
 
     private void toggleCalendarView(ImageView expandCollapseIcon) {
         if (isExpanded) {
@@ -242,6 +275,58 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
 
         isExpanded = !isExpanded;
     }
+
+    private void loadTasksFromFirestore() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot fetch tasks");
+            return;
+        }
+
+        // Clear lists
+        schoolTaskList.clear();
+        homeTaskList.clear();
+        combinedTaskList.clear();
+
+        // Fetch School Tasks
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .whereEqualTo("completed", false) // ✅ Fetch only incomplete tasks
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Task task = doc.toObject(Task.class);
+                        schoolTaskList.add(task);
+                        combinedTaskList.add(task);
+                    }
+
+                    // Fetch Home Tasks after School Tasks
+                    db.collection("users")
+                            .document(userId)
+                            .collection("housetasks")
+                            .whereEqualTo("completed", false) // ✅ Fetch only incomplete tasks
+                            .get()
+                            .addOnSuccessListener(queryDocumentSnapshots2 -> {
+                                for (QueryDocumentSnapshot doc : queryDocumentSnapshots2) {
+                                    Task task = doc.toObject(Task.class);
+                                    homeTaskList.add(task);
+                                    combinedTaskList.add(task);
+                                }
+
+                                // ✅ Update UI
+                                updateCalendar();
+                                updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                                updateWeeklyTasks();
+                            })
+                            .addOnFailureListener(e -> Log.e("Firestore", "Error fetching home tasks", e));
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching school tasks", e));
+    }
+
 
     private void updateSelectedDateText(TextView selectedDateText, int day) {
         String monthName = getMonthYearList().get(calendar.get(Calendar.MONTH));
@@ -281,52 +366,86 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
 
     @Override
     public void onTaskDeleted(Task task) {
-        // Remove from relevant lists
-        if ("School".equals(task.getCategory())) {
-            schoolTaskList.removeIf(t -> t.getId().equals(task.getId()));
-        } else if ("Home".equals(task.getCategory())) {
-            homeTaskList.removeIf(t -> t.getId().equals(task.getId()));
-        }
-        combinedTaskList.removeIf(t -> t.getId().equals(task.getId()));
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
 
-        // Refresh daily & weekly tasks
-        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
-        updateWeeklyTasks();
-        taskAdapter.notifyDataSetChanged();
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot delete task");
+            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String taskCollection = "Home".equals(task.getCategory()) ? "housetasks" : "schooltasks";
+
+        db.collection("users")
+                .document(userId)
+                .collection(taskCollection)
+                .document(task.getId())
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("TaskDeletion", "Task deleted: " + task.getTitle());
+                    combinedTaskList.removeIf(t -> t.getId().equals(task.getId()));
+                    updateCalendar();
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error deleting task", e));
     }
+
 
     @Override
     public void onTaskEdited(Task updatedTask, int position) {
         Log.d("CombinedCalendar", "onTaskEdited: " + updatedTask.getTitle());
 
-        // Update in the appropriate list(s)
-        if ("School".equals(updatedTask.getCategory())) {
-            updateTaskInList(schoolTaskList, updatedTask);
-        } else if ("Home".equals(updatedTask.getCategory())) {
-            updateTaskInList(homeTaskList, updatedTask);
-        }
-        updateTaskInList(combinedTaskList, updatedTask);
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
 
-        // If user changed the date, jump the calendar to that new date so the UI updates right away
-        try {
-            String updatedFullDate = updatedTask.getFullDate(); // e.g. "3/2/2025"
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
-            LocalDate updatedLocalDate = LocalDate.parse(updatedFullDate, formatter);
-
-            calendar.set(Calendar.YEAR, updatedLocalDate.getYear());
-            // LocalDate months are 1-based, Calendar is 0-based
-            calendar.set(Calendar.MONTH, updatedLocalDate.getMonthValue() - 1);
-            calendar.set(Calendar.DAY_OF_MONTH, updatedLocalDate.getDayOfMonth());
-
-        } catch (Exception e) {
-            Log.e("CombinedCalendar", "Error updating calendar date: " + e.getMessage());
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot update task");
+            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        // Refresh everything
-        updateCalendar();
-        updateWeeklyTasks();
-        taskAdapter.notifyDataSetChanged();
+        String taskCollection = "Home".equals(updatedTask.getCategory()) ? "housetasks" : "schooltasks";
+
+        db.collection("users")
+                .document(userId)
+                .collection(taskCollection)
+                .document(updatedTask.getId())
+                .set(updatedTask)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Firestore", "Task successfully updated: " + updatedTask.getTitle());
+
+                    // Update in the appropriate list(s)
+                    if ("School".equals(updatedTask.getCategory())) {
+                        updateTaskInList(schoolTaskList, updatedTask);
+                    } else if ("Home".equals(updatedTask.getCategory())) {
+                        updateTaskInList(homeTaskList, updatedTask);
+                    }
+                    updateTaskInList(combinedTaskList, updatedTask);
+
+                    // If user changed the date, jump the calendar to that new date so the UI updates right away
+                    try {
+                        String updatedFullDate = updatedTask.getFullDate(); // e.g. "3/2/2025"
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+                        LocalDate updatedLocalDate = LocalDate.parse(updatedFullDate, formatter);
+
+                        calendar.set(Calendar.YEAR, updatedLocalDate.getYear());
+                        calendar.set(Calendar.MONTH, updatedLocalDate.getMonthValue() - 1);
+                        calendar.set(Calendar.DAY_OF_MONTH, updatedLocalDate.getDayOfMonth());
+
+                    } catch (Exception e) {
+                        Log.e("CombinedCalendar", "Error updating calendar date: " + e.getMessage());
+                    }
+
+                    // Refresh everything
+                    updateCalendar();
+                    updateWeeklyTasks();
+                    taskAdapter.notifyDataSetChanged();
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error updating task", e));
     }
+
 
     private void updateTaskInList(List<Task> tasks, Task updatedTask) {
         for (int i = 0; i < tasks.size(); i++) {
@@ -336,9 +455,6 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
             }
         }
     }
-
-
-
 
     private final ActivityResultLauncher<Intent> editTaskLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -351,9 +467,6 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
                     }
                 }
             });
-
-
-
 
 
     private String getOrdinalSuffix(int day) {
@@ -381,17 +494,67 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
     private List<Task> filterTasksByDateBasedOnCategory(int day, String currentCategory) {
         String currentMonthName = getMonthYearList().get(calendar.get(Calendar.MONTH));
         List<Task> results = new ArrayList<>();
-        if ("School".equals(currentCategory)) {
-            results.addAll(filterTasksByDayAndMonth(schoolTaskList, day, currentMonthName));
-        } else if ("Home".equals(currentCategory)) {
-            results.addAll(filterTasksByDayAndMonth(homeTaskList, day, currentMonthName));
-        } else {
-            // Both: combine
-            results.addAll(filterTasksByDayAndMonth(schoolTaskList, day, currentMonthName));
-            results.addAll(filterTasksByDayAndMonth(homeTaskList, day, currentMonthName));
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot filter tasks.");
+            return results;
         }
+
+        String taskCollection = "Both".equals(currentCategory) ? null :
+                ("Home".equals(currentCategory) ? "housetasks" : "schooltasks");
+
+        if (taskCollection != null) {
+            // Fetch tasks from Firestore for the specific category
+            db.collection("users")
+                    .document(userId)
+                    .collection(taskCollection)
+                    .get()
+                    .addOnSuccessListener(querySnapshot -> {
+                        results.clear();
+                        for (QueryDocumentSnapshot doc : querySnapshot) {
+                            Task task = doc.toObject(Task.class);
+                            if (Integer.parseInt(task.getDate()) == day && task.getMonth().equalsIgnoreCase(currentMonthName)) {
+                                results.add(task);
+                            }
+                        }
+                        taskAdapter.updateTasks(results);
+                        taskAdapter.notifyDataSetChanged();
+                    })
+                    .addOnFailureListener(e -> Log.e("Firestore", "Error filtering tasks", e));
+        } else {
+            // Fetch both Home and School tasks
+            db.collection("users").document(userId).collection("housetasks").get()
+                    .addOnSuccessListener(querySnapshot -> {
+                        for (QueryDocumentSnapshot doc : querySnapshot) {
+                            Task task = doc.toObject(Task.class);
+                            if (Integer.parseInt(task.getDate()) == day && task.getMonth().equalsIgnoreCase(currentMonthName)) {
+                                results.add(task);
+                            }
+                        }
+                        // Fetch School tasks after Home tasks are added
+                        db.collection("users").document(userId).collection("schooltasks").get()
+                                .addOnSuccessListener(querySnapshot2 -> {
+                                    for (QueryDocumentSnapshot doc : querySnapshot2) {
+                                        Task task = doc.toObject(Task.class);
+                                        if (Integer.parseInt(task.getDate()) == day && task.getMonth().equalsIgnoreCase(currentMonthName)) {
+                                            results.add(task);
+                                        }
+                                    }
+                                    taskAdapter.updateTasks(results);
+                                    taskAdapter.notifyDataSetChanged();
+                                })
+                                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching school tasks", e));
+                    })
+                    .addOnFailureListener(e -> Log.e("Firestore", "Error fetching home tasks", e));
+        }
+
         return results;
     }
+
 
     /**
      * Helper for filtering tasks by day & month in a specific list.
@@ -422,6 +585,7 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
                 todayTasks = filterTasksByDate(day, getMonthYearList().get(calendar.get(Calendar.MONTH)), combinedTaskList);
                 break;
         }
+
         taskAdapter.updateTasks(todayTasks);
     }
 
@@ -450,16 +614,15 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
             return;
         }
 
-        // ✅ Select tasks based on the active category
         String selectedCategory = getCurrentSelectedCategory();
         List<Task> filteredTaskList;
 
         if ("School".equals(selectedCategory)) {
-            filteredTaskList = new ArrayList<>(schoolTaskList); // ✅ Only school tasks
+            filteredTaskList = new ArrayList<>(schoolTaskList);
         } else if ("Home".equals(selectedCategory)) {
-            filteredTaskList = new ArrayList<>(homeTaskList); // ✅ Only home tasks
-        } else { // "Both"
-            filteredTaskList = new ArrayList<>(combinedTaskList); // ✅ Both tasks
+            filteredTaskList = new ArrayList<>(homeTaskList);
+        } else {
+            filteredTaskList = new ArrayList<>(combinedTaskList);
         }
 
         LocalDate currentDate = LocalDate.of(
@@ -474,11 +637,11 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         List<Task> weeklyTasks = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
 
-        for (Task t : filteredTaskList) { // ✅ Now uses the correct filtered list
+        for (Task t : filteredTaskList) {
             try {
                 String fullDate = t.getDate() + "/" + (getMonthIndex(t.getMonth()) + 1) + "/" + t.getYear();
                 LocalDate taskDate = LocalDate.parse(fullDate, formatter);
-                if (!taskDate.isBefore(startOfWeek) && !taskDate.isAfter(endOfWeek)) {
+                if (!taskDate.isBefore(startOfWeek) && !taskDate.isAfter(endOfWeek) && !t.isCompleted()) {
                     weeklyTasks.add(t);
                 }
             } catch (DateTimeParseException e) {
@@ -489,7 +652,6 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         // ✅ Sort by priority (High → Medium → Low)
         weeklyTasks.sort((t1, t2) -> getPriorityValue(t1.getPriority()) - getPriorityValue(t2.getPriority()));
 
-        // ✅ Update UI visibility
         View tasksTitle = getView().findViewById(R.id.tasksDueThisWeekTitle);
         View weeklyRecyclerView = getView().findViewById(R.id.weeklyTaskRecyclerView);
 
@@ -503,6 +665,8 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
             weeklyTaskAdapter.notifyDataSetChanged();
         }
     }
+
+
 
 
 
@@ -530,10 +694,12 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         int currentYear = calendar.get(Calendar.YEAR);
 
         for (Task task : schoolTaskList) {
-            if (task.getMonth().equalsIgnoreCase(currentMonth) && task.getYear() == currentYear) {
+            if (!task.isCompleted() && task.getMonth().equalsIgnoreCase(currentMonth) && task.getYear() == currentYear) {
                 schoolTaskDates.add(task.getDate());
             }
         }
+
+        Log.d("getSchoolTaskDates", "School Task Dates Highlighted: " + schoolTaskDates);
         return schoolTaskDates;
     }
 
@@ -543,12 +709,36 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         int currentYear = calendar.get(Calendar.YEAR);
 
         for (Task task : homeTaskList) {
-            if (task.getMonth().equalsIgnoreCase(currentMonth) && task.getYear() == currentYear) {
+            if (!task.isCompleted() && task.getMonth().equalsIgnoreCase(currentMonth) && task.getYear() == currentYear) {
                 homeTaskDates.add(task.getDate());
             }
         }
+
+        Log.d("getHomeTaskDates", "Home Task Dates Highlighted: " + homeTaskDates);
         return homeTaskDates;
     }
+
+    /**
+     * Get task dates based on the current selected category (School, Home, or Both).
+     */
+    private Set<String> getCombinedTaskDates() {
+        Set<String> combinedTaskDates = new HashSet<>();
+        String selectedCategory = getCurrentSelectedCategory();
+
+        if ("School".equals(selectedCategory)) {
+            return getSchoolTaskDates(); // ✅ Only School tasks
+        } else if ("Home".equals(selectedCategory)) {
+            return getHomeTaskDates(); // ✅ Only Home tasks
+        } else {
+            // ✅ Both: Combine School & Home task dates
+            combinedTaskDates.addAll(getSchoolTaskDates());
+            combinedTaskDates.addAll(getHomeTaskDates());
+        }
+
+        Log.d("getCombinedTaskDates", "Combined Task Dates Highlighted: " + combinedTaskDates);
+        return combinedTaskDates;
+    }
+
 
     private List<String> getCalendarDates(int year, int month) {
         List<String> dates = new ArrayList<>();
@@ -571,46 +761,70 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
      */
     public void addTaskToCalendar(String taskTitle, String taskPriority, String taskDate, String taskTime,
                                   boolean remind, String taskType) {
-        String taskId = UUID.randomUUID().toString();
-        // Suppose user typed "4/2/2025" => parse that
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot add task");
+            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Parse date input
         String[] dateParts = taskDate.split("/");
         if (dateParts.length != 3) {
             Toast.makeText(requireContext(), "Invalid date format!", Toast.LENGTH_SHORT).show();
             return;
         }
-        String day = dateParts[0];
-        String month = dateParts[1];
+
+        int day = Integer.parseInt(dateParts[0]);
+        int monthIndex = Integer.parseInt(dateParts[1]) - 1; // Convert 1-based to 0-based
         int year = Integer.parseInt(dateParts[2]);
 
+        String taskId = UUID.randomUUID().toString();
         Task newTask = new Task(
                 taskId,
                 taskTitle,
                 taskTime,
-                dateParts[0],
-                getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1),
+                String.valueOf(day),
+                getMonthYearList().get(monthIndex),
                 taskPriority,
                 taskType,
                 remind,
                 year,
                 0, // Default stability value, update as needed
                 System.currentTimeMillis(), // Set task timestamp to current time
-                dateParts[0] + "/" + dateParts[1] + "/" + year,
-                false
-
+                taskDate, // Full formatted date
+                false // Not completed
         );
-        // Insert into relevant list
-        if ("School".equals(taskType)) {
-            schoolTaskList.add(newTask);
-        } else if ("Home".equals(taskType)) {
-            homeTaskList.add(newTask);
-        }
-        // Always keep combined in sync
-        combinedTaskList.add(newTask);
 
-        // Refresh
-        updateCalendar();
-        updateCurrentTasks();
+        // Determine the correct Firestore collection based on task type
+        String taskCollection = "Home".equals(taskType) ? "housetasks" : "schooltasks";
+
+        db.collection("users")
+                .document(userId)
+                .collection(taskCollection)
+                .document(taskId)
+                .set(newTask)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Firestore", "Task successfully added!");
+
+                    // Add locally to keep UI in sync
+                    if ("School".equals(taskType)) {
+                        schoolTaskList.add(newTask);
+                    } else {
+                        homeTaskList.add(newTask);
+                    }
+                    combinedTaskList.add(newTask);
+
+                    // Refresh UI
+                    updateCalendar();
+                    updateCurrentTasks();
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error adding task", e));
     }
+
 
     private List<String> getMonthYearList() {
         List<String> months = new ArrayList<>();
@@ -649,89 +863,6 @@ public class CombinedCalendarFragment extends Fragment implements TaskAdapter.On
         return filteredTasks;
     }
 
-
-
-    private void loadDummyTasks() {
-            // School tasks
-        // School tasks
-        schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Math Homework", "10:00 AM", "25",
-                "January", "High", "School", false, 2025, 0, System.currentTimeMillis(), "25/01/2025", false));
-
-        schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Science Project", "2:00 PM", "26",
-                "January", "Medium", "School", true, 2025, 0, System.currentTimeMillis(), "26/01/2025", false));
-
-        schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Physics Lab Report", "11:00 AM", "1",
-                "February", "High", "School", false, 2025, 0, System.currentTimeMillis(), "01/02/2025", false));
-
-        schoolTaskList.add(new Task(UUID.randomUUID().toString(), "History Assignment", "9:30 AM", "2",
-                "February", "Medium", "School", false, 2025, 0, System.currentTimeMillis(), "02/02/2025", false));
-
-        schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Group Project Meeting", "3:00 PM", "3",
-                "February", "Low", "School", true, 2025, 0, System.currentTimeMillis(), "03/02/2025", false));
-
-        schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Biology Quiz Preparation", "4:00 PM", "4",
-                "February", "Medium", "School", false, 2025, 0, System.currentTimeMillis(), "04/02/2025", false));
-
-        schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Chemistry Lab Prep", "10:00 AM", "5",
-                "February", "High", "School", true, 2025, 0, System.currentTimeMillis(), "05/02/2025", false));
-
-        schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Essay Submission", "1:00 PM", "6",
-                "February", "High", "School", false, 2025, 0, System.currentTimeMillis(), "06/02/2025", false));
-
-        schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Math Revision", "10:30 AM", "7",
-                "February", "Medium", "School", false, 2025, 0, System.currentTimeMillis(), "07/02/2025", false));
-
-        schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Sports Practice", "5:00 PM", "7",
-                "February", "Low", "School", false, 2025, 0, System.currentTimeMillis(), "07/02/2025", false));
-
-        schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Computer Science Coding Assignment", "2:00 PM", "8",
-                "February", "High", "School", false, 2025, 0, System.currentTimeMillis(), "08/02/2025", false));
-
-        schoolTaskList.add(new Task(UUID.randomUUID().toString(), "Art Project Presentation", "12:00 PM", "9",
-                "February", "Medium", "School", true, 2025, 0, System.currentTimeMillis(), "09/02/2025", false));
-
-
-// Home tasks
-        homeTaskList.add(new Task(UUID.randomUUID().toString(), "Clean Kitchen", "8:00 PM", "27",
-                "January", "Low", "Home", false, 2025, 0, System.currentTimeMillis(), "27/01/2025", false));
-
-        homeTaskList.add(new Task(UUID.randomUUID().toString(), "Buy Groceries", "6:00 PM", "28",
-                "January", "High", "Home", true, 2025, 0, System.currentTimeMillis(), "28/01/2025", false));
-
-        homeTaskList.add(new Task(UUID.randomUUID().toString(), "Laundry", "9:00 AM", "1",
-                "February", "Medium", "Home", false, 2025, 0, System.currentTimeMillis(), "01/02/2025", false));
-
-        homeTaskList.add(new Task(UUID.randomUUID().toString(), "Pay Bills", "10:00 AM", "2",
-                "February", "High", "Home", true, 2025, 0, System.currentTimeMillis(), "02/02/2025", false));
-
-        homeTaskList.add(new Task(UUID.randomUUID().toString(), "Meal Prep", "5:30 PM", "3",
-                "February", "Medium", "Home", false, 2025, 0, System.currentTimeMillis(), "03/02/2025", false));
-
-        homeTaskList.add(new Task(UUID.randomUUID().toString(), "Organize Closet", "11:00 AM", "4",
-                "February", "Low", "Home", false, 2025, 0, System.currentTimeMillis(), "04/02/2025", false));
-
-        homeTaskList.add(new Task(UUID.randomUUID().toString(), "Repair Leaky Faucet", "2:30 PM", "5",
-                "February", "High", "Home", true, 2025, 0, System.currentTimeMillis(), "05/02/2025", false));
-
-        homeTaskList.add(new Task(UUID.randomUUID().toString(), "Take Dog for a Walk", "7:00 AM", "6",
-                "February", "Low", "Home", false, 2025, 0, System.currentTimeMillis(), "06/02/2025", false));
-
-        homeTaskList.add(new Task(UUID.randomUUID().toString(), "Wash Car", "10:00 AM", "7",
-                "February", "Medium", "Home", false, 2025, 0, System.currentTimeMillis(), "07/02/2025", false));
-
-        homeTaskList.add(new Task(UUID.randomUUID().toString(), "Clean Living Room", "1:00 PM", "8",
-                "February", "Low", "Home", false, 2025, 0, System.currentTimeMillis(), "08/02/2025", false));
-
-        homeTaskList.add(new Task(UUID.randomUUID().toString(), "Grocery Shopping", "4:00 PM", "9",
-                "February", "Medium", "Home", true, 2025, 0, System.currentTimeMillis(), "09/02/2025", false));
-
-        homeTaskList.add(new Task(UUID.randomUUID().toString(), "Cook Dinner", "6:30 PM", "9",
-                "February", "High", "Home", false, 2025, 0, System.currentTimeMillis(), "09/02/2025", false));
-
-
-        combinedTaskList.addAll(schoolTaskList);
-            combinedTaskList.addAll(homeTaskList);
-    }
 
     private void setActiveTopButton(TextView activeButton, TextView... inactiveButtons) {
         activeButton.setSelected(true);
