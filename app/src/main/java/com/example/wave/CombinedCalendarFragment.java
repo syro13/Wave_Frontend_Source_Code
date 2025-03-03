@@ -446,17 +446,28 @@ public class CombinedCalendarFragment extends Fragment implements
         String currentCategory = getCurrentSelectedCategory();
         List<Task> todayTasks = new ArrayList<>();
         String currentMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
+
         if ("School".equals(currentCategory)) {
             todayTasks = filterTasksByDate(day, currentMonth, schoolTaskList);
         } else if ("Home".equals(currentCategory)) {
             todayTasks = filterTasksByDate(day, currentMonth, homeTaskList);
-        } else { // "Both"
+        } else { // "Both" (combined view)
             todayTasks = filterTasksByDate(day, currentMonth, combinedTaskList);
         }
+
         taskAdapter.updateTasks(todayTasks);
         taskAdapter.notifyDataSetChanged();
         updateTasksTitle(todayTasks, day);
+
+        // Show the empty state image if there are no tasks for today
+        ImageView emptyTasksImage = getView().findViewById(R.id.emptyTasksImage);
+        if (todayTasks.isEmpty()) {
+            emptyTasksImage.setVisibility(View.VISIBLE);
+        } else {
+            emptyTasksImage.setVisibility(View.GONE);
+        }
     }
+
 
     // Update weekly tasks based on current category and week.
     private void updateWeeklyTasks() {
@@ -512,15 +523,26 @@ public class CombinedCalendarFragment extends Fragment implements
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
         Set<String> schoolDates = getSchoolTaskDates();
         Set<String> homeDates = getHomeTaskDates();
+
         if (calendarAdapter != null) {
             calendarAdapter.updateData(calendarDates);
             calendarAdapter.updateSchoolTaskDates(schoolDates);
             calendarAdapter.updateHomeTaskDates(homeDates);
             calendarAdapter.updateCategory(getCurrentSelectedCategory());
         }
-        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+
+        int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
+        // You can unselect if there are no tasks (optional):
+        // if(filterTasksByDateBasedOnCategory(todayDay, getCurrentSelectedCategory()).isEmpty()){
+        //     calendarAdapter.setSelectedDate(null);
+        // } else {
+        //     calendarAdapter.setSelectedDate(String.valueOf(todayDay));
+        // }
+        calendarAdapter.setSelectedDate(String.valueOf(todayDay));
+        updateTasksForToday(todayDay);
         updateWeeklyTasks();
     }
+
     // ----- UPDATED getSchoolTaskDates() -----
     private Set<String> getSchoolTaskDates() {
         Set<String> schoolTaskDates = new HashSet<>();

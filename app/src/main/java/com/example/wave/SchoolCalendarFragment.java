@@ -332,7 +332,16 @@ public class SchoolCalendarFragment extends Fragment implements
         taskAdapter.updateTasks(todayTasks);
         taskAdapter.notifyDataSetChanged();
         updateTasksTitle(todayTasks, day);
+
+        // Show the empty state image if there are no tasks for today
+        ImageView emptyTasksImage = getView().findViewById(R.id.emptyTasksImage);
+        if (todayTasks.isEmpty()) {
+            emptyTasksImage.setVisibility(View.VISIBLE);
+        } else {
+            emptyTasksImage.setVisibility(View.GONE);
+        }
     }
+
 
     // Update the weekly tasks view (School category)
     private void updateWeeklyTasks() {
@@ -418,17 +427,15 @@ public class SchoolCalendarFragment extends Fragment implements
     // Update the calendar view: rebuild dates, update highlights, and refresh daily and weekly tasks.
     private void updateCalendar() {
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
-        // Rebuild the highlight set from school tasks
         Set<String> taskDates = getSchoolTaskDates();
-        Log.d("updateCalendar", "Highlighting School Task Dates: " + taskDates);
         calendarAdapter.updateSchoolTaskDates(taskDates);
         calendarAdapter.updateData(calendarDates);
-        // Retain selected date (or unselect if desired)
         int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
         calendarAdapter.setSelectedDate(String.valueOf(todayDay));
         updateTasksForToday(todayDay);
         updateWeeklyTasks();
     }
+
 
     // Get calendar dates for the month
     private List<String> getCalendarDates(int year, int month) {

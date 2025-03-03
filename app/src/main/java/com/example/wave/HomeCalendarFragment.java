@@ -339,7 +339,16 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         taskAdapter.updateTasks(todayTasks);
         taskAdapter.notifyDataSetChanged();
         updateTasksTitle(todayTasks, day);
+
+        // Show the empty state image if there are no tasks for today
+        ImageView emptyTasksImage = getView().findViewById(R.id.emptyTasksImage);
+        if (todayTasks.isEmpty()) {
+            emptyTasksImage.setVisibility(View.VISIBLE);
+        } else {
+            emptyTasksImage.setVisibility(View.GONE);
+        }
     }
+
 
     // Update the weekly tasks section
     private void updateWeeklyTasks() {
@@ -429,16 +438,11 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         calendarAdapter.updateHomeTaskDates(taskDates);
         calendarAdapter.updateData(calendarDates);
         int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
-        // Optionally, you can unselect if the day has no tasks:
-        // if(filterTasksByDateBasedOnCategory(todayDay, "Home").isEmpty()){
-        //     calendarAdapter.setSelectedDate(null);
-        // } else {
-        //     calendarAdapter.setSelectedDate(String.valueOf(todayDay));
-        // }
         calendarAdapter.setSelectedDate(String.valueOf(todayDay));
         updateTasksForToday(todayDay);
         updateWeeklyTasks();
     }
+
 
     // Utility methods
     private List<String> getCalendarDates(int year, int month) {
