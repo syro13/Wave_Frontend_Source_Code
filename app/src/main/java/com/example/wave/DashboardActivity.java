@@ -2,6 +2,7 @@ package com.example.wave;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -18,9 +19,12 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -37,20 +41,7 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
     private RecyclerView taskRecyclerView;
     private TaskAdapter taskAdapter;
     private List<Task> taskList;
-
-    // Use ActivityResultLauncher instead of deprecated startActivityForResult
-    private final ActivityResultLauncher<Intent> editTaskLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Task updatedTask = result.getData().getParcelableExtra("updatedTask");
-                    int position = result.getData().getIntExtra("position", -1);
-
-                    if (updatedTask != null && position != -1 && position < taskList.size()) {
-                        taskList.set(position, updatedTask);
-                        taskAdapter.notifyItemChanged(position);
-                    }
-                }
-            });
+    private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,26 +67,19 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
             String displayName = user.getDisplayName();
             greetingTextView.setText(displayName != null && !displayName.isEmpty() ? "Hello " + displayName + "!" : "Hello User!");
         }
-
-        // Initialize Task List and Adapter
         taskList = new ArrayList<>();
-        taskAdapter = new TaskAdapter(taskList, this, this, this, this,  editTaskLauncher); // Pass the launcher
-
-        // Set up RecyclerView
+        taskAdapter = new TaskAdapter(taskList, this, this, this, this, editTaskLauncher);
         taskRecyclerView = findViewById(R.id.taskRecyclerView);
         taskRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         taskRecyclerView.setAdapter(taskAdapter);
 
-        // Load initial tasks
-        loadInitialTasks();
-        taskRecyclerView.setAdapter(taskAdapter);
         SnapHelper snapHelper = new LinearSnapHelper();
         snapHelper.attachToRecyclerView(taskRecyclerView);
 
         // Load additional tasks
-        loadDummyTasks();
         loadCurrentDate();
         loadWeatherIcon();
+        loadDashboardTasks();
 
         findViewById(R.id.homeTasksCard).setOnClickListener(v -> startActivity(new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class)));
         findViewById(R.id.schoolTasksCard).setOnClickListener(v -> startActivity(new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class)));
@@ -110,59 +94,6 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
             taskList.set(position, updatedTask);
             taskAdapter.notifyItemChanged(position);
         }
-    }
-
-    private void loadInitialTasks() {
-        taskList.add(new Task(
-                UUID.randomUUID().toString(),
-                "Math Assignment",
-                "10:00 AM",
-                "7",
-                "February",
-                "High",
-                "School",
-                false,
-                2025,
-                0, // Stability (default 0)
-                System.currentTimeMillis(), // Task timestamp
-                "7/2/2025",
-                false
-        ));
-
-        taskList.add(new Task(
-                UUID.randomUUID().toString(),
-                "Grocery Shopping",
-                "12:00 PM",
-                "8",
-                "February",
-                "Medium",
-                "Home",
-                true,
-                2025,
-                0, // Stability
-                System.currentTimeMillis(),
-                "8/2/2025",
-                false
-        ));
-
-        taskList.add(new Task(
-                UUID.randomUUID().toString(),
-                "Team Meeting",
-                "3:00 PM",
-                "8",
-                "February",
-                "High",
-                "School",
-                false,
-                2025,
-                0, // Stability
-                System.currentTimeMillis(),
-                "8/2/2025",
-                false
-        ));
-
-        // Notify the adapter of the new tasks
-        taskAdapter.updateTasks(taskList);
     }
 
 
@@ -181,75 +112,99 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
         return R.id.nav_index; // The menu item ID for the Home tab
     }
 
-    private void loadDummyTasks() {
-        taskList.add(new Task(
-                UUID.randomUUID().toString(),
-                "Wireframes for Websites",
-                "8:00 AM",
-                "18",
-                "January",
-                "High",
-                "School",
-                true,
-                2025,
-                0, // Stability (default 0)
-                System.currentTimeMillis(), // Task timestamp
-                "18/1/2025",
-                false
+    private final ActivityResultLauncher<Intent> editTaskLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Task updatedTask = result.getData().getParcelableExtra("updatedTask");
+                    int position = result.getData().getIntExtra("position", -1);
 
-        ));
+                    if (updatedTask != null && position != -1 && position < taskList.size()) {
+                        taskList.set(position, updatedTask);
+                        taskAdapter.notifyItemChanged(position);
+                    }
+                }
+            });
+    // NEW: Loads daily tasks from both School and Home collections for today and shows/hides the empty state image.
+    private void loadDashboardTasks() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (userId == null) return;
 
-        taskList.add(new Task(
-                UUID.randomUUID().toString(),
-                "Clean Kitchen",
-                "9:00 AM",
-                "19",
-                "January",
-                "Low",
-                "Home",
-                false,
-                2025,
-                0, // Stability
-                System.currentTimeMillis(),
-                "19/1/2025",
-                false
-        ));
+        List<Task> dashboardTasks = new ArrayList<>();
 
-        taskList.add(new Task(
-                UUID.randomUUID().toString(),
-                "Do Groceries",
-                "10:00 AM",
-                "20",
-                "January",
-                "High",
-                "Personal",
-                true,
-                2025,
-                0, // Stability
-                System.currentTimeMillis(),
-                "20/1/2025",
-                false
-        ));
+        // Query School tasks
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .whereEqualTo("completed", false)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+                        Task task = doc.toObject(Task.class);
+                        if (isTaskForToday(task)) {
+                            dashboardTasks.add(task);
+                        }
+                    }
+                    // Query Home tasks
+                    db.collection("users")
+                            .document(userId)
+                            .collection("housetasks")
+                            .whereEqualTo("completed", false)
+                            .get()
+                            .addOnSuccessListener(querySnapshot2 -> {
+                                for (QueryDocumentSnapshot doc : querySnapshot2) {
+                                    Task task = doc.toObject(Task.class);
+                                    if (isTaskForToday(task)) {
+                                        dashboardTasks.add(task);
+                                    }
+                                }
+                                // Optionally sort dashboardTasks here if needed
 
-        taskList.add(new Task(
-                UUID.randomUUID().toString(),
-                "Math Assignments",
-                "11:00 AM",
-                "18",
-                "January",
-                "Medium",
-                "School",
-                false,
-                2025,
-                0, // Stability
-                System.currentTimeMillis(),
-                "18/1/2025",
-                false
-        ));
+                                // Update adapter with the fetched tasks
+                                taskAdapter.updateTasks(dashboardTasks);
+                                taskAdapter.notifyDataSetChanged();
 
-        // Notify the adapter of the new tasks
-        taskAdapter.notifyDataSetChanged();
+                                // Show or hide the empty state image based on whether any tasks exist
+                                ImageView emptyTasksImage = findViewById(R.id.emptyTasksImage);
+                                if (emptyTasksImage != null) {
+                                    emptyTasksImage.setVisibility(dashboardTasks.isEmpty() ? View.VISIBLE : View.GONE);
+                                }
+                            })
+                            .addOnFailureListener(e -> Log.e("Firestore", "Error fetching Home tasks", e));
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching School tasks", e));
     }
+
+    // Helper method to determine if a task is scheduled for today.
+    private boolean isTaskForToday(Task task) {
+        Calendar today = Calendar.getInstance();
+        int currentDay = today.get(Calendar.DAY_OF_MONTH);
+        int currentMonth = today.get(Calendar.MONTH) + 1; // Calendar.MONTH is zero-based
+        int currentYear = today.get(Calendar.YEAR);
+        try {
+            int taskDay = Integer.parseInt(task.getDate());
+            int taskMonth = getMonthIndex(task.getMonth()) + 1;
+            int taskYear = task.getYear();
+            return (taskDay == currentDay && taskMonth == currentMonth && taskYear == currentYear);
+        } catch (NumberFormatException e) {
+            Log.e("Dashboard", "Error parsing task date", e);
+            return false;
+        }
+    }
+
+    // Helper method: get the 0-based index of a month name.
+    private int getMonthIndex(String month) {
+        List<String> months = getMonthYearList();
+        return months.indexOf(month);
+    }
+
+    // Helper method: return a list of month names.
+    private List<String> getMonthYearList() {
+        return List.of("January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December");
+    }
+
+
 
 
     private void loadCurrentDate() {
