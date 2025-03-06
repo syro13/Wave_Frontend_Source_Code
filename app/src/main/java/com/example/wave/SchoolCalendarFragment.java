@@ -145,6 +145,12 @@ public class SchoolCalendarFragment extends Fragment implements
                     taskAdapter.updateTasks(selectedDateTasks);
                     updateTasksTitle(selectedDateTasks, selectedDay);
                     updateWeeklyTasks();
+                    ImageView emptyTasksImage = getView().findViewById(R.id.emptyTasksImage);
+                    if (selectedDateTasks.isEmpty()) {
+                        emptyTasksImage.setVisibility(View.VISIBLE);
+                    } else {
+                        emptyTasksImage.setVisibility(View.GONE);
+                    }
                 },
                 new HashSet<>(),  // school task dates
                 new HashSet<>(),  // home task dates (unused here)

@@ -13,12 +13,14 @@ import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
@@ -52,11 +54,66 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         return new TaskViewHolder(view);
     }
 
+    private int getMonthIndex(String month) {
+        switch(month.toLowerCase()){
+            case "january":   return 1;
+            case "february":  return 2;
+            case "march":     return 3;
+            case "april":     return 4;
+            case "may":       return 5;
+            case "june":      return 6;
+            case "july":      return 7;
+            case "august":    return 8;
+            case "september": return 9;
+            case "october":   return 10;
+            case "november":  return 11;
+            case "december":  return 12;
+            default:          return 0;
+        }
+    }
+
+
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         Task task = taskList.get(position);
+
+        // Reset overdue state for recycled views
+        holder.overdueTagContainer.setVisibility(View.GONE);
+        holder.taskCard.setStrokeColor(ContextCompat.getColor(context, android.R.color.transparent));
+        holder.taskCard.setStrokeWidth(0);
+
+        // Set basic task info
         holder.taskTitle.setText(task.getTitle());
         holder.taskTime.setText(task.getTime());
+
+        // Overdue check for non-completed tasks
+        // Overdue check for non-completed tasks
+        if (!task.isCompleted()) {
+            try {
+                int day = Integer.parseInt(task.getDate());
+                int month = getMonthIndex(task.getMonth());
+                int year = task.getYear();
+
+                // Switch to 24-hour parsing
+                DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+                java.time.LocalTime dueTime = java.time.LocalTime.parse(task.getTime(), timeFormatter);
+                java.time.LocalDate dueDate = java.time.LocalDate.of(year, month, day);
+                java.time.LocalDateTime dueDateTime = java.time.LocalDateTime.of(dueDate, dueTime);
+
+                // Mark overdue if it's before the current time
+                if (dueDateTime.isBefore(java.time.LocalDateTime.now())) {
+                    holder.overdueTagContainer.setVisibility(View.VISIBLE);
+                    holder.taskCard.setStrokeColor(ContextCompat.getColor(context, R.color.red));
+                    holder.taskCard.setStrokeWidth(4);
+                }
+            } catch (Exception e) {
+                Log.e("TaskAdapter", "Error parsing date/time for task: " + task.getTitle(), e);
+                holder.overdueTagContainer.setVisibility(View.GONE);
+            }
+        } else {
+            holder.overdueTagContainer.setVisibility(View.GONE);
+        }
+
 
         // Category styling
         holder.categoryTag.setText(task.getCategory());
@@ -89,27 +146,28 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 holder.priorityFlag.setVisibility(View.GONE);
                 break;
         }
+
+        // Set the click listener for editing
         holder.taskCard.setOnClickListener(v -> {
             Intent editIntent = new Intent(context, EditTasksActivity.class);
             editIntent.putExtra("task", task);
             editTaskLauncher.launch(editIntent);
         });
 
-        // ✅ Set the initial task completion state
+        // Set the task completion state
         if (task.isCompleted()) {
             holder.taskCheckCircle.setImageResource(R.drawable.ic_task_completed);
         } else {
             holder.taskCheckCircle.setImageResource(R.drawable.ic_task_uncompleted);
         }
 
-        holder.deleteTask.setOnClickListener(v -> {
-            onTaskDeletedListener.onTaskDeleted(task);
-        });
+        // Delete icon click listener
+        holder.deleteTask.setOnClickListener(v -> onTaskDeletedListener.onTaskDeleted(task));
 
-
-        // ✅ Click listener to toggle task completion
+        // Toggle task completion on click of the check circle
         holder.taskCheckCircle.setOnClickListener(v -> toggleTaskCompletion(task, holder.getAdapterPosition(), holder.taskCheckCircle));
     }
+
 
     // Add this to TaskAdapter
     public void updateTasks(List<Task> newTasks) {
@@ -224,6 +282,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         LinearLayout categoryTagContainer;
         ImageView deleteTask, priorityFlag, categoryIcon;
         ImageView taskCheckCircle;
+        LinearLayout overdueTagContainer;
 
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -235,6 +294,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             deleteTask = itemView.findViewById(R.id.deleteTask);
             priorityFlag = itemView.findViewById(R.id.priorityFlag);
             categoryIcon = itemView.findViewById(R.id.categoryIcon);
+            overdueTagContainer = itemView.findViewById(R.id.overdueTagContainer);
             taskCheckCircle = itemView.findViewById(R.id.taskCheckCircle); // ✅ Ensure this ID exists in XML
         }
     }

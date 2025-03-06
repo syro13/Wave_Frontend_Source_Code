@@ -136,6 +136,12 @@ public class CombinedCalendarFragment extends Fragment implements
                         taskAdapter.updateTasks(selectedDateTasks);
                         updateTasksTitle(selectedDateTasks, selectedDay);
                         updateWeeklyTasks();
+                        ImageView emptyTasksImage = getView().findViewById(R.id.emptyTasksImage);
+                        if (selectedDateTasks.isEmpty()) {
+                            emptyTasksImage.setVisibility(View.VISIBLE);
+                        } else {
+                            emptyTasksImage.setVisibility(View.GONE);
+                        }
                     }
                 },
                 new HashSet<>(), // School task dates (will be updated by listeners)
@@ -284,24 +290,49 @@ public class CombinedCalendarFragment extends Fragment implements
     // --- TASK OPERATIONS ---
 
     // When a task is deleted, Firestore changes will update the UI via snapshot listeners.
+    // --- UPDATED onTaskDeleted() method for SchoolCalendarFragment ---
     @Override
     public void onTaskDeleted(Task task) {
-        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
         if (userId == null) {
             Log.e("Firestore", "User not logged in, cannot delete task");
             Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
             return;
         }
-        String taskCollection = "Home".equals(task.getCategory()) ? "housetasks" : "schooltasks";
+
+        // Determine if this is a "Home" or "School" task
+        boolean isHomeTask = "Home".equals(task.getCategory());
+        String cancelledCollection = isHomeTask ? "cancelledHomeTasks" : "cancelledSchoolTasks";
+        String originalCollection = isHomeTask ? "housetasks" : "schooltasks";
+
+        // 1. Archive the task in the appropriate "cancelled" collection
         db.collection("users")
                 .document(userId)
-                .collection(taskCollection)
+                .collection(cancelledCollection)
                 .document(task.getId())
-                .delete()
-                .addOnSuccessListener(aVoid -> Log.d("TaskDeletion", "Task deleted: " + task.getTitle()))
-                .addOnFailureListener(e -> Log.e("Firestore", "Error deleting task", e));
+                .set(task)
+                .addOnSuccessListener(aVoid -> {
+                    // 2. After archiving, delete the task from its original collection
+                    db.collection("users")
+                            .document(userId)
+                            .collection(originalCollection)
+                            .document(task.getId())
+                            .delete()
+                            .addOnSuccessListener(aVoid2 -> {
+                                Log.d("Firestore", "Task archived and deleted: " + task.getTitle());
+                                // 3. Update your UI as needed
+                                updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                                updateWeeklyTasks();
+                                updateCalendar();
+                                updateCancelledTasksCount();
+                            })
+                            .addOnFailureListener(e -> Log.e("Firestore", "Error deleting task", e));
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error archiving task", e));
     }
+
 
     @Override
     public void onTaskEdited(Task updatedTask, int position) {
@@ -784,6 +815,29 @@ public class CombinedCalendarFragment extends Fragment implements
             updateWeeklyTasks();
         });
     }
+
+    // --- method to update the Cancelled Tasks Card ---
+    private void updateCancelledTasksCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (userId == null) return;
+
+        db.collection("users")
+                .document(userId)
+                .collection("cancelledSchoolTasks")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int cancelledCount = queryDocumentSnapshots.size();
+                    // Assuming the TextView for cancelled tasks count has the id "tasks_cancelled_count"
+                    TextView cancelledCountTextView = getView().findViewById(R.id.tasks_cancelled_count);
+                    if (cancelledCountTextView != null) {
+                        cancelledCountTextView.setText(String.valueOf(cancelledCount));
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching cancelled tasks", e));
+    }
+
 
     // Helper to set the active top toggle button.
     private void setActiveTopButton(TextView activeButton, TextView... inactiveButtons) {

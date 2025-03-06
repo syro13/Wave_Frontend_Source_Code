@@ -149,6 +149,12 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                     taskAdapter.updateTasks(selectedDateTasks);
                     updateTasksTitle(selectedDateTasks, selectedDay);
                     updateWeeklyTasks();
+                    ImageView emptyTasksImage = getView().findViewById(R.id.emptyTasksImage);
+                    if (selectedDateTasks.isEmpty()) {
+                        emptyTasksImage.setVisibility(View.VISIBLE);
+                    } else {
+                        emptyTasksImage.setVisibility(View.GONE);
+                    }
                 },
                 new HashSet<>(), // Initially empty home task dates
                 new HashSet<>(), // School task dates (unused here)
@@ -172,7 +178,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             Intent intent = new Intent(requireContext(), ProfileActivity.class);
             startActivity(intent);
         });
-
         return view;
     }
 
@@ -268,6 +273,17 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                             .addOnFailureListener(e -> Log.e("Firestore", "Error deleting task", e));
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error archiving task", e));
+    }
+    private void addTestOverdueTask() {
+        // Example: A task set for 1st January 2020 at 8:00 AM
+        addTaskToCalendar(
+                "Overdue Test",
+                "High",
+                "1/3/2025", // Past date
+                "08:00 AM", // Past time
+                false,
+                "Home"
+        );
     }
 
     // --- method to update the Cancelled Tasks Card ---
