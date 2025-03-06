@@ -397,6 +397,8 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
     public void onStart() {
         super.onStart();
         startHomeTasksListener();  // Begin listening for changes in "schooltasks"
+        updatePendingTasksCount();
+        updateCancelledTasksCount();
     }
 
     @Override
@@ -406,6 +408,28 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
             homeTasksListener.remove();
             homeTasksListener = null;
         }
+    }
+    // --- NEW method to update the Cancelled Tasks Card ---
+    private void updateCancelledTasksCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (userId == null) return;
+
+        db.collection("users")
+                .document(userId)
+                .collection("cancelledHomeTasks")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    int cancelledCount = querySnapshot.size();
+                    // Assuming you have a TextView in your layout with the ID "cancelledTasksCountView"
+                    TextView cancelledTasksCountView = getView().findViewById(R.id.tasks_cancelled_count);
+                    if (cancelledTasksCountView != null) {
+                        cancelledTasksCountView.setText(String.valueOf(cancelledCount));
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("HomeTasksFragment", "Error updating cancelled tasks", e);
+                });
     }
 
     // New method: updateCompletedTasksCount()
@@ -455,7 +479,33 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
                 });
     }
 
+    private void updatePendingTasksCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (userId == null) {
+            Log.e("HomeTasksFragment", "User not logged in, cannot fetch pending tasks");
+            return;
+        }
 
+        db.collection("users")
+                .document(userId)
+                .collection("housetasks") // or "housetasks" in HomeTasksFragment
+                .whereEqualTo("completed", false)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int pendingCount = queryDocumentSnapshots.size();
+                    Log.d("HomeTasksFragment", "Pending tasks count: " + pendingCount);
+
+                    // Find the TextView in your layout
+                    TextView tasksPendingTextView = getView().findViewById(R.id.tasks_pending_count);
+                    if (tasksPendingTextView != null) {
+                        // Update the text with the number of pending tasks
+                        tasksPendingTextView.setText(String.valueOf(pendingCount));
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("HomeTasksFragment", "Error fetching pending tasks", e));
+    }
 
 
     @Override

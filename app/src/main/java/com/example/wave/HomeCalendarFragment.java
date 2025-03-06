@@ -232,24 +232,66 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         return calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, java.util.Locale.getDefault());
     }
 
-    // onTaskDeleted uses Firestore deletion; the snapshot listener will update UI
+    // --- UPDATED onTaskDeleted() method for SchoolCalendarFragment ---
     @Override
     public void onTaskDeleted(Task task) {
-        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
         if (userId == null) {
             Log.e("Firestore", "User not logged in, cannot delete task");
             Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
             return;
         }
+        // Archive the task by writing it to the "cancelledTasks" collection
         db.collection("users")
                 .document(userId)
-                .collection("housetasks")
+                .collection("cancelledHomeTasks")
                 .document(task.getId())
-                .delete()
-                .addOnSuccessListener(aVoid -> Log.d("Firestore", "Task successfully deleted"))
-                .addOnFailureListener(e -> Log.e("Firestore", "Error deleting task", e));
+                .set(task)
+                .addOnSuccessListener(aVoid -> {
+                    // After archiving, delete the task from the original collection
+                    db.collection("users")
+                            .document(userId)
+                            .collection("housetasks")
+                            .document(task.getId())
+                            .delete()
+                            .addOnSuccessListener(aVoid2 -> {
+                                Log.d("Firestore", "Task archived and deleted: " + task.getTitle());
+                                // Update the UI after deletion
+                                updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                                updateWeeklyTasks();
+                                updateCalendar();
+                                // Refresh the Cancelled Tasks Card count
+                                updateCancelledTasksCount();
+                            })
+                            .addOnFailureListener(e -> Log.e("Firestore", "Error deleting task", e));
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error archiving task", e));
     }
+
+    // --- method to update the Cancelled Tasks Card ---
+    private void updateCancelledTasksCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (userId == null) return;
+
+        db.collection("users")
+                .document(userId)
+                .collection("cancelledHomeTasks")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int cancelledCount = queryDocumentSnapshots.size();
+                    // Assuming the TextView for cancelled tasks count has the id "tasks_cancelled_count"
+                    TextView cancelledCountTextView = getView().findViewById(R.id.tasks_cancelled_count);
+                    if (cancelledCountTextView != null) {
+                        cancelledCountTextView.setText(String.valueOf(cancelledCount));
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching cancelled tasks", e));
+    }
+
 
     // Return a set of dates (as strings) that have tasks for Home
     private Set<String> getHomeTaskDates() {

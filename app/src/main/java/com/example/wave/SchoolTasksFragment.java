@@ -261,11 +261,33 @@ public class SchoolTasksFragment extends Fragment  {
             void onClick(String displayPrompt, String actualPrompt);
         }
     }
+    private void updateCancelledTasksCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (userId == null) return;
+
+        db.collection("users")
+                .document(userId)
+                .collection("cancelledSchoolTasks")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int cancelledCount = queryDocumentSnapshots.size();
+                    // Assuming the TextView for cancelled school tasks count has the ID "tasks_cancelled_school_count"
+                    TextView cancelledTasksCountTextView = getView().findViewById(R.id.tasks_cancelled_count);
+                    if (cancelledTasksCountTextView != null) {
+                        cancelledTasksCountTextView.setText(String.valueOf(cancelledCount));
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("SchoolTasksFragment", "Error fetching cancelled school tasks", e));
+    }
 
     @Override
     public void onStart() {
         super.onStart();
         startSchoolTasksListener();  // Begin listening for changes in "schooltasks"
+        updatePendingTasksCount();
+        updateCancelledTasksCount();
     }
 
     @Override
@@ -275,6 +297,33 @@ public class SchoolTasksFragment extends Fragment  {
             schoolTasksListener.remove();
             schoolTasksListener = null;
         }
+    }
+    private void updatePendingTasksCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (userId == null) {
+            Log.e("SchoolTasksFragment", "User not logged in, cannot fetch pending tasks");
+            return;
+        }
+
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks") // or "housetasks" in HomeTasksFragment
+                .whereEqualTo("completed", false)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int pendingCount = queryDocumentSnapshots.size();
+                    Log.d("SchoolTasksFragment", "Pending tasks count: " + pendingCount);
+
+                    // Find the TextView in your layout
+                    TextView tasksPendingTextView = getView().findViewById(R.id.tasks_pending_count);
+                    if (tasksPendingTextView != null) {
+                        // Update the text with the number of pending tasks
+                        tasksPendingTextView.setText(String.valueOf(pendingCount));
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("SchoolTasksFragment", "Error fetching pending tasks", e));
     }
 
     private void startSchoolTasksListener() {

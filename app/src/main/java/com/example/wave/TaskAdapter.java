@@ -102,6 +102,11 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             holder.taskCheckCircle.setImageResource(R.drawable.ic_task_uncompleted);
         }
 
+        holder.deleteTask.setOnClickListener(v -> {
+            onTaskDeletedListener.onTaskDeleted(task);
+        });
+
+
         // ✅ Click listener to toggle task completion
         holder.taskCheckCircle.setOnClickListener(v -> toggleTaskCompletion(task, holder.getAdapterPosition(), holder.taskCheckCircle));
     }
