@@ -40,6 +40,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -288,6 +289,7 @@ public class SchoolTasksFragment extends Fragment  {
         startSchoolTasksListener();  // Begin listening for changes in "schooltasks"
         updatePendingTasksCount();
         updateCancelledTasksCount();
+        updateOverdueTasksCount();
     }
 
     @Override
@@ -325,6 +327,75 @@ public class SchoolTasksFragment extends Fragment  {
                 })
                 .addOnFailureListener(e -> Log.e("SchoolTasksFragment", "Error fetching pending tasks", e));
     }
+
+    private void updateOverdueTasksCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (userId == null) return;
+
+        // Query all uncompleted school tasks.
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .whereEqualTo("completed", false)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int overdueCount = 0;
+                    // We'll assume the time is stored in 24-hour format (e.g., "12:16")
+                    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+                    // Iterate over each task document.
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Task task = doc.toObject(Task.class);
+                        try {
+                            int day = Integer.parseInt(task.getDate());
+                            int month = getMonthIndex(task.getMonth());
+                            int year = task.getYear();
+
+                            java.time.LocalTime dueTime = java.time.LocalTime.parse(task.getTime(), timeFormatter);
+                            java.time.LocalDate dueDate = java.time.LocalDate.of(year, month, day);
+                            java.time.LocalDateTime dueDateTime = java.time.LocalDateTime.of(dueDate, dueTime);
+
+                            // If the task's due datetime is before now, it's overdue.
+                            if (dueDateTime.isBefore(java.time.LocalDateTime.now())) {
+                                overdueCount++;
+                            }
+                        } catch (Exception e) {
+                            Log.e("OverdueCount", "Error parsing task for overdue count: " + task.getTitle(), e);
+                        }
+                    }
+
+                    // Update the overdue count TextView.
+                    View view = getView();
+                    if (view != null) {
+                        TextView overdueCountTextView = view.findViewById(R.id.tasks_overdue_count);
+                        if (overdueCountTextView != null) {
+                            overdueCountTextView.setText(String.valueOf(overdueCount));
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("SchoolTasksFragment", "Error fetching tasks for overdue count", e));
+    }
+
+    // Helper method to convert a month name to its corresponding index (1-12)
+    private int getMonthIndex(String month) {
+        switch (month.toLowerCase()) {
+            case "january":   return 1;
+            case "february":  return 2;
+            case "march":     return 3;
+            case "april":     return 4;
+            case "may":       return 5;
+            case "june":      return 6;
+            case "july":      return 7;
+            case "august":    return 8;
+            case "september": return 9;
+            case "october":   return 10;
+            case "november":  return 11;
+            case "december":  return 12;
+            default:          return 0;
+        }
+    }
+
 
     private void startSchoolTasksListener() {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
