@@ -34,6 +34,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,9 +66,9 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
 
     private List<String> displayPromptsList;
     private List<String> actualPromptsList;
-    private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
-
     private PromptsAdapter promptsAdapter;
+    private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private ListenerRegistration homeTasksListener; // For real-time updates
 
     @Nullable
     @Override
@@ -392,18 +393,27 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
                     updateCompletedTaskCount(); // ✅ Refresh the UI count
                 });
     }
+    @Override
+    public void onStart() {
+        super.onStart();
+        startHomeTasksListener();  // Begin listening for changes in "schooltasks"
+    }
 
-
-
-    private void updateCompletedTaskCount() {
-        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
-                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
-                : null;
-
-        if (userId == null) {
-            Log.e("Firestore", "User not logged in, cannot fetch completed task count");
-            return;
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (homeTasksListener != null) {
+            homeTasksListener.remove();
+            homeTasksListener = null;
         }
+    }
+
+    // New method: updateCompletedTasksCount()
+// This queries Firestore for completed school tasks and updates the tasks_count TextView in the School Tasks page.
+    private void updateCompletedTaskCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (userId == null) return;
 
         db.collection("users")
                 .document(userId)
@@ -412,19 +422,40 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     int completedCount = queryDocumentSnapshots.size();
-                    Log.d("Firestore", "Completed task count fetched: " + completedCount);
-
-                    if (getView() != null) {
-                        TextView completedTaskCount = getView().findViewById(R.id.tasks_count);
-                        if (completedTaskCount != null) {
-                            completedTaskCount.setText(String.valueOf(completedCount));
-                        } else {
-                            Log.e("updateCompletedTaskCount", "tasks_count TextView is null, cannot update.");
-                        }
+                    // Assuming the completed tasks card's TextView has the ID "tasks_count"
+                    TextView tasksCountTextView = getView().findViewById(R.id.tasks_count);
+                    if (tasksCountTextView != null) {
+                        tasksCountTextView.setText(String.valueOf(completedCount));
                     }
                 })
-                .addOnFailureListener(e -> Log.e("Firestore", "Error fetching completed tasks", e));
+                .addOnFailureListener(e -> Log.e("HouseTasksFragment", "Error fetching completed tasks", e));
     }
+
+    private void startHomeTasksListener() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("HomeTasksFragment", "User not logged in, skipping home tasks listener.");
+            return;
+        }
+
+        homeTasksListener = db.collection("users")
+                .document(userId)
+                .collection("housetasks")
+                .addSnapshotListener((querySnapshot, e) -> {
+                    if (e != null) {
+                        Log.e("HomeTasksFragment", "Error listening for home tasks", e);
+                        return;
+                    }
+
+                    // Whenever tasks change, re-count completed tasks
+                    updateCompletedTaskCount();
+                });
+    }
+
+
 
 
     @Override

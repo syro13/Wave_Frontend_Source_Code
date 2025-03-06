@@ -35,6 +35,11 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -57,6 +62,8 @@ public class SchoolTasksFragment extends Fragment  {
     private List<String> actualPromptsList;
     private static final String SchoolNotesPREFS_NAME = "SchoolNotesPrefs";
     private static final String SCHOOL_NOTES_KEY = "school_notes";
+    private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private ListenerRegistration schoolTasksListener; // For real-time updates
 
 
     @Nullable
@@ -253,6 +260,69 @@ public class SchoolTasksFragment extends Fragment  {
         public interface OnPromptClickListener {
             void onClick(String displayPrompt, String actualPrompt);
         }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        startSchoolTasksListener();  // Begin listening for changes in "schooltasks"
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (schoolTasksListener != null) {
+            schoolTasksListener.remove();
+            schoolTasksListener = null;
+        }
+    }
+
+    private void startSchoolTasksListener() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("SchoolTasksFragment", "User not logged in, skipping school tasks listener.");
+            return;
+        }
+
+        schoolTasksListener = db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .addSnapshotListener((querySnapshot, e) -> {
+                    if (e != null) {
+                        Log.e("SchoolTasksFragment", "Error listening for school tasks", e);
+                        return;
+                    }
+
+                    // Whenever tasks change, re-count completed tasks
+                    updateCompletedTasksCount();
+                });
+    }
+
+
+    // New method: updateCompletedTasksCount()
+// This queries Firestore for completed school tasks and updates the tasks_count TextView in the School Tasks page.
+    private void updateCompletedTasksCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (userId == null) return;
+
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .whereEqualTo("completed", true)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int completedCount = queryDocumentSnapshots.size();
+                    // Assuming the completed tasks card's TextView has the ID "tasks_count"
+                    TextView tasksCountTextView = getView().findViewById(R.id.tasks_count);
+                    if (tasksCountTextView != null) {
+                        tasksCountTextView.setText(String.valueOf(completedCount));
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("SchoolTasksFragment", "Error fetching completed tasks", e));
     }
 
     // AIContentDialog Fragment
