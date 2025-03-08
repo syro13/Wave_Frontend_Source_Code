@@ -18,9 +18,9 @@ import java.util.List;
 public class PodcastAdapter extends RecyclerView.Adapter<PodcastAdapter.PodcastViewHolder> {
 
     private final Context context;
-    private final List<Podcast> podcasts;
+    private final List<PodcastsResponse> podcasts;
 
-    public PodcastAdapter(Context context, List<Podcast> podcasts) {
+    public PodcastAdapter(Context context, List<PodcastsResponse> podcasts) {
         this.context = context;
         this.podcasts = podcasts;
     }
@@ -34,13 +34,13 @@ public class PodcastAdapter extends RecyclerView.Adapter<PodcastAdapter.PodcastV
 
     @Override
     public void onBindViewHolder(@NonNull PodcastViewHolder holder, int position) {
-        Podcast podcast = podcasts.get(position);
+        PodcastsResponse podcast = podcasts.get(position);
 
         // Set the podcast title
         holder.title.setText(podcast.getTitle());
 
         // Set the duration in minutes
-        holder.duration.setText(podcast.getLengthMinutes() + " min");
+        holder.duration.setText(podcast.getDuration());
 
         // Handle the play button click
         holder.playButton.setOnClickListener(v -> {
