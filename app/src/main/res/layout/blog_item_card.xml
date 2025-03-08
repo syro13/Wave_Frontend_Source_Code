@@ -49,15 +49,10 @@
                     android:ellipsize="end"/>
 
                 <!-- Blog Author -->
-                <TextView
-                    android:id="@+id/blogAuthor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="By Tara Brach"
-                    android:textSize="12sp"
-                    android:textColor="#757575"
-                    android:padding="5dp"
-                    android:layout_marginBottom="8dp" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="14dp"
+                    android:layout_marginBottom="8dp"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
