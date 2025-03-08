@@ -19,9 +19,9 @@ import java.util.List;
 public class BlogAdapter extends RecyclerView.Adapter<BlogAdapter.BlogViewHolder> {
 
     private final Context context;
-    private final List<BlogResponse> blogs;
+    private final List<Blogs_Response> blogs;
 
-    public BlogAdapter(Context context, List<BlogResponse> blogs) {
+    public BlogAdapter(Context context, List<Blogs_Response> blogs) {
         this.context = context;
         this.blogs = blogs;
     }
@@ -35,15 +35,14 @@ public class BlogAdapter extends RecyclerView.Adapter<BlogAdapter.BlogViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull BlogViewHolder holder, int position) {
-        BlogResponse blog = blogs.get(position);
+        Blogs_Response blog = blogs.get(position);
 
         // Bind blog data to the UI
         holder.title.setText(blog.getTitle());
-        holder.author.setText(blog.getAuthor() != null ? blog.getAuthor() : "Unknown Author"); // Fallback if author is null
         holder.tag.setText(blog.getTag() != null ? blog.getTag() : "No Tag"); // Fallback if tag is null
 
         Glide.with(context)
-                .load(blog.getImageUrl())
+                .load(blog.getImage())
                 .placeholder(R.drawable.blog_placeholder)
                 .into(holder.image);
 
@@ -61,13 +60,12 @@ public class BlogAdapter extends RecyclerView.Adapter<BlogAdapter.BlogViewHolder
     }
 
     public static class BlogViewHolder extends RecyclerView.ViewHolder {
-        TextView title, author, tag;
+        TextView title, tag;
         ImageView image;
 
         public BlogViewHolder(@NonNull View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.blogTitle);
-            author = itemView.findViewById(R.id.blogAuthor);
             tag = itemView.findViewById(R.id.blogTag);
             image = itemView.findViewById(R.id.blogImage);
         }
