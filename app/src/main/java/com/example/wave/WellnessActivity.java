@@ -146,14 +146,14 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         }
 
         // Check if podcast data needs to be reloaded
-//        String cachedPodcastsJson = prefs.getString(PREFS_PODCASTS, null);
-//        if (cachedPodcastsJson == null || lastFetchDate != todayDate) {
-//            Log.d("WellnessActivity", "Reloading Podcasts...");
-//            loadCachedPodcasts();
-//            needsReload = true;
-//        } else {
-//            Log.d("WellnessActivity", "Podcasts are already cached.");
-//        }
+        String cachedPodcastsJson = prefs.getString(PREFS_PODCASTS, null);
+        if (cachedPodcastsJson == null || lastFetchDate != todayDate) {
+            Log.d("WellnessActivity", "Reloading Podcasts...");
+            loadCachedPodcasts();
+            needsReload = true;
+        } else {
+            Log.d("WellnessActivity", "Podcasts are already cached.");
+        }
 
         // Hide placeholders if reload is required
         if (needsReload) {
