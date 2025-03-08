@@ -10,8 +10,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -209,7 +211,6 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
             activeFragment = ActiveFragment.COMBINED;
         }
     }
-
     private void showAddTaskDialog() {
         LayoutInflater inflater = LayoutInflater.from(this);
         View dialogView = inflater.inflate(R.layout.task_input_screen, null);
@@ -225,6 +226,21 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
         EditText selectTimeInput = dialogView.findViewById(R.id.selectTime);
         SwitchMaterial remindSwitch = dialogView.findViewById(R.id.remindSwitch);
         View createTaskButton = dialogView.findViewById(R.id.createTaskButton);
+
+        // Initialize the Spinner from the dialog layout
+        Spinner repeatSpinner = dialogView.findViewById(R.id.repeatSpinner); // Use dialogView
+
+        // Populate the Spinner with repeat options
+        ArrayAdapter<CharSequence> repeatAdapter = ArrayAdapter.createFromResource(
+                this, // Context
+                R.array.repeat_options, // Reference to the string array
+                android.R.layout.simple_spinner_item // Default layout for Spinner items
+        );
+        repeatAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        repeatSpinner.setAdapter(repeatAdapter);
+
+        // Set the default selection to the first item ("Does not repeat")
+        repeatSpinner.setSelection(0);
 
         // Configure dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -262,8 +278,6 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
             // Reset school button
             schoolButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.transparent)));
         });
-
-
 
         // Handle task priority selection
         highPriorityButton.setOnClickListener(v -> {
@@ -312,15 +326,42 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
             String taskTime = selectTimeInput.getText().toString();
             boolean remind = remindSwitch.isChecked();
 
+            // Get the selected repeat option from the Spinner
+            String repeatOptionString = repeatSpinner.getSelectedItem().toString();
+
             if (validateInputs(taskTitle, taskDate, taskTime, taskPriority[0], taskType[0])) {
                 Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.home_school_calendar_container);
 
                 if (currentFragment instanceof SchoolCalendarFragment) {
-                    ((SchoolCalendarFragment) currentFragment).addTaskToCalendar(taskTitle, taskPriority[0], taskDate, taskTime, remind, taskType[0]);
+                    ((SchoolCalendarFragment) currentFragment).addTaskToCalendar(
+                            taskTitle,
+                            taskPriority[0],
+                            taskDate,
+                            taskTime,
+                            remind,
+                            taskType[0],
+                            repeatOptionString // Pass the selected repeat option
+                    );
                 } else if (currentFragment instanceof HomeCalendarFragment) {
-                    ((HomeCalendarFragment) currentFragment).addTaskToCalendar(taskTitle, taskPriority[0], taskDate, taskTime, remind, taskType[0]);
+                    ((HomeCalendarFragment) currentFragment).addTaskToCalendar(
+                            taskTitle,
+                            taskPriority[0],
+                            taskDate,
+                            taskTime,
+                            remind,
+                            taskType[0],
+                            repeatOptionString // Pass the selected repeat option
+                    );
                 } else if (currentFragment instanceof CombinedCalendarFragment) {
-                    ((CombinedCalendarFragment) currentFragment).addTaskToCalendar(taskTitle, taskPriority[0], taskDate, taskTime, remind, taskType[0]);
+                    ((CombinedCalendarFragment) currentFragment).addTaskToCalendar(
+                            taskTitle,
+                            taskPriority[0],
+                            taskDate,
+                            taskTime,
+                            remind,
+                            taskType[0],
+                            repeatOptionString // Pass the selected repeat option
+                    );
                 } else {
                     Toast.makeText(this, "No active calendar fragment to add the task", Toast.LENGTH_SHORT).show();
                 }
@@ -328,14 +369,6 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
                 dialog.dismiss();
             } else {
                 Toast.makeText(this, "Please fill out all fields", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        findViewById(R.id.profileIcon).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(SchoolHomeCalendarActivity.this, ProfileActivity.class);
-                startActivity(intent);
             }
         });
 

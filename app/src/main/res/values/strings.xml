@@ -76,4 +76,14 @@
             <item>November 2025</item>
             <item>December 2025</item>
         </string-array>
+    <string-array name="repeat_options">
+        <item>Does not repeat</item>
+        <item>Repeat every Monday</item>
+        <item>Repeat every Tuesday</item>
+        <item>Repeat every Wednesday</item>
+        <item>Repeat every Thursday</item>
+        <item>Repeat every Friday</item>
+        <item>Repeat every Saturday</item>
+        <item>Repeat every Sunday</item>
+    </string-array>
     </resources>

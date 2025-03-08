@@ -30,9 +30,11 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -332,15 +334,54 @@ public class CombinedCalendarFragment extends Fragment implements
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error archiving task", e));
     }
+    private List<String> getRepeatedDates(String startDate, Task.RepeatOption repeatOption) {
+        List<String> repeatedDates = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+        LocalDate startLocalDate = LocalDate.parse(startDate, formatter);
 
+        // Get the current month and year
+        int currentMonth = startLocalDate.getMonthValue();
+        int currentYear = startLocalDate.getYear();
+
+        // Find the first occurrence of the selected day in the current month
+        LocalDate firstOccurrence = startLocalDate.with(TemporalAdjusters.firstInMonth(DayOfWeek.SATURDAY));
+
+        // Loop through all Saturdays in the current month
+        LocalDate nextDate = firstOccurrence;
+        while (nextDate.getMonthValue() == currentMonth && nextDate.getYear() == currentYear) {
+            repeatedDates.add(nextDate.format(formatter));
+            nextDate = nextDate.with(TemporalAdjusters.next(DayOfWeek.SATURDAY));
+        }
+
+        return repeatedDates;
+    }
 
     @Override
     public void onTaskEdited(Task updatedTask, int position) {
         updateExistingTask(updatedTask);
     }
-    // ----- UPDATED addTaskToCalendar() -----
+    private Task.RepeatOption getRepeatOptionFromString(String repeatOptionString) {
+        switch (repeatOptionString) {
+            case "Repeat every Monday":
+                return Task.RepeatOption.REPEAT_EVERY_MONDAY;
+            case "Repeat every Tuesday":
+                return Task.RepeatOption.REPEAT_EVERY_TUESDAY;
+            case "Repeat every Wednesday":
+                return Task.RepeatOption.REPEAT_EVERY_WEDNESDAY;
+            case "Repeat every Thursday":
+                return Task.RepeatOption.REPEAT_EVERY_THURSDAY;
+            case "Repeat every Friday":
+                return Task.RepeatOption.REPEAT_EVERY_FRIDAY;
+            case "Repeat every Saturday":
+                return Task.RepeatOption.REPEAT_EVERY_SATURDAY;
+            case "Repeat every Sunday":
+                return Task.RepeatOption.REPEAT_EVERY_SUNDAY;
+            default:
+                return Task.RepeatOption.DOES_NOT_REPEAT;
+        }
+    }
     public void addTaskToCalendar(String taskTitle, String taskPriority, String taskDate, String taskTime,
-                                  boolean remind, String taskType) {
+                                  boolean remind, String taskType, String repeatOptionString) {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (userId == null) {
@@ -365,40 +406,52 @@ public class CombinedCalendarFragment extends Fragment implements
             return;
         }
 
-        String taskId = UUID.randomUUID().toString();
+        // Convert the repeat option string to the RepeatOption enum
+        Task.RepeatOption repeatOption = getRepeatOptionFromString(repeatOptionString);
 
-        Task newTask = new Task(
-                taskId,
-                taskTitle,
-                taskTime,
-                String.valueOf(day),
-                getMonthYearList().get(monthIndex),
-                taskPriority,
-                taskType, // "School" or "Home"
-                remind,
-                year,
-                0, // Default stability value
-                System.currentTimeMillis(),
-                taskDate, // Full date string
-                false // Not completed
-        );
+        // Get the repeated dates for the current month
+        List<String> repeatedDates = getRepeatedDates(taskDate, repeatOption);
 
-        // Determine collection based on taskType
-        String taskCollection = "Home".equals(taskType) ? "housetasks" : "schooltasks";
+        for (String repeatedDate : repeatedDates) {
+            String taskId = UUID.randomUUID().toString();
+            String[] repeatedDateParts = repeatedDate.split("/");
+            int repeatedYear = Integer.parseInt(repeatedDateParts[2]);
 
-        db.collection("users")
-                .document(userId)
-                .collection(taskCollection)
-                .document(taskId)
-                .set(newTask)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d("Firestore", "Task successfully added!");
-                    // Snapshot listeners will update the UI automatically.
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Firestore", "Error adding task", e);
-                    Toast.makeText(requireContext(), "Error adding task", Toast.LENGTH_SHORT).show();
-                });
+            Task newTask = new Task(
+                    taskId,
+                    taskTitle,
+                    taskTime,
+                    repeatedDateParts[0],
+                    getMonthYearList().get(Integer.parseInt(repeatedDateParts[1]) - 1),
+                    taskPriority,
+                    taskType,
+                    remind,
+                    repeatedYear,
+                    0, // Default stability value
+                    System.currentTimeMillis(),
+                    repeatedDate,
+                    false,
+                    repeatOption
+            );
+
+            // Determine collection based on taskType
+            String taskCollection = "Home".equals(taskType) ? "housetasks" : "schooltasks";
+
+            // Save the task to Firestore
+            db.collection("users")
+                    .document(userId)
+                    .collection(taskCollection)
+                    .document(taskId)
+                    .set(newTask)
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("Firestore", "Task successfully added!");
+                        // Snapshot listeners will update the UI automatically.
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("Firestore", "Error adding task", e);
+                        Toast.makeText(requireContext(), "Error adding task", Toast.LENGTH_SHORT).show();
+                    });
+        }
     }
 
 

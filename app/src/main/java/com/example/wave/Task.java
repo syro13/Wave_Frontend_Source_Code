@@ -25,14 +25,24 @@ public class Task implements Parcelable {
     private int stability;
     private long tasktimestamp;
     private boolean completed;
-
+    private RepeatOption repeatOption;
+    public enum RepeatOption {
+        DOES_NOT_REPEAT,
+        REPEAT_EVERY_MONDAY,
+        REPEAT_EVERY_TUESDAY,
+        REPEAT_EVERY_WEDNESDAY,
+        REPEAT_EVERY_THURSDAY,
+        REPEAT_EVERY_FRIDAY,
+        REPEAT_EVERY_SATURDAY,
+        REPEAT_EVERY_SUNDAY
+    }
     // Default constructor (needed for Firebase or other serialization)
     public Task() {}
 
     // Full constructor
     public Task(String id, String title, String time, String date, String month,
                 String priority, String category, boolean remind, int year,
-                int stability, long tasktimestamp, String fullDate, boolean completed) {
+                int stability, long tasktimestamp, String fullDate, boolean completed,  RepeatOption repeatOption) {
         this.id = id;
         this.title = title;
         this.time = time;
@@ -46,6 +56,7 @@ public class Task implements Parcelable {
         this.tasktimestamp = tasktimestamp;
         this.fullDate = fullDate;
         this.completed = completed;
+        this.repeatOption = repeatOption;
 
     }
 
@@ -64,6 +75,7 @@ public class Task implements Parcelable {
         stability = in.readInt();
         tasktimestamp = in.readLong();
         completed = in.readByte() != 0;
+        repeatOption = RepeatOption.values()[in.readInt()];
     }
 
     @Override
@@ -81,6 +93,7 @@ public class Task implements Parcelable {
         dest.writeInt(stability);
         dest.writeLong(tasktimestamp);
         dest.writeByte((byte) (completed ? 1 : 0));
+        dest.writeInt(repeatOption.ordinal());
     }
 
     public static final Creator<Task> CREATOR = new Creator<Task>() {
@@ -163,6 +176,13 @@ public class Task implements Parcelable {
 
     public void setFullDate(String fullDate) { this.fullDate = fullDate; }
 
+    public RepeatOption getRepeatOption() {
+        return repeatOption;
+    }
+
+    public void setRepeatOption(RepeatOption repeatOption) {
+        this.repeatOption = repeatOption;
+    }
     // Helper method to get the month index
     private int getMonthIndex(String monthName) {
         List<String> months = Arrays.asList("January", "February", "March", "April", "May", "June",
@@ -186,11 +206,13 @@ public class Task implements Parcelable {
                 Objects.equals(month, task.month) &&
                 Objects.equals(priority, task.priority) &&
                 Objects.equals(category, task.category) &&
-                Objects.equals(fullDate, task.fullDate);
+                Objects.equals(fullDate, task.fullDate) &&
+                repeatOption == task.repeatOption;
+
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(title, time, date, month, priority, category, remind, year, stability, tasktimestamp, fullDate);
+        return Objects.hash(title, time, date, month, priority, category, remind, year, stability, tasktimestamp, fullDate, repeatOption);
     }
 }

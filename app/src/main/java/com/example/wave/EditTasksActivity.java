@@ -225,12 +225,36 @@ public class EditTasksActivity extends AppCompatActivity {
                 "July", "August", "September", "October", "November", "December"
         );
     }
+    private Task.RepeatOption getRepeatOptionFromString(String repeatOptionString) {
+        switch (repeatOptionString) {
+            case "Repeat every Monday":
+                return Task.RepeatOption.REPEAT_EVERY_MONDAY;
+            case "Repeat every Tuesday":
+                return Task.RepeatOption.REPEAT_EVERY_TUESDAY;
+            case "Repeat every Wednesday":
+                return Task.RepeatOption.REPEAT_EVERY_WEDNESDAY;
+            case "Repeat every Thursday":
+                return Task.RepeatOption.REPEAT_EVERY_THURSDAY;
+            case "Repeat every Friday":
+                return Task.RepeatOption.REPEAT_EVERY_FRIDAY;
+            case "Repeat every Saturday":
+                return Task.RepeatOption.REPEAT_EVERY_SATURDAY;
+            case "Repeat every Sunday":
+                return Task.RepeatOption.REPEAT_EVERY_SUNDAY;
+            default:
+                return Task.RepeatOption.DOES_NOT_REPEAT;
+        }
+    }
 
     private void saveEditedTask() {
         String updatedTitle = taskTitleInput.getText().toString().trim();
         String updatedTime = selectTime.getText().toString().trim();
         String updatedDate = selectDate.getText().toString().trim();
         boolean updatedRemind = remindSwitch.isChecked();
+
+        // Get the selected repeat option from the Spinner
+        Spinner repeatSpinner = findViewById(R.id.repeatSpinner); // Ensure this ID matches your Spinner
+        String repeatOptionString = repeatSpinner.getSelectedItem().toString();
 
         if (updatedTitle.isEmpty() || updatedDate.isEmpty() || updatedTime.isEmpty()) {
             Toast.makeText(this, "All fields must be filled!", Toast.LENGTH_SHORT).show();
@@ -242,6 +266,9 @@ public class EditTasksActivity extends AppCompatActivity {
         int day = Integer.parseInt(dateParts[0]);
         int month = Integer.parseInt(dateParts[1]);
         int year = Integer.parseInt(dateParts[2]);
+
+        // Convert the repeat option string to the RepeatOption enum
+        Task.RepeatOption repeatOption = getRepeatOptionFromString(repeatOptionString);
 
         // Create the updated task
         Task updatedTask = new Task(
@@ -257,7 +284,8 @@ public class EditTasksActivity extends AppCompatActivity {
                 task.getStability(), // Preserve existing stability
                 System.currentTimeMillis(),  // Update timestamp for last modification
                 updatedDate,
-                false
+                false,
+                repeatOption // Pass the RepeatOption enum
         );
 
         // Get current user ID safely
