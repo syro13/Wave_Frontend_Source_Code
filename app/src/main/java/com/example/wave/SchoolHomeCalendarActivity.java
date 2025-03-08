@@ -377,12 +377,86 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
 
 
     private boolean validateInputs(String title, String date, String time, String priority, String type) {
-        return !title.isEmpty() && !date.isEmpty() && !time.isEmpty() && !priority.isEmpty() && !type.isEmpty();
+        // Check if any field is empty
+        if (title.isEmpty()) {
+            Toast.makeText(this, "Please enter a task title", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (date.isEmpty()) {
+            Toast.makeText(this, "Please select a date", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (time.isEmpty()) {
+            Toast.makeText(this, "Please select a time", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (priority.isEmpty()) {
+            Toast.makeText(this, "Please select a priority", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (type.isEmpty()) {
+            Toast.makeText(this, "Please select a task type (School or Home)", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate date format (expected: "day/month/year")
+        if (!isValidDate(date)) {
+            Toast.makeText(this, "Invalid date format. Use day/month/year", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate time format (expected: "HH:mm")
+        if (!isValidTime(time)) {
+            Toast.makeText(this, "Invalid time format. Use HH:mm", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
     }
 
+    private boolean isValidDate(String date) {
+        // Check if the date matches the format "day/month/year"
+        String[] dateParts = date.split("/");
+        if (dateParts.length != 3) {
+            return false;
+        }
 
-    private boolean validateInputs(String title, String date, String time, String priority) {
-        return !title.isEmpty() && !date.isEmpty() && !time.isEmpty() && !priority.isEmpty();
+        try {
+            int day = Integer.parseInt(dateParts[0]);
+            int month = Integer.parseInt(dateParts[1]);
+            int year = Integer.parseInt(dateParts[2]);
+
+            // Basic validation for day, month, and year
+            if (day < 1 || day > 31 || month < 1 || month > 12 || year < 2023) {
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean isValidTime(String time) {
+        // Check if the time matches the format "HH:mm"
+        String[] timeParts = time.split(":");
+        if (timeParts.length != 2) {
+            return false;
+        }
+
+        try {
+            int hour = Integer.parseInt(timeParts[0]);
+            int minute = Integer.parseInt(timeParts[1]);
+
+            // Basic validation for hour and minute
+            if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        return true;
     }
 
     private void showDatePicker(EditText dateInput) {
