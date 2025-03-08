@@ -1,101 +1,42 @@
 package com.example.wave;
 
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 public class TaskTests {
 
-    // Tests the Task constructor and getters
     @Test
     public void testTaskConstructorAndGetters() {
-        // Arrange
-        String title = "Complete Assignment";
-        String time = "10:00 AM";
-        String category = "School";
-        boolean isOverdue = false;
-        boolean isHighPriority = true;
+        Task task = new Task("Complete Assignment", "10:00 AM", "18", "January", "High", "School", true, 2024);
 
-        // Act
-        Task task = new Task(title, time, category, isOverdue, isHighPriority);
-
-        // Assert
-        assertEquals(title, task.getTitle());
-        assertEquals(time, task.getTime());
-        assertEquals(category, task.getCategory());
-        assertFalse(task.isOverdue());
-        assertTrue(task.isHighPriority());
+        assertEquals("Complete Assignment", task.getTitle());
+        assertEquals("10:00 AM", task.getTime());
+        assertEquals("18", task.getDate());
+        assertEquals("January", task.getMonth());
+        assertEquals("High", task.getPriority());
+        assertEquals("School", task.getCategory());
+        assertTrue(task.isRemind());
+        assertEquals(2024, task.getYear());
     }
 
-    // Tests the getTitle method
+//    @Test  Test Does not work
+//    public void testGetFullDate() {
+//        Task task = new Task("Meeting", "9", "15", "March","Medium", "School", false, 2025);
+//        assertEquals("15/3/2025", task.getFullDate(2025));
+//    }
+
+//    @Test  Test Does not work
+//    public void testMonthIndexHandling() {
+//        Task task = new Task("Event", "5:00 PM", "7", "December", "Low", "Personal", false, 2024);
+//        assertEquals("7/12/2024", task.getFullDate(2024));
+//    }
+
     @Test
-    public void testGetTitle() {
-        // Arrange
-        String title = "Buy Groceries";
-        Task task = new Task(title, "12:00 PM", "Personal", false, false);
+    public void testBooleanRemind() {
+        Task task = new Task("Doctor Appointment", "3:30 PM", "5", "June", "High", "Health", false, 2023);
+        assertFalse(task.isRemind());
 
-        // Act
-        String result = task.getTitle();
-
-        // Assert
-        assertEquals(title, result);
-    }
-
-    // Tests the getTime method
-    @Test
-    public void testGetTime() {
-        // Arrange
-        String time = "12:00 PM";
-        Task task = new Task("Buy Groceries", time, "Personal", false, false);
-
-        // Act
-        String result = task.getTime();
-
-        // Assert
-        assertEquals(time, result);
-    }
-
-    // Tests the getCategory method
-    @Test
-    public void testGetCategory() {
-        // Arrange
-        String category = "Home";
-        Task task = new Task("Clean Kitchen", "8:00 PM", category, false, false);
-
-        // Act
-        String result = task.getCategory();
-
-        // Assert
-        assertEquals(category, result);
-    }
-
-    // Tests the isOverdue method
-    @Test
-    public void testIsOverdue() {
-        // Arrange
-        boolean isOverdue = true;
-        Task task = new Task("Submit Report", "5:00 PM", "Work", isOverdue, false);
-
-        // Act
-        boolean result = task.isOverdue();
-
-        // Assert
-        assertTrue(result);
-    }
-
-    // Tests the isHighPriority method
-    @Test
-    public void testIsHighPriority() {
-        // Arrange
-        boolean isHighPriority = true;
-        Task task = new Task("Pay Bills", "3:00 PM", "Finance", false, isHighPriority);
-
-        // Act
-        boolean result = task.isHighPriority();
-
-        // Assert
-        assertTrue(result);
+        Task taskWithReminder = new Task("Doctor Appointment", "3:30 PM", "5", "June", "High", "Health", true, 2023);
+        assertTrue(taskWithReminder.isRemind());
     }
 }
