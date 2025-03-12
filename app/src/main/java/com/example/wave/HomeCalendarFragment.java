@@ -200,7 +200,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         }
     }
 
-    // Set up a snapshot listener that updates taskList and UI in real time
     private void startTaskListener() {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
@@ -244,22 +243,28 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
         LocalDate startLocalDate = LocalDate.parse(startDate, formatter);
 
-        // Get the current month and year
-        int currentMonth = startLocalDate.getMonthValue();
-        int currentYear = startLocalDate.getYear();
+        // If the user chose "Does not repeat," just return the single date:
+        if (repeatOption == Task.RepeatOption.DOES_NOT_REPEAT) {
+            repeatedDates.add(startDate); // Just store exactly what they typed
+            return repeatedDates;
+        }
 
-        // Find the first occurrence of the selected day in the current month
-        LocalDate firstOccurrence = startLocalDate.with(TemporalAdjusters.firstInMonth(DayOfWeek.SATURDAY));
+        // Otherwise, handle the day-of-week logic:
+        DayOfWeek dayOfWeek = DayOfWeek.SATURDAY; // Example for Saturday
+        // Or map each REPEAT_EVERY_xxx to the correct DayOfWeek
 
-        // Loop through all Saturdays in the current month
-        LocalDate nextDate = firstOccurrence;
-        while (nextDate.getMonthValue() == currentMonth && nextDate.getYear() == currentYear) {
-            repeatedDates.add(nextDate.format(formatter));
-            nextDate = nextDate.with(TemporalAdjusters.next(DayOfWeek.SATURDAY));
+        LocalDate firstOccurrence = startLocalDate.with(
+                TemporalAdjusters.firstInMonth(dayOfWeek));
+
+        while (firstOccurrence.getMonthValue() == startLocalDate.getMonthValue()
+                && firstOccurrence.getYear() == startLocalDate.getYear()) {
+            repeatedDates.add(firstOccurrence.format(formatter));
+            firstOccurrence = firstOccurrence.with(TemporalAdjusters.next(dayOfWeek));
         }
 
         return repeatedDates;
     }
+
 
     // --- UPDATED onTaskDeleted() method for SchoolCalendarFragment ---
     @Override
@@ -403,11 +408,29 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     // Update the daily tasks and label for a given day
     public void updateTasksForToday(int day) {
         List<Task> todayTasks = new ArrayList<>();
+        String currentMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
+        int currentYear = calendar.get(Calendar.YEAR);
+
         for (Task t : taskList) {
-            if (!t.isCompleted() && Integer.parseInt(t.getDate()) == day && "Home".equals(t.getCategory())) {
+            // Parse the task's date to extract the day, month, and year
+            String[] dateParts = t.getDate().split("/");
+            if (dateParts.length != 3) {
+                Log.e("TaskFilter", "Invalid date format for task: " + t.getDate());
+                continue;
+            }
+
+            int taskDay = Integer.parseInt(dateParts[0]);
+            int taskMonth = Integer.parseInt(dateParts[1]) - 1; // Convert to 0-based index
+            int taskYear = Integer.parseInt(dateParts[2]);
+
+            // Check if the task matches the selected day, month, and year
+            if (taskDay == day && taskMonth == calendar.get(Calendar.MONTH) && taskYear == currentYear
+                    && "Home".equals(t.getCategory()) && !t.isCompleted()) {
                 todayTasks.add(t);
             }
         }
+
+        // Update the adapter and UI
         taskAdapter.updateTasks(todayTasks);
         taskAdapter.notifyDataSetChanged();
         updateTasksTitle(todayTasks, day);
@@ -496,15 +519,15 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                     taskId,
                     title,
                     time,
-                    dateParts[0],
-                    getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1),
+                    dateParts[0], // Day
+                    getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1), // Month
                     priority,
                     taskType,
                     remind,
                     year,
                     0,
                     System.currentTimeMillis(),
-                    repeatedDate,
+                    repeatedDate, // Full date string
                     false,
                     repeatOption
             );
@@ -512,10 +535,13 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             // Save the task to Firestore
             db.collection("users")
                     .document(userId)
-                    .collection("housetasks") // or "housetasks" based on taskType
+                    .collection("housetasks")
                     .document(taskId)
                     .set(newTask)
-                    .addOnSuccessListener(aVoid -> Log.d("Firestore", "Task successfully added!"))
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("Firestore", "Task successfully added!");
+                        // The snapshot listener will update the taskList and UI automatically
+                    })
                     .addOnFailureListener(e -> Log.e("Firestore", "Error adding task", e));
         }
     }
