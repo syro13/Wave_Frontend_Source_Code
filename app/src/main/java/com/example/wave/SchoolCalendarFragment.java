@@ -236,12 +236,10 @@ public class SchoolCalendarFragment extends Fragment implements
                         taskList.clear();
                         for (QueryDocumentSnapshot doc : querySnapshot) {
                             Task task = doc.toObject(Task.class);
-                            // Only add incomplete tasks
                             if (!task.isCompleted()) {
                                 taskList.add(task);
                             }
                         }
-                        // Update the calendar, daily, and weekly sections
                         updateCalendar();
                         updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
                         updateWeeklyTasks();
@@ -372,11 +370,29 @@ public class SchoolCalendarFragment extends Fragment implements
     // Update today's tasks based on the current day (School category)
     public void updateTasksForToday(int day) {
         List<Task> todayTasks = new ArrayList<>();
+        String currentMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
+        int currentYear = calendar.get(Calendar.YEAR);
+
         for (Task t : taskList) {
-            if (!t.isCompleted() && Integer.parseInt(t.getDate()) == day && "School".equals(t.getCategory())) {
+            // Parse the task's date to extract the day, month, and year
+            String[] dateParts = t.getDate().split("/");
+            if (dateParts.length != 3) {
+                Log.e("TaskFilter", "Invalid date format for task: " + t.getDate());
+                continue;
+            }
+
+            int taskDay = Integer.parseInt(dateParts[0]);
+            int taskMonth = Integer.parseInt(dateParts[1]) - 1; // Convert to 0-based index
+            int taskYear = Integer.parseInt(dateParts[2]);
+
+            // Check if the task matches the selected day, month, and year
+            if (taskDay == day && taskMonth == calendar.get(Calendar.MONTH) && taskYear == currentYear
+                    && "School".equals(t.getCategory()) && !t.isCompleted()) {
                 todayTasks.add(t);
             }
         }
+
+        // Update the adapter and UI
         taskAdapter.updateTasks(todayTasks);
         taskAdapter.notifyDataSetChanged();
         updateTasksTitle(todayTasks, day);
@@ -465,15 +481,15 @@ public class SchoolCalendarFragment extends Fragment implements
                     taskId,
                     title,
                     time,
-                    dateParts[0],
-                    getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1),
+                    dateParts[0], // Day
+                    getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1), // Month
                     priority,
                     taskType,
                     remind,
                     year,
                     0,
                     System.currentTimeMillis(),
-                    repeatedDate,
+                    repeatedDate, // Full date string
                     false,
                     repeatOption
             );
@@ -481,10 +497,13 @@ public class SchoolCalendarFragment extends Fragment implements
             // Save the task to Firestore
             db.collection("users")
                     .document(userId)
-                    .collection("schooltasks") // or "housetasks" based on taskType
+                    .collection("schooltasks")
                     .document(taskId)
                     .set(newTask)
-                    .addOnSuccessListener(aVoid -> Log.d("Firestore", "Task successfully added!"))
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("Firestore", "Task successfully added!");
+                        // The snapshot listener will update the taskList and UI automatically
+                    })
                     .addOnFailureListener(e -> Log.e("Firestore", "Error adding task", e));
         }
     }

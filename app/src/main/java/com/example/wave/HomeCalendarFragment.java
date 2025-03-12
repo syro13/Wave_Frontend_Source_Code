@@ -53,7 +53,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     private Calendar calendar;
     private Spinner monthYearDropdown;
     private TextView homeCalendarButton, schoolCalendarButton; // Toggle buttons
-
+    private int selectedDay = -1; // Store the selected day
     public static final int REQUEST_EDIT_TASK = 1001;
     private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -145,7 +145,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         calendarAdapter = new CalendarAdapter(
                 calendarDates,
                 selectedDate -> {
-                    int selectedDay = Integer.parseInt(selectedDate);
+                    selectedDay = Integer.parseInt(selectedDate); // Update the selected day
                     calendar.set(Calendar.DAY_OF_MONTH, selectedDay);
                     List<Task> selectedDateTasks = filterTasksByDateBasedOnCategory(selectedDay, "Home");
                     taskAdapter.updateTasks(selectedDateTasks);
@@ -220,8 +220,12 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                                 taskList.add(task);
                             }
                         }
-                        updateCalendar();
-                        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                        // Preserve the selected date and update the UI
+                        if (selectedDay != -1) {
+                            updateTasksForToday(selectedDay);
+                        } else {
+                            updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                        }
                         updateWeeklyTasks();
                     }
                 });
