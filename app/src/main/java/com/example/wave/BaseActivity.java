@@ -1,15 +1,21 @@
 package com.example.wave;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public abstract class BaseActivity extends AppCompatActivity {
+    private ImageView profileIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,4 +65,27 @@ public abstract class BaseActivity extends AppCompatActivity {
 
         return true; // Mark the item as selected
     }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (findViewById(R.id.profileIcon) != null) {
+            loadUserProfile();
+        }
+    }
+    private void loadUserProfile() {
+        if (profileIcon == null) {
+            profileIcon = findViewById(R.id.profileIcon);
+        }
+        if (profileIcon != null) {
+            String profileImageUrl = AppController.getInstance().getProfileImageUrl();
+            Glide.with(this)
+                    .load(profileImageUrl)
+                    .placeholder(R.drawable.profile_image)
+                    .error(R.drawable.profile_image)
+                    .circleCrop()
+                    .into(profileIcon);
+        }else {
+                profileIcon.setImageResource(R.drawable.profile_image);
+            }
+        }
 }
