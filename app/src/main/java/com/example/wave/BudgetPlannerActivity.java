@@ -206,7 +206,6 @@ public class BudgetPlannerActivity extends BaseActivity {
 
         budgetRef.addSnapshotListener((documentSnapshot, e) -> {
             if (e != null) {
-                Toast.makeText(this, "Error loading budget!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
