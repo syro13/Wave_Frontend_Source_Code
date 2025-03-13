@@ -126,6 +126,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                 .requestEmail()
                 .build();
         googleSignInClient = GoogleSignIn.getClient(requireContext(), gso);
+        googleSignInClient.signOut();
     }
 
     /**
@@ -170,11 +171,10 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            Toast.makeText(getContext(), "Facebook Sign-In Successful", Toast.LENGTH_SHORT).show();
-                            navigateToDashboard(user);
+                            setDefaultProfileImage(user, user.getDisplayName());
                         }
                     } else {
-                        Toast.makeText(getContext(), "Facebook Sign-In Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Facebook Sign-In Failed", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -182,12 +182,12 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
     @Override
     public void updateUI(FirebaseUser user) {
         if (user != null) {
-            Toast.makeText(getContext(), "Twitter Sign-In Successful: " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
-            navigateToDashboard(user);
+                setDefaultProfileImage(user, user.getDisplayName());
         } else {
             Toast.makeText(getContext(), "Twitter Sign-In Failed", Toast.LENGTH_SHORT).show();
         }
     }
+
     /**
 
     /**
@@ -197,8 +197,8 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
         if (getActivity() != null && user != null) {
             Intent intent = new Intent(getActivity(), DashboardActivity.class);
             intent.putExtra("USER_NAME", user.getDisplayName());
-            getActivity().finish();
             startActivity(intent);
+            getActivity().finish();
         }
     }
 
@@ -262,23 +262,9 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             if (isSignUp) {
-                                // Handle additional sign-up logic (e.g., set display name)
-                                String displayName = account.getDisplayName();
-                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                        .setDisplayName(displayName)
-                                        .build();
-                                user.updateProfile(profileUpdates)
-                                        .addOnCompleteListener(updateTask -> {
-                                            if (updateTask.isSuccessful()) {
-                                                Toast.makeText(getContext(), "Sign-up successful!", Toast.LENGTH_SHORT).show();
-                                                navigateToDashboard(displayName);
-                                            } else {
-                                                Toast.makeText(getContext(), "Failed to update profile", Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
+                                setDefaultProfileImage(user, account.getDisplayName());
                             } else {
-                                // Proceed directly to the dashboard for login
-                                navigateToDashboard(user.getDisplayName());
+                                navigateToDashboard(user);
                             }
                         }
                     } else {
@@ -335,38 +321,35 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
             return;
         }
 
-        // Create user in Firebase
-        mAuth.createUserWithEmailAndPassword(email, password)
+         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            // Set the display name in Firebase Authentication
-                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                    .setDisplayName(name)
-                                    .build();
-
-                            user.updateProfile(profileUpdates)
-                                    .addOnCompleteListener(updateTask -> {
-                                        if (updateTask.isSuccessful()) {
-                                            Toast.makeText(getContext(), "Sign-In Successful!", Toast.LENGTH_SHORT).show();
-                                            // Navigate to Dashboard
-                                            Intent intent = new Intent(getActivity(), DashboardActivity.class);
-                                            intent.putExtra("USER_NAME", name);
-                                            startActivity(intent);
-                                            getActivity().finish();
-                                        } else {
-                                            Toast.makeText(getContext(), "Failed to set display name", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
+                            setDefaultProfileImage(user, name);
                         }
                     } else {
-                        Toast.makeText(getContext(), "Sign-In Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Sign-Up Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
+    private void setDefaultProfileImage(FirebaseUser user, String name) {
+        String defaultImageUrl = AppController.DEFAULT_PROFILE_IMAGE_URL;
+        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                .setDisplayName(name)
+                .setPhotoUri(Uri.parse(defaultImageUrl))
+                .build();
 
+        user.updateProfile(profileUpdates).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                AppController.getInstance().updateProfileImageUrl(defaultImageUrl);
+                navigateToDashboard(user);
+            } else {
+                Toast.makeText(getContext(), "Failed to update profile!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
     /**
      * Updates the styles of the toggle buttons to show which one is active.
