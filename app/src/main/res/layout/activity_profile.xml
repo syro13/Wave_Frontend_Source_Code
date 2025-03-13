@@ -14,15 +14,18 @@
         android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
 
             <!-- Header Section -->
             <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:id="@+id/headerSection"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
 
                 <!-- Wave Background -->
                 <ImageView
@@ -44,15 +47,14 @@
                     android:layout_marginTop="140dp"/>
 
                 <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/profileImage"
+                    android:id="@+id/profileIcon"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
-                    android:src="@drawable/profile"
+                    android:src="@drawable/profile_image"
                     android:scaleType="centerCrop"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="190dp"
                     app:shapeAppearanceOverlay="@style/RoundedImage"/>
-
 
                 <!-- Name -->
                 <TextView
@@ -67,314 +69,332 @@
                     android:layout_marginTop="300dp"/>
             </FrameLayout>
 
-        <!-- Profile Options Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@android:color/white"
-            android:padding="8dp">
-
-            <!-- Settings Title -->
-            <TextView
-                android:layout_width="match_parent"
+            <!-- Profile Options Section -->
+            <LinearLayout
+                android:id="@+id/profileOptionsSection"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Settings"
-                android:fontFamily="@font/lato"
-                android:textSize="16sp"
-                android:padding="3dp"
-                android:textColor="#747474"
-                android:layout_margin="5dp"/>
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:padding="8dp"
+                app:layout_constraintTop_toBottomOf="@id/headerSection"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
 
-            <!-- App Settings -->
-            <LinearLayout
-                android:id="@+id/appSettings"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:padding="3dp"
-                android:layout_margin="10dp"
-                android:clickable="true"
-                android:background="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_settings"
-                    android:layout_marginEnd="12dp"/>
-
+                <!-- Settings Title -->
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="App Settings"
-                    android:textColor="@color/black"
+                    android:text="Settings"
+                    android:fontFamily="@font/lato"
                     android:textSize="16sp"
-                    android:layout_weight="1"/>
+                    android:padding="3dp"
+                    android:textColor="#747474"
+                    android:layout_margin="5dp"/>
 
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_arrow_right"/>
-            </LinearLayout>
-            <!-- Account Title -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Account"
-                android:fontFamily="@font/lato"
-                android:textSize="16sp"
-                android:padding="3dp"
-                android:textColor="#747474"
-                android:layout_margin="5dp"/>
-            <!-- Change Account Name -->
-            <LinearLayout
-                android:id="@+id/changeAccountName"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:padding="3dp"
-                android:layout_margin="10dp"
-                android:clickable="true"
-                android:background="?attr/selectableItemBackground">
+                <!-- App Settings -->
+                <LinearLayout
+                    android:id="@+id/appSettings"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground">
 
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_user"
-                    android:layout_marginEnd="12dp"/>
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_settings"
+                        android:layout_marginEnd="12dp"/>
 
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="App Settings"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_arrow_right"/>
+                </LinearLayout>
+
+                <!-- Account Title -->
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Change Account Name"
+                    android:text="Account"
+                    android:fontFamily="@font/lato"
                     android:textSize="16sp"
-                    android:textColor="@color/black"
-                    android:layout_weight="1"/>
+                    android:padding="3dp"
+                    android:textColor="#747474"
+                    android:layout_margin="5dp"/>
 
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_arrow_right"/>
-            </LinearLayout>
-            <!-- Change Password -->
-            <LinearLayout
-                android:id="@+id/changePassword"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:padding="3dp"
-                android:layout_margin="10dp"
-                android:clickable="true"
-                android:background="?attr/selectableItemBackground">
+                <!-- Change Account Name -->
+                <LinearLayout
+                    android:id="@+id/changeAccountName"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground">
 
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_key"
-                    android:layout_marginEnd="12dp"/>
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_user"
+                        android:layout_marginEnd="12dp"/>
 
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Change Account Name"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_arrow_right"/>
+                </LinearLayout>
+
+                <!-- Change Password -->
+                <LinearLayout
+                    android:id="@+id/changePassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_key"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Change Password"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_arrow_right"/>
+                </LinearLayout>
+
+                <!-- Change Account Image -->
+                <LinearLayout
+                    android:id="@+id/changeAccountImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_camera"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Change Account Image"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_arrow_right"/>
+                </LinearLayout>
+
+                <!-- Uptodo Title -->
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Change Password"
+                    android:text="Uptodo"
+                    android:fontFamily="@font/lato"
                     android:textSize="16sp"
-                    android:textColor="@color/black"
-                    android:layout_weight="1"/>
+                    android:padding="3dp"
+                    android:textColor="#747474"
+                    android:layout_margin="5dp"/>
 
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_arrow_right"/>
+                <!-- About Us -->
+                <LinearLayout
+                    android:id="@+id/aboutUs"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_menu"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="About Us"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_arrow_right"/>
+                </LinearLayout>
+
+                <!-- FAQ -->
+                <LinearLayout
+                    android:id="@+id/faq"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_info_circle"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="FAQs"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_arrow_right"/>
+                </LinearLayout>
+
+                <!-- Help & Feedback -->
+                <LinearLayout
+                    android:id="@+id/helpAndFeedback"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_flash"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Help and Feedback"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_arrow_right"/>
+                </LinearLayout>
+
+                <!-- Support Us -->
+                <LinearLayout
+                    android:id="@+id/supportUs"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_like"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Support Us"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_arrow_right"/>
+                </LinearLayout>
+
+                <!-- Log Out -->
+                <LinearLayout
+                    android:id="@+id/logout"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_logout"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Log out"
+                        android:textSize="16sp"
+                        android:textColor="#FF4949"
+                        android:layout_weight="1"/>
+                </LinearLayout>
             </LinearLayout>
-            <!-- Change Account Image -->
-            <LinearLayout
-                android:id="@+id/changeAccountImage"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:padding="3dp"
-                android:layout_margin="10dp"
-                android:clickable="true"
-                android:background="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_camera"
-                    android:layout_marginEnd="12dp"/>
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Change Account Image"
-                    android:textSize="16sp"
-                    android:textColor="@color/black"
-                    android:layout_weight="1"/>
-
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_arrow_right"/>
-            </LinearLayout>
-            <!-- Uptodo Title -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Uptodo"
-                android:fontFamily="@font/lato"
-                android:textSize="16sp"
-                android:padding="3dp"
-                android:textColor="#747474"
-                android:layout_margin="5dp"/>
-            <!-- About Us -->
-            <LinearLayout
-                android:id="@+id/aboutUs"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:padding="3dp"
-                android:layout_margin="10dp"
-                android:clickable="true"
-                android:background="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_menu"
-                    android:layout_marginEnd="12dp"/>
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="About Us"
-                    android:textSize="16sp"
-                    android:textColor="@color/black"
-                    android:layout_weight="1"/>
-
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_arrow_right"/>
-            </LinearLayout>
-            <!-- FAQ -->
-            <LinearLayout
-                android:id="@+id/faq"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:padding="3dp"
-                android:layout_margin="10dp"
-                android:clickable="true"
-                android:background="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_info_circle"
-                    android:layout_marginEnd="12dp"/>
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="FAQs"
-                    android:textSize="16sp"
-                    android:textColor="@color/black"
-                    android:layout_weight="1"/>
-
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_arrow_right"/>
-            </LinearLayout>
-            <!-- Help & Feedback -->
-            <LinearLayout
-                android:id="@+id/helpAndFeedback"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:padding="3dp"
-                android:layout_margin="10dp"
-                android:clickable="true"
-                android:background="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_flash"
-                    android:layout_marginEnd="12dp"/>
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Help and Feedback"
-                    android:textSize="16sp"
-                    android:textColor="@color/black"
-                    android:layout_weight="1"/>
-
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_arrow_right"/>
-            </LinearLayout>
-            <!-- Support Us -->
-            <LinearLayout
-                android:id="@+id/supportUs"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:padding="3dp"
-                android:layout_margin="10dp"
-                android:clickable="true"
-                android:background="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_like"
-                    android:layout_marginEnd="12dp"/>
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Support Us"
-                    android:textSize="16sp"
-                    android:textColor="@color/black"
-                    android:layout_weight="1"/>
-
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_arrow_right"/>
-            </LinearLayout>
-            <!--  Log Out -->
-            <LinearLayout
-                android:id="@+id/logout"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:padding="3dp"
-                android:layout_margin="10dp"
-                android:clickable="true"
-                android:background="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_logout"
-                    android:layout_marginEnd="12dp"/>
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Log out"
-                    android:textSize="16sp"
-                    android:textColor="#FF4949"
-                    android:layout_weight="1"/>
-            </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
-    <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/bottomNavigationView"
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_gravity="bottom"
@@ -382,5 +402,12 @@
         app:menu="@menu/bottom_nav_menu"
         app:labelVisibilityMode="labeled"
         app:itemIconTint="@color/nav_icon_selector"
-        app:itemTextColor="@color/nav_text_selector" />
+        app:itemTextColor="@color/nav_text_selector"/>
+    <!-- Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
