@@ -19,6 +19,12 @@
         tools:remove="android.adservices.AD_SERVICES_CONFIG"
         tools:targetApi="31">
         <activity
+            android:name=".ChangePasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ChangeAccountNameActivity"
+            android:exported="false" />
+        <activity
             android:name=".ForgotPasswordActivity"
             android:exported="true" />
         <activity
@@ -60,11 +66,11 @@
         <activity
             android:name=".DashboardActivity"
             android:exported="true"
-            android:theme="@style/Theme.Wave"></activity>
+            android:theme="@style/Theme.Wave" />
         <activity
             android:name=".SchoolHomeTasksActivity"
             android:exported="true"
-            android:theme="@style/Theme.Wave"></activity>
+            android:theme="@style/Theme.Wave" />
         <activity
             android:name=".WellnessActivity"
             android:exported="true" /> <!-- Facebook App Configuration -->
