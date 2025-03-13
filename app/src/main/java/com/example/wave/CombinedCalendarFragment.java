@@ -219,10 +219,11 @@ public class CombinedCalendarFragment extends Fragment implements
                         return;
                     }
                     if (querySnapshot != null) {
-                        // Clear list each time before adding fresh data
+                        // Clear list before adding fresh data
                         schoolTaskList.clear();
                         for (QueryDocumentSnapshot doc : querySnapshot) {
                             Task task = doc.toObject(Task.class);
+                            // Include tasks with category "School" or "Both"
                             if (!task.isCompleted() &&
                                     ("School".equals(task.getCategory()) || "Both".equals(task.getCategory()))) {
                                 schoolTaskList.add(task);
@@ -245,6 +246,7 @@ public class CombinedCalendarFragment extends Fragment implements
                         homeTaskList.clear();
                         for (QueryDocumentSnapshot doc : querySnapshot) {
                             Task task = doc.toObject(Task.class);
+                            // Include tasks with category "Home" or "Both"
                             if (!task.isCompleted() &&
                                     ("Home".equals(task.getCategory()) || "Both".equals(task.getCategory()))) {
                                 homeTaskList.add(task);
@@ -254,6 +256,7 @@ public class CombinedCalendarFragment extends Fragment implements
                     }
                 });
     }
+
 
 
     private void updateCombinedTasks() {
@@ -339,22 +342,54 @@ public class CombinedCalendarFragment extends Fragment implements
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
         LocalDate startLocalDate = LocalDate.parse(startDate, formatter);
 
-        // Get the current month and year
-        int currentMonth = startLocalDate.getMonthValue();
-        int currentYear = startLocalDate.getYear();
+        // If the task is set to not repeat, return the original date.
+        if (repeatOption == Task.RepeatOption.DOES_NOT_REPEAT) {
+            repeatedDates.add(startDate);
+            return repeatedDates;
+        }
 
-        // Find the first occurrence of the selected day in the current month
-        LocalDate firstOccurrence = startLocalDate.with(TemporalAdjusters.firstInMonth(DayOfWeek.SATURDAY));
+        // Map the repeat option to the corresponding DayOfWeek.
+        DayOfWeek repeatDay;
+        switch (repeatOption) {
+            case REPEAT_EVERY_MONDAY:
+                repeatDay = DayOfWeek.MONDAY;
+                break;
+            case REPEAT_EVERY_TUESDAY:
+                repeatDay = DayOfWeek.TUESDAY;
+                break;
+            case REPEAT_EVERY_WEDNESDAY:
+                repeatDay = DayOfWeek.WEDNESDAY;
+                break;
+            case REPEAT_EVERY_THURSDAY:
+                repeatDay = DayOfWeek.THURSDAY;
+                break;
+            case REPEAT_EVERY_FRIDAY:
+                repeatDay = DayOfWeek.FRIDAY;
+                break;
+            case REPEAT_EVERY_SATURDAY:
+                repeatDay = DayOfWeek.SATURDAY;
+                break;
+            case REPEAT_EVERY_SUNDAY:
+                repeatDay = DayOfWeek.SUNDAY;
+                break;
+            default:
+                repeatedDates.add(startDate);
+                return repeatedDates;
+        }
 
-        // Loop through all Saturdays in the current month
-        LocalDate nextDate = firstOccurrence;
-        while (nextDate.getMonthValue() == currentMonth && nextDate.getYear() == currentYear) {
-            repeatedDates.add(nextDate.format(formatter));
-            nextDate = nextDate.with(TemporalAdjusters.next(DayOfWeek.SATURDAY));
+        // Find the first occurrence of the specified day in the month.
+        LocalDate firstOccurrence = startLocalDate.with(TemporalAdjusters.firstInMonth(repeatDay));
+
+        // Loop through all occurrences of that day in the current month.
+        while (firstOccurrence.getMonthValue() == startLocalDate.getMonthValue() &&
+                firstOccurrence.getYear() == startLocalDate.getYear()) {
+            repeatedDates.add(firstOccurrence.format(formatter));
+            firstOccurrence = firstOccurrence.with(TemporalAdjusters.next(repeatDay));
         }
 
         return repeatedDates;
     }
+
 
     @Override
     public void onTaskEdited(Task updatedTask, int position) {
@@ -406,10 +441,10 @@ public class CombinedCalendarFragment extends Fragment implements
             return;
         }
 
-        // Convert the repeat option string to the RepeatOption enum
+        // Convert the repeat option string to the RepeatOption enum.
         Task.RepeatOption repeatOption = getRepeatOptionFromString(repeatOptionString);
 
-        // Get the repeated dates for the current month
+        // Get the repeated dates for the current month.
         List<String> repeatedDates = getRepeatedDates(taskDate, repeatOption);
 
         for (String repeatedDate : repeatedDates) {
@@ -417,42 +452,43 @@ public class CombinedCalendarFragment extends Fragment implements
             String[] repeatedDateParts = repeatedDate.split("/");
             int repeatedYear = Integer.parseInt(repeatedDateParts[2]);
 
+            // Create a new Task.
+            // Note: The "date" field is set to repeatedDateParts[0] (the day only) so that filtering
+            // (which compares against a day string like "8") will work correctly.
             Task newTask = new Task(
                     taskId,
                     taskTitle,
                     taskTime,
-                    repeatedDateParts[0],
-                    getMonthYearList().get(Integer.parseInt(repeatedDateParts[1]) - 1),
+                    repeatedDateParts[0], // Store just the day (e.g., "8")
+                    getMonthYearList().get(Integer.parseInt(repeatedDateParts[1]) - 1), // Month string (e.g., "March")
                     taskPriority,
                     taskType,
                     remind,
                     repeatedYear,
                     0, // Default stability value
                     System.currentTimeMillis(),
-                    repeatedDate,
+                    repeatedDate, // Full date string (e.g., "8/3/2025") stored elsewhere if needed
                     false,
                     repeatOption
             );
 
-            // Determine collection based on taskType
+            // Determine collection based on taskType.
             String taskCollection = "Home".equals(taskType) ? "housetasks" : "schooltasks";
 
-            // Save the task to Firestore
+            // Save the task to Firestore.
             db.collection("users")
                     .document(userId)
                     .collection(taskCollection)
                     .document(taskId)
                     .set(newTask)
-                    .addOnSuccessListener(aVoid -> {
-                        Log.d("Firestore", "Task successfully added!");
-                        // Snapshot listeners will update the UI automatically.
-                    })
+                    .addOnSuccessListener(aVoid -> Log.d("Firestore", "Task successfully added!"))
                     .addOnFailureListener(e -> {
                         Log.e("Firestore", "Error adding task", e);
                         Toast.makeText(requireContext(), "Error adding task", Toast.LENGTH_SHORT).show();
                     });
         }
     }
+
 
 
     // Update an existing task in Firestore.
@@ -527,30 +563,53 @@ public class CombinedCalendarFragment extends Fragment implements
 
     // Update today's tasks based on the current category.
     public void updateTasksForToday(int day) {
+        // Get the current category: "School", "Home", or "Both"
         String currentCategory = getCurrentSelectedCategory();
-        List<Task> todayTasks = new ArrayList<>();
-        String currentMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
+        List<Task> tasksToFilter = new ArrayList<>();
 
         if ("School".equals(currentCategory)) {
-            todayTasks = filterTasksByDate(day, currentMonth, schoolTaskList);
+            tasksToFilter.addAll(schoolTaskList);
         } else if ("Home".equals(currentCategory)) {
-            todayTasks = filterTasksByDate(day, currentMonth, homeTaskList);
-        } else { // "Both" (combined view)
-            todayTasks = filterTasksByDate(day, currentMonth, combinedTaskList);
+            tasksToFilter.addAll(homeTaskList);
+        } else { // "Both"
+            // Merge the two lists (deduplication is handled in combinedTaskList if needed)
+            tasksToFilter.addAll(schoolTaskList);
+            tasksToFilter.addAll(homeTaskList);
         }
 
+        // Prepare to filter tasks for today's date
+        List<Task> todayTasks = new ArrayList<>();
+        String currentMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
+        int currentYear = calendar.get(Calendar.YEAR);
+
+        // We assume each task's getDate() holds only the day as a string (e.g., "8")
+        for (Task t : tasksToFilter) {
+            try {
+                int taskDay = Integer.parseInt(t.getDate());
+                // Only add tasks that match today's day, month, and year, and that are not completed
+                if (taskDay == day &&
+                        t.getMonth().equalsIgnoreCase(currentMonth) &&
+                        t.getYear() == currentYear &&
+                        !t.isCompleted()) {
+                    todayTasks.add(t);
+                }
+            } catch (NumberFormatException e) {
+                Log.e("CombinedTaskFilter", "Error parsing task day from: " + t.getDate(), e);
+            }
+        }
+
+        // Update the adapter and the UI
         taskAdapter.updateTasks(todayTasks);
         taskAdapter.notifyDataSetChanged();
         updateTasksTitle(todayTasks, day);
 
-        // Show the empty state image if there are no tasks for today
+        // Show/hide the empty state image
         ImageView emptyTasksImage = getView().findViewById(R.id.emptyTasksImage);
-        if (todayTasks.isEmpty()) {
-            emptyTasksImage.setVisibility(View.VISIBLE);
-        } else {
-            emptyTasksImage.setVisibility(View.GONE);
-        }
+        emptyTasksImage.setVisibility(todayTasks.isEmpty() ? View.VISIBLE : View.GONE);
     }
+
+
+
 
 
     // Update weekly tasks based on current category and week.

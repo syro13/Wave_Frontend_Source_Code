@@ -53,7 +53,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     private Calendar calendar;
     private Spinner monthYearDropdown;
     private TextView homeCalendarButton, schoolCalendarButton; // Toggle buttons
-    private int selectedDay = -1; // Store the selected day
+
     public static final int REQUEST_EDIT_TASK = 1001;
     private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -145,7 +145,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         calendarAdapter = new CalendarAdapter(
                 calendarDates,
                 selectedDate -> {
-                    selectedDay = Integer.parseInt(selectedDate); // Update the selected day
+                    int selectedDay = Integer.parseInt(selectedDate);
                     calendar.set(Calendar.DAY_OF_MONTH, selectedDay);
                     List<Task> selectedDateTasks = filterTasksByDateBasedOnCategory(selectedDay, "Home");
                     taskAdapter.updateTasks(selectedDateTasks);
@@ -220,15 +220,28 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                                 taskList.add(task);
                             }
                         }
-                        // Preserve the selected date and update the UI
-                        if (selectedDay != -1) {
-                            updateTasksForToday(selectedDay);
-                        } else {
-                            updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
-                        }
+
+                        // Update the calendar highlights
+                        updateCalendar();
+
+                        // --- Force the same logic as if the user clicked "today" ---
+                        int today = calendar.get(Calendar.DAY_OF_MONTH);
+                        calendar.set(Calendar.DAY_OF_MONTH, today);
+
+                        List<Task> selectedDateTasks = filterTasksByDateBasedOnCategory(today, "Home");
+                        taskAdapter.updateTasks(selectedDateTasks);
+                        updateTasksTitle(selectedDateTasks, today);
                         updateWeeklyTasks();
+
+                        ImageView emptyTasksImage = getView().findViewById(R.id.emptyTasksImage);
+                        if (selectedDateTasks.isEmpty()) {
+                            emptyTasksImage.setVisibility(View.VISIBLE);
+                        } else {
+                            emptyTasksImage.setVisibility(View.GONE);
+                        }
                     }
                 });
+
     }
 
     // Utility methods
