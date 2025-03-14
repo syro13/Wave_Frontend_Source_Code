@@ -1,6 +1,7 @@
 [versions]
 agp = "8.6.0"
 appcompatVersion = "1.7.0"
+compiler = "4.15.1"
 constraintlayout = "2.2.0"
 converterGson = "2.9.0"
 coreKtx = "1.15.0"
@@ -34,6 +35,7 @@ protobuf = "3.25.1"
 
 [libraries]
 appcompat-v170 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
+compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }

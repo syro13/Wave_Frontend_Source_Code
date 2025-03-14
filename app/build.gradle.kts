@@ -59,6 +59,8 @@ dependencies {
     implementation(libs.firebase.firestore) {
         exclude(group = "com.google.protobuf", module = "protobuf-lite")
     }
+    implementation ("com.github.bumptech.glide:okhttp3-integration:4.15.1")
+
     testImplementation(libs.junit)
     testImplementation(libs.ext.junit)
     androidTestImplementation(libs.ext.junit)
@@ -77,9 +79,7 @@ dependencies {
     implementation (libs.converter.gson)
     implementation (libs.logging.interceptor)
     implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation ("com.github.bumptech.glide:glide:4.15.1")
-    annotationProcessor ("com.github.bumptech.glide:compiler:4.15.1")
-    implementation(libs.facebook.login)
+    annotationProcessor (libs.compiler)
     implementation ("com.facebook.android:facebook-android-sdk:16.3.0")
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
