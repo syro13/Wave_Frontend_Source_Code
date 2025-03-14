@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.PopupMenu;
@@ -40,6 +41,17 @@ public class AddExpenseBottomSheetFragment extends BottomSheetDialogFragment {
     private TextView amountDisplay;
     private TextView expenseCategoryDropdown;
 
+    private final List<ExpenseCategory> categories = Arrays.asList(
+            new ExpenseCategory("Shopping", R.drawable.ic_shopping),
+            new ExpenseCategory("Food", R.drawable.ic_food),
+            new ExpenseCategory("Groceries", R.drawable.ic_groceries),
+            new ExpenseCategory("Bills", R.drawable.ic_bills),
+            new ExpenseCategory("Travel", R.drawable.ic_travel),
+            new ExpenseCategory("Health", R.drawable.ic_health),
+            new ExpenseCategory("Miscellaneous", R.drawable.ic_miscellaneous)
+    );
+
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -62,16 +74,8 @@ public class AddExpenseBottomSheetFragment extends BottomSheetDialogFragment {
         setupExpenseCategoryDropdown(view);
 
         Button submitButton = view.findViewById(R.id.submitButton);
-        submitButton.setOnClickListener(v -> {
-            String amount = amountDisplay.getText().toString();
+        submitButton.setOnClickListener(v -> handleSubmit());
 
-            // Send data to parent using FragmentManager
-            Bundle result = new Bundle();
-            result.putString("expense_amount", amount);
-            getParentFragmentManager().setFragmentResult("expense_request", result);
-
-            dismiss(); // Close the bottom sheet
-        });
 
         return view;
 
@@ -109,19 +113,8 @@ public class AddExpenseBottomSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void setupExpenseCategoryDropdown(View view) {
-        TextView expenseCategoryDropdown = view.findViewById(R.id.expenseCategoryDropdown);
         ImageView dropdownArrow = view.findViewById(R.id.dropdownArrow);
         View dropdownContainer = view.findViewById(R.id.dropdownContainer);
-
-        List<ExpenseCategory> categories = Arrays.asList(
-                new ExpenseCategory("Shopping", R.drawable.ic_shopping),
-                new ExpenseCategory("Food", R.drawable.ic_food),
-                new ExpenseCategory("Groceries", R.drawable.ic_groceries),
-                new ExpenseCategory("Bills", R.drawable.ic_bills),
-                new ExpenseCategory("Travel", R.drawable.ic_travel),
-                new ExpenseCategory("Health", R.drawable.ic_health),
-                new ExpenseCategory("Miscellaneous", R.drawable.ic_miscellaneous)
-        );
 
         // Set Default Expense Icon (25dp)
         int iconSize = dpToPx(25); // Convert 25dp to pixels
@@ -190,6 +183,41 @@ public class AddExpenseBottomSheetFragment extends BottomSheetDialogFragment {
 
         dropdownArrow.setImageResource(R.drawable.ic_arrow_up);
         popupWindow.showAsDropDown(expenseCategoryDropdown);
+    }
+
+    private void handleSubmit() {
+        String amountText = amountDisplay.getText().toString().trim();
+        String category = expenseCategoryDropdown.getText().toString().trim();
+
+        //  Validation Check: Prevent empty submission
+        if (amountText.isEmpty()) {
+            Toast.makeText(getContext(), "Please enter an amount", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (category.isEmpty() || category.equals("Select Category")) {
+            Toast.makeText(getContext(), "Please select a category", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        double amount;
+        try {
+            amount = Double.parseDouble(amountText);
+            if (amount <= 0) {
+                Toast.makeText(getContext(), "Amount must be greater than zero", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(getContext(), "Invalid amount entered", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Send data to parent using FragmentManage
+        Bundle result = new Bundle();
+        result.putString("expense_amount", amountText);
+        result.putString("expense_category", category);
+        getParentFragmentManager().setFragmentResult("expense_request", result);
+
+        dismiss(); // Close the bottom sheet
     }
 
 }

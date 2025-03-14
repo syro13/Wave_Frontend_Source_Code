@@ -62,9 +62,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:numStars="5"
+                android:rating="3.5"
                 android:stepSize="1.0"
                 android:layout_marginEnd="13dp"
-                style="?android:attr/ratingBarStyleSmall"/>
+                style="?android:attr/ratingBarStyleSmall"
+                android:progressTint="@color/blue"
+                android:secondaryProgressTint="@color/gray"
+                android:progressBackgroundTint="@color/gray"/>
+
 
             <!-- Bookmark Icon -->
             <ImageView

@@ -17,12 +17,18 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.Calend
     private String selectedDate = ""; // Keeps track of the currently selected date
     private Set<String> schoolTaskDates;
     private Set<String> homeTaskDates;
+    private String currentCategory;
 
-    public CalendarAdapter(List<String> calendarDates, OnDateClickListener listener, Set<String> schoolTaskDates, Set<String> homeTaskDates) {
+    public CalendarAdapter(List<String> calendarDates,
+                           OnDateClickListener listener,
+                           Set<String> schoolTaskDates,
+                           Set<String> homeTaskDates,
+                           String currentCategory) {
         this.calendarDates = calendarDates;
         this.listener = listener;
         this.schoolTaskDates = schoolTaskDates;
         this.homeTaskDates = homeTaskDates;
+        this.currentCategory = currentCategory;
     }
 
     @NonNull
@@ -49,14 +55,24 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.Calend
         notifyDataSetChanged();
     }
 
-    // Method to dynamically update school task dates and refresh the calendar
     public void updateSchoolTaskDates(Set<String> newSchoolTaskDates) {
         this.schoolTaskDates = newSchoolTaskDates;
-        notifyDataSetChanged();  // Refresh the view
+        notifyDataSetChanged();
     }
+
     public void updateHomeTaskDates(Set<String> newHomeTaskDates) {
         this.homeTaskDates = newHomeTaskDates;
-        notifyDataSetChanged();  // Refresh the view
+        notifyDataSetChanged();
+    }
+
+    public void updateCategory(String newCategory) {
+        this.currentCategory = newCategory;
+        notifyDataSetChanged();
+    }
+
+    public void setSelectedDate(String selectedDate) {
+        this.selectedDate = selectedDate;
+        notifyDataSetChanged();
     }
 
     public class CalendarViewHolder extends RecyclerView.ViewHolder {
@@ -70,38 +86,87 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.Calend
         public void bind(String date) {
             dateText.setText(date);
 
-            // Hide empty cells (padding for the first week of the month)
             if (date.isEmpty()) {
+                // Hide empty cells (leading days before 1st or trailing after last)
                 dateText.setVisibility(View.INVISIBLE);
+                itemView.setOnClickListener(null);
+                return;
             } else {
                 dateText.setVisibility(View.VISIBLE);
-                dateText.setBackground(null);  // Clear any previous background
-
-                // Highlight selected date
-                if (date.equals(selectedDate)) {
-                    dateText.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.circle_background_selected));
-                }
-                // Prioritize highlighting based on active task list
-                else if (homeTaskDates != null && homeTaskDates.contains(date)) {
-                    dateText.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.yellow_circle));
-                }
-                else if (schoolTaskDates != null && schoolTaskDates.contains(date)) {
-                    dateText.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.green_circle));
-                }
-
-                // Handle date click
-                itemView.setOnClickListener(v -> {
-                    selectedDate = date;
-                    notifyDataSetChanged(); // Refresh RecyclerView to update selection
-                    listener.onDateClick(date); // Pass clicked date to listener
-                });
+                // Clear any previous background or foreground from reuse
+                dateText.setBackground(null);
+                dateText.setForeground(null);
+                dateText.setTextColor(
+                        ContextCompat.getColor(itemView.getContext(), R.color.black)
+                );
             }
-        }
 
+            // First, highlight based on tasks (home/school/both)
+            if (currentCategory.equals("Both")) {
+                if (homeTaskDates.contains(date) && schoolTaskDates.contains(date)) {
+                    dateText.setBackground(ContextCompat.getDrawable(
+                            itemView.getContext(), R.drawable.both_circle));
+                } else if (homeTaskDates.contains(date)) {
+                    dateText.setBackground(ContextCompat.getDrawable(
+                            itemView.getContext(), R.drawable.yellow_circle));
+                } else if (schoolTaskDates.contains(date)) {
+                    dateText.setBackground(ContextCompat.getDrawable(
+                            itemView.getContext(), R.drawable.green_circle));
+                }
+            } else if (currentCategory.equals("School")) {
+                if (schoolTaskDates.contains(date)) {
+                    dateText.setBackground(ContextCompat.getDrawable(
+                            itemView.getContext(), R.drawable.green_circle));
+                }
+            } else if (currentCategory.equals("Home")) {
+                if (homeTaskDates.contains(date)) {
+                    dateText.setBackground(ContextCompat.getDrawable(
+                            itemView.getContext(), R.drawable.yellow_circle));
+                }
+            }
+
+            // Next, see if this date is currently selected
+            if (date.equals(selectedDate)) {
+                boolean isEmpty = false;
+
+                // Figure out if this date actually has tasks in the current category
+                if (currentCategory.equals("Both")) {
+                    // It's "empty" if neither set contains the date
+                    isEmpty = !homeTaskDates.contains(date) && !schoolTaskDates.contains(date);
+                } else if (currentCategory.equals("School")) {
+                    isEmpty = !schoolTaskDates.contains(date);
+                } else if (currentCategory.equals("Home")) {
+                    isEmpty = !homeTaskDates.contains(date);
+                }
+
+                if (isEmpty) {
+                    // Selected but no tasks -> use your new empty drawable
+                    dateText.setForeground(ContextCompat.getDrawable(
+                            itemView.getContext(), R.drawable.circle_background_selected_empty
+                    ));
+                } else {
+                    // Selected and has tasks -> normal selected style
+                    dateText.setForeground(ContextCompat.getDrawable(
+                            itemView.getContext(), R.drawable.circle_background_selected
+                    ));
+                }
+
+                // Also change the text color for the selected day
+                dateText.setTextColor(ContextCompat.getColor(
+                        itemView.getContext(), R.color.dark_blue
+                ));
+            }
+
+            // Finally, handle clicks
+            itemView.setOnClickListener(v -> {
+                selectedDate = date;   // Mark this date as selected
+                listener.onDateClick(date);
+                notifyDataSetChanged();  // Refresh the entire calendar
+            });
+        }
     }
 
     public interface OnDateClickListener {
-        void onDateClick(String date); // Callback for date clicks
+        void onDateClick(String date);
     }
-    }
-
+}
