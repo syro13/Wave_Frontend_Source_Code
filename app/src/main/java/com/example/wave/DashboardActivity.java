@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -42,11 +43,35 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
     private TaskAdapter taskAdapter;
     private List<Task> taskList;
     private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseAuth auth;
+    private FirebaseAuth.AuthStateListener authListener;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            refreshAuthToken(user);
+        }
+
+        auth = FirebaseAuth.getInstance();
+
+        // Listen for session expiration
+        authListener = firebaseAuth -> {
+            if (user == null) {
+                // User session expired (password change, account deleted, or forced logout)
+                Log.e("AUTH", "User session expired. Redirecting to Login.");
+
+                Toast.makeText(DashboardActivity.this, "Your session has expired. Please log in again.", Toast.LENGTH_LONG).show();
+
+                Intent intent = new Intent(DashboardActivity.this, LoginSignUpActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        };
+
 
         // Set up bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
@@ -79,8 +104,6 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
         // Load additional tasks
         loadCurrentDate();
         loadWeatherIcon();
-        loadDashboardTasks();
-
         findViewById(R.id.homeTasksCard).setOnClickListener(v -> startActivity(new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class)));
         findViewById(R.id.schoolTasksCard).setOnClickListener(v -> startActivity(new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class)));
         findViewById(R.id.wellnessTasksCard).setOnClickListener(v -> startActivity(new Intent(DashboardActivity.this, WellnessActivity.class)));
@@ -96,6 +119,38 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
         }
     }
 
+        findViewById(R.id.schoolTasksCard).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start SchoolHomeTasksActivity
+                Intent intent = new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class);
+                startActivity(intent);
+            }
+        });
+        findViewById(R.id.wellnessTasksCard).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start Wellness Activity
+                Intent intent = new Intent(DashboardActivity.this, WellnessActivity.class);
+                startActivity(intent);
+            }
+        });
+        findViewById(R.id.budgetTasksCard).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start Budget Activity
+                Intent intent = new Intent(DashboardActivity.this, BudgetPlannerActivity.class);
+                startActivity(intent);
+            }
+        });
+        findViewById(R.id.profileIcon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start Budget Activity
+                Intent intent = new Intent(DashboardActivity.this, ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
 
     @Override
     public void onTaskDeleted(Task task) {
@@ -107,6 +162,33 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
         // Handle UI updates after completion if needed
     }
 
+    }
+    /**
+     * Refresh Firebase Auth Token if needed.
+     */
+    private void refreshAuthToken(FirebaseUser user) {
+        user.getIdToken(true).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                String newToken = task.getResult().getToken();
+                Log.d("SESSION", "New Token: " + newToken);
+            } else {
+                Log.e("SESSION", "Failed to refresh token", task.getException());
+            }
+        });
+    }
+    private void loadInitialTasks() {
+        taskList.add(new Task("Math Assignment", "10:00 AM", "7", "February", "High", "School", false, 2025));
+        taskList.add(new Task("Grocery Shopping", "12:00 PM", "8", "February", "Medium", "Home", true, 2025));
+        taskList.add(new Task("Team Meeting", "3:00 PM", "8", "February", "High", "School", false, 2025));
+
+        // Notify the adapter of the new tasks
+        taskAdapter.updateTasks(taskList);
+    }
+    @Override
+    public void onTaskDeleted(Task task) {
+        // Handle any updates after the task is deleted, e.g., refreshing data or UI
+        // For example, if needed, update any counters or reload task lists
+    }
     @Override
     protected int getCurrentMenuItemId() {
         return R.id.nav_index; // The menu item ID for the Home tab
@@ -243,6 +325,7 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
 
             @Override
             public void onFailure(Call<WeatherResponse> call, Throwable t) {
+                // Fallback icon for errors
                 weatherIcon.setImageResource(R.drawable.ic_placeholder_weather);
             }
         });

@@ -30,6 +30,9 @@
     <string name="weather_api_key">42035aa61a1c72229ac148f2a197c138</string>
     <string name="no_blogs_available">No Blogs Available!</string>
     <string name="no_podcasts_available">No Podcasts Availabale.</string>
+    <string name="facebook_app_id">1165164088675483</string>
+    <string name="fb_login_protocol_scheme">fb1165164088675483</string>
+    <string name="facebook_client_token">0b840bbb2256146305cfb635cdd21904</string>
     <string name="tasks_completed_icon">tasks_completed_icon</string>
     <string name="tasks_icon">tasks_icon</string>
     <string name="tasks_pending_icon">tasks_pending_icon</string>
@@ -87,3 +90,4 @@
         <item>Repeat every Sunday</item>
     </string-array>
     </resources>
+
