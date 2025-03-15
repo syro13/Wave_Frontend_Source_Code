@@ -167,7 +167,7 @@ public class DashboardActivity extends BaseActivity implements
 
     @Override
     public void onTaskCompleted(Task task) {
-        // Handle any UI updates needed after task completion.
+        loadDashboardTasks();
     }
 
     private void loadWeatherIcon() {
