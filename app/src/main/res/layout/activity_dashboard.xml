@@ -113,13 +113,14 @@
                     android:paddingEnd="3dp"
                     app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-                <!-- activity_dashboard.xml or similar -->
                 <ImageView
                     android:id="@+id/emptyTasksImage"
                     android:layout_width="200dp"
                     android:layout_height="200dp"
                     android:src="@drawable/empty_tasks_state"
-                    android:visibility="gone"/>
+                    android:visibility="gone"
+                    android:layout_gravity="center" />
+
 
 
 
