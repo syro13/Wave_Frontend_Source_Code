@@ -1,9 +1,15 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="#FFFFFF">
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minWidth="300dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#FFFFFF">
 
     <!-- Title (centered) -->
     <TextView
@@ -27,11 +33,12 @@
     <!-- Content -->
     <TextView
         android:id="@+id/dialogContent"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:textColor="@color/black"
-        android:text="Sample content goes here" />
+        android:text="Sample content goes here"
+        android:scrollbars="vertical" />
 
     <!-- Close Button -->
     <Button
@@ -42,3 +49,4 @@
         android:layout_marginTop="16dp"
         android:text="Close" />
 </LinearLayout>
+    </ScrollView>

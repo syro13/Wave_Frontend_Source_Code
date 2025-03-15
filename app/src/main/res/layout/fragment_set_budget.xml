@@ -1,52 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="650dp"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:background="@drawable/rounded_bottom_sheet"
     android:padding="16dp"
     android:layout_gravity="bottom">
 
     <!-- Handle Bar -->
     <View
+        android:id="@+id/handleBar"
         android:layout_width="96dp"
         android:layout_height="8dp"
-        android:layout_gravity="center_horizontal"
         android:background="@drawable/rounded_bottom_screen_indicator"
-        android:layout_marginBottom="10dp"
-        android:alpha="0.5" />
+        android:alpha="0.5"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="10dp" />
 
     <!-- Title -->
     <TextView
         android:id="@+id/setBudgetTitle"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Set Budget"
         android:textSize="20sp"
         android:textColor="#222B45"
         android:fontFamily="@font/archivo_semibold"
         android:gravity="center_horizontal"
-        android:layout_marginBottom="30dp"
-        android:layout_marginTop="5dp"/>
+        app:layout_constraintTop_toBottomOf="@id/handleBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="30dp" />
 
     <!-- Enter Amount -->
     <TextView
-        android:layout_width="match_parent"
+        android:id="@+id/enterAmountLabel"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Enter Amount"
         android:textSize="18sp"
         android:textColor="#2743FD"
         android:fontFamily="@font/montserrat"
         android:padding="10dp"
-        android:gravity="center_horizontal"/>
+        android:gravity="center_horizontal"
+        app:layout_constraintTop_toBottomOf="@id/setBudgetTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Amount Layout -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/amountLayout"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/enterAmountLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="5dp"
         android:layout_marginBottom="5dp">
 
@@ -73,118 +85,102 @@
             android:fontFamily="@font/montserrat_bold" />
     </LinearLayout>
 
+    <!-- Divider -->
     <View
-        android:layout_width="225dp"
+        android:id="@+id/divider"
+        android:layout_width="0dp"
         android:layout_height="2dp"
         android:background="#DEE1EF"
+        app:layout_constraintTop_toBottomOf="@id/amountLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_gravity="center_horizontal"/>
+        android:layout_marginEnd="32dp" />
 
-
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- Keypad Grid -->
+    <GridLayout
+        android:id="@+id/keypadGrid"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:layout_marginTop="10dp">
+        android:columnCount="3"
+        android:rowCount="4"
+        android:alignmentMode="alignMargins"
+        app:layout_constraintTop_toBottomOf="@id/divider"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="8dp">
 
-        <!-- Keypad Grid -->
-        <GridLayout
-            android:id="@+id/keypadGrid"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:columnCount="3"
-            android:rowCount="4"
-            android:alignmentMode="alignMargins"
-            android:layout_gravity="center"
-            android:padding="8dp">
-
-            <!-- Keypad Buttons -->
-            <Button
-                android:id="@+id/button1"
-                style="@style/KeypadButtonStyle"
-                android:text="1"
-                />
-            <Button
-                android:id="@+id/button2"
-                style="@style/KeypadButtonStyle"
-                android:text="2"
-                />
-
-            <Button
-                android:id="@+id/button3"
-                style="@style/KeypadButtonStyle"
-                android:text="3"
-                />
-
-            <Button
-                android:id="@+id/button4"
-                style="@style/KeypadButtonStyle"
-                android:text="4"
-                />
-
-            <Button
-                android:id="@+id/button5"
-                style="@style/KeypadButtonStyle"
-                android:text="5"
-                />
-
-            <Button
-                android:id="@+id/button6"
-                style="@style/KeypadButtonStyle"
-                android:text="6"
-                />
-
-            <Button
-                android:id="@+id/button7"
-                style="@style/KeypadButtonStyle"
-                android:text="7"
-                />
-
-            <Button
-                android:id="@+id/button8"
-                style="@style/KeypadButtonStyle"
-                android:text="8"
-                />
-
-            <Button
-                android:id="@+id/button9"
-                style="@style/KeypadButtonStyle"
-                android:text="9"
-                />
-
-            <Button
-                android:id="@+id/buttonDot"
-                style="@style/KeypadButtonStyle"
-                android:text="." />
-
-            <Button
-                android:id="@+id/button0"
-                style="@style/KeypadButtonStyle"
-                android:text="0"
-                />
-
-            <Button
-                android:id="@+id/buttonBackspace"
-                style="@style/KeypadButtonStyle"
-                android:text="⌫" />
-        </GridLayout>
-        <!-- Submit Button -->
+        <!-- Keypad Buttons -->
         <Button
-            android:id="@+id/submitButton"
-            android:layout_width="300dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/rounded_button_background"
-            android:theme="@style/SubmitButtonStyle"
-            android:text="Submit"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:gravity="center"
-            android:fontFamily="@font/roboto_medium"
-            android:backgroundTint="@null"
-            app:backgroundTint="@null"/>
-    </LinearLayout>
-</LinearLayout>
+            android:id="@+id/button1"
+            style="@style/KeypadButtonStyle"
+            android:text="1" />
+        <Button
+            android:id="@+id/button2"
+            style="@style/KeypadButtonStyle"
+            android:text="2" />
+        <Button
+            android:id="@+id/button3"
+            style="@style/KeypadButtonStyle"
+            android:text="3" />
+        <Button
+            android:id="@+id/button4"
+            style="@style/KeypadButtonStyle"
+            android:text="4" />
+        <Button
+            android:id="@+id/button5"
+            style="@style/KeypadButtonStyle"
+            android:text="5" />
+        <Button
+            android:id="@+id/button6"
+            style="@style/KeypadButtonStyle"
+            android:text="6" />
+        <Button
+            android:id="@+id/button7"
+            style="@style/KeypadButtonStyle"
+            android:text="7" />
+        <Button
+            android:id="@+id/button8"
+            style="@style/KeypadButtonStyle"
+            android:text="8" />
+        <Button
+            android:id="@+id/button9"
+            style="@style/KeypadButtonStyle"
+            android:text="9" />
+        <Button
+            android:id="@+id/buttonDot"
+            style="@style/KeypadButtonStyle"
+            android:text="." />
+        <Button
+            android:id="@+id/button0"
+            style="@style/KeypadButtonStyle"
+            android:text="0" />
+        <Button
+            android:id="@+id/buttonBackspace"
+            style="@style/KeypadButtonStyle"
+            android:text="⌫" />
+    </GridLayout>
+
+    <!-- Submit Button -->
+    <Button
+        android:id="@+id/submitButton"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/rounded_button_background"
+        android:theme="@style/SubmitButtonStyle"
+        android:text="Submit"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:fontFamily="@font/roboto_medium"
+        android:backgroundTint="@null"
+        app:backgroundTint="@null"
+        app:layout_constraintTop_toBottomOf="@id/keypadGrid"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp" />
+</androidx.constraintlayout.widget.ConstraintLayout>

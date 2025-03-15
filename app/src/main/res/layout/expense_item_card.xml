@@ -7,26 +7,25 @@
     android:padding="15dp"
     android:background="@drawable/card_background"
     android:layout_marginTop="8dp"
-    android:layout_marginStart="16dp"
-    android:layout_marginEnd="16dp"
     android:elevation="2dp">
 
     <FrameLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
 
         <!-- Circular Background -->
         <View
             android:id="@+id/circleBackground"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="@drawable/circle_background_light_blue" />
 
         <!-- Expense Icon -->
         <ImageView
             android:id="@+id/expenseIcon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_shopping_blue"
             android:contentDescription="Expense Icon" />
@@ -47,10 +46,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Shopping"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:layout_marginTop="12dp"
             android:layout_marginBottom="12dp"
             android:layout_marginLeft="18dp"
+            android:layout_gravity="center"
             android:fontFamily="@font/roboto_medium"
             android:textColor="@android:color/black" />
 
@@ -68,7 +68,7 @@
                 android:layout_height="wrap_content"
                 android:text="€10.00"
                 android:textStyle="bold"
-                android:textSize="22sp"
+                android:textSize="18sp"
                 android:textColor="@color/blue"
                 android:layout_gravity="end" />
 
@@ -77,7 +77,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="5%"
-                android:textSize="17sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:fontFamily="@font/roboto_medium"
                 android:textColor="#0086FF"

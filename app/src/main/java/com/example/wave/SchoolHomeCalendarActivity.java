@@ -3,6 +3,7 @@ package com.example.wave;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -173,6 +174,14 @@ public class SchoolHomeCalendarActivity extends BaseActivity {
             }
         });
 
+        findViewById(R.id.profileIcon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SchoolHomeCalendarActivity.this, ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
+
         dialog.show();
     }
 
@@ -203,5 +212,7 @@ public class SchoolHomeCalendarActivity extends BaseActivity {
         }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true);
         timePickerDialog.show();
     }
+
+
 
 }

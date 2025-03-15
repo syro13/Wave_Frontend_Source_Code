@@ -28,9 +28,11 @@
     <string name="wellness">Wellness\n</string>
     <string name="hello">Hello!</string>
     <string name="weather_api_key">42035aa61a1c72229ac148f2a197c138</string>
-    <string name="tasks_icon">tasks icon</string>
     <string name="no_blogs_available">No Blogs Available!</string>
     <string name="no_podcasts_available">No Podcasts Availabale.</string>
+    <string name="facebook_app_id">1165164088675483</string>
+    <string name="fb_login_protocol_scheme">fb1165164088675483</string>
+    <string name="facebook_client_token">0b840bbb2256146305cfb635cdd21904</string>
     <string name="tasks_icon">tasks icon</string>
     <string name="tasks_completed_icon">tasks_completed_icon</string>
     <string name="tasks_pending_icon">tasks_pending_icon</string>
@@ -42,18 +44,19 @@
     <string name="Home_hacks_and_guides"><![CDATA[Home Hacks & Guides\n]]></string>
     <string name="add_task">Add Task</string>
     <!-- Month-Year Array -->
-        <string-array name="month_year_array">
-            <item>January 2025</item>
-            <item>February 2025</item>
-            <item>March 2025</item>
-            <item>April 2025</item>
-            <item>May 2025</item>
-            <item>June 2025</item>
-            <item>July 2025</item>
-            <item>August 2025</item>
-            <item>September 2025</item>
-            <item>October 2025</item>
-            <item>November 2025</item>
-            <item>December 2025</item>
-        </string-array>
-    </resources>
+    <string-array name="month_year_array">
+        <item>January 2025</item>
+        <item>February 2025</item>
+        <item>March 2025</item>
+        <item>April 2025</item>
+        <item>May 2025</item>
+        <item>June 2025</item>
+        <item>July 2025</item>
+        <item>August 2025</item>
+        <item>September 2025</item>
+        <item>October 2025</item>
+        <item>November 2025</item>
+        <item>December 2025</item>
+    </string-array>
+</resources>
+

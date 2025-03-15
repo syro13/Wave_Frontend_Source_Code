@@ -15,6 +15,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["appAuthRedirectScheme"] = "https"
     }
 
     buildTypes {
@@ -43,6 +44,7 @@ android {
 }
 
 dependencies {
+    implementation(platform(libs.firebase.bom))
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.lottie)
@@ -54,14 +56,20 @@ dependencies {
     implementation(libs.fragment.testing)
     implementation(libs.espresso.intents)
     implementation(libs.espresso.contrib)
+    implementation(libs.firebase.firestore) {
+        exclude(group = "com.google.protobuf", module = "protobuf-lite")
+    }
     testImplementation(libs.junit)
     testImplementation(libs.ext.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation(libs.core.ktx)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
-    implementation (libs.play.services.auth.v2070)
+    implementation(libs.firebase.analytics) {
+        exclude(group = "com.google.android.gms", module = "play-services-measurement-api")
+    }
+    implementation (libs.play.services.auth.v2070){
+        exclude(group = "com.google.protobuf", module = "protobuf-lite")
+    }
     coreLibraryDesugaring (libs.desugar.jdk.libs)
     implementation ("com.google.android.material:material:1.9.0")
     implementation (libs.recyclerview)
@@ -71,10 +79,21 @@ dependencies {
     implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation ("com.github.bumptech.glide:glide:4.15.1")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.15.1")
+    implementation(libs.facebook.login)
+    implementation ("com.facebook.android:facebook-android-sdk:16.3.0")
     testImplementation("org.mockito:mockito-core:5.0.0")
     androidTestImplementation("org.mockito:mockito-android:5.0.0")
     implementation (libs.logging.interceptor.v493)
     implementation (libs.retrofit)
     implementation (libs.converter.gson)
     implementation (libs.material.v1120)
+    implementation("com.google.protobuf:protobuf-javalite:3.25.1")
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "com.google.protobuf" && requested.name == "protobuf-lite") {
+            useTarget("com.google.protobuf:protobuf-javalite:3.25.1") // ✅ Correct syntax
+        }
+    }
 }
