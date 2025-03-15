@@ -19,21 +19,33 @@ import androidx.fragment.app.Fragment;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
 
-public class LoginFragment extends Fragment {
+import java.util.Arrays;
+
+public class LoginFragment extends Fragment implements TwitterAuthManager.Callback {
 
     private FirebaseAuth mAuth; // Firebase Authentication instance
     private GoogleSignInClient googleSignInClient; // Google Sign-In client
     private EditText emailInput, passwordInput;
+
+    private CallbackManager callbackManager;
+    private TwitterAuthManager twitterAuthManager;
 
     @Nullable
     @Override
@@ -42,6 +54,12 @@ public class LoginFragment extends Fragment {
 
         // Initialize Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
+
+        // Initialize TwitterAuthManager with the Activity
+        twitterAuthManager = TwitterAuthManager.getInstance(requireActivity(), this);
+
+        // Initialize Facebook Callback Manager
+        callbackManager = CallbackManager.Factory.create();
 
         // Configure Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -57,6 +75,9 @@ public class LoginFragment extends Fragment {
         TextView loginButton = view.findViewById(R.id.loginButton);
         TextView signupButton = view.findViewById(R.id.signupButton);
         ImageView googleSignInButton = view.findViewById(R.id.googleIcon); // Google sign-in button (ImageView)
+        ImageView facebookIcon = view.findViewById(R.id.facebookIcon);
+        ImageView twitterIcon = view.findViewById(R.id.twitterIcon);
+        TextView forgotPasswordText = view.findViewById(R.id.forgotPassword);
 
         // Set initial active state
         setActiveButton(loginButton, signupButton);
@@ -78,9 +99,38 @@ public class LoginFragment extends Fragment {
         // Handle Google Sign-In Button Click
         googleSignInButton.setOnClickListener(v -> signInWithGoogle());
 
+        // Handle Facebook Sign-Up Button Click
+        facebookIcon.setOnClickListener(v -> loginWithFacebook());
+
+        // Handle Twitter Sign-Up Button Click
+        twitterIcon.setOnClickListener(v -> loginWithTwitter());
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            refreshAuthToken(user);
+        }
+
+        // Navigate to Forgot Password Screen when clicked
+        forgotPasswordText.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), ForgotPasswordActivity.class);
+            startActivity(intent);
+        });
+
         return view;
     }
-
+    /**
+     * Refresh Firebase Auth Token.
+     */
+    private void refreshAuthToken(FirebaseUser user) {
+        user.getIdToken(true).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                String newToken = task.getResult().getToken();
+                Log.d("SESSION", "New Token: " + newToken);
+            } else {
+                Log.e("SESSION", "Failed to refresh token", task.getException());
+            }
+        });
+    }
     private final ActivityResultLauncher<Intent> googleSignInLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == getActivity().RESULT_OK && result.getData() != null) {
@@ -117,30 +167,91 @@ public class LoginFragment extends Fragment {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            String displayName = account.getDisplayName();
+                            Toast.makeText(getContext(), "Google Login Successful!", Toast.LENGTH_SHORT).show();
+                            String displayName = account.getDisplayName(); // Get name from Google account
+                            if (user.getDisplayName() == null || user.getDisplayName().isEmpty()) {
+                                // Update display name in Firebase Authentication
+                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                        .setDisplayName(displayName)
+                                        .build();
 
-                            // Update display name in Firebase Authentication
-                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                    .setDisplayName(displayName)
-                                    .build();
+                                user.updateProfile(profileUpdates)
+                                        .addOnCompleteListener(updateTask -> {
+                                            if (updateTask.isSuccessful()) {
+                                                Toast.makeText(getContext(), "Display name updated", Toast.LENGTH_SHORT).show();
 
-                            user.updateProfile(profileUpdates)
-                                    .addOnCompleteListener(updateTask -> {
-                                        if (updateTask.isSuccessful()) {
-                                            navigateToDashboard(displayName);
-                                        } else {
-                                            Log.e("LoginFragment", "Profile update failed", updateTask.getException());
+                                            } else {
+                                                 Log.e("LoginFragment", "Profile update failed", updateTask.getException());
                                             Toast.makeText(requireContext(), "Failed to update display name", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
+                                            }
+                                        });
+                            }
+                            // Proceed to dashboard
+                            if (getActivity() != null) {
+                                Intent intent = new Intent(getActivity(), DashboardActivity.class);
+                                intent.putExtra("USER_NAME", displayName);
+                                startActivity(intent);
+                                getActivity().finish();
+                            }
                         }
                     } else {
-                        Log.e("LoginFragment", "Firebase Authentication failed", task.getException());
+                       Log.e("LoginFragment", "Firebase Authentication failed", task.getException());
                         Toast.makeText(requireContext(), "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
+
+    private void loginWithTwitter() {
+        twitterAuthManager.signIn();
+    }
+
+    @Override
+    public void updateUI(FirebaseUser user) {
+        if (user != null) {
+            Toast.makeText(getContext(), "Twitter Login Successful: " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
+            navigateToDashboard(user.getDisplayName());
+        } else {
+            Toast.makeText(getContext(), "Twitter Login Failed", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void loginWithFacebook() {
+        LoginManager.getInstance().logInWithReadPermissions(LoginFragment.this, Arrays.asList("email", "public_profile"));
+
+        LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                handleFacebookAccessToken(loginResult.getAccessToken());
+            }
+
+            @Override
+            public void onCancel() {
+                Toast.makeText(getContext(), "Facebook login Canceled", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+                Toast.makeText(getContext(), "Facebook login Failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void handleFacebookAccessToken(AccessToken token) {
+        AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        Toast.makeText(getContext(), "Facebook Login Successful", Toast.LENGTH_SHORT).show();
+                        navigateToDashboard(user.getDisplayName());
+                    } else {
+                        Toast.makeText(getContext(), "Facebook Login Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+    /**
+     * Navigate to Dashboard after successful login.
+     */
     private void navigateToDashboard(String displayName) {
         if (getActivity() != null) {
             Intent intent = new Intent(getActivity(), DashboardActivity.class);
@@ -148,8 +259,16 @@ public class LoginFragment extends Fragment {
             startActivity(intent);
             getActivity().finish();
         } else {
-            Toast.makeText(requireContext(), "Context is unavailable. Try again.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Navigation failed: Context is unavailable.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
     private void setActiveButton(TextView activeButton, TextView inactiveButton) {
