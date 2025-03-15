@@ -278,7 +278,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
                 this,
                 "https://listen-api.listennotes.com/api/v2/",
                 "X-ListenAPI-Key",
-                getResources().getString(R.string.podcast_api_key)
+                getResources().getString(Integer.parseInt("123")) // MAKE SURE TO REMOVE
         ).create(PodcastsApi.class);
 
         api.searchPodcasts("wellness", "episode", 10, 30, 1, 1).enqueue(new Callback<PodcastSearchResponse>() {
@@ -367,7 +367,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
                 this,
                 "https://medium2.p.rapidapi.com/",
                 "x-rapidapi-key",
-                getResources().getString(R.string.blog_api_key)
+                getResources().getString(Integer.parseInt("123")) // MAKE SURE TO REMOVE
         ).create(BlogsApi.class);
 
         String[] tags = {"self-improvement", "meditation", "wellness"};
