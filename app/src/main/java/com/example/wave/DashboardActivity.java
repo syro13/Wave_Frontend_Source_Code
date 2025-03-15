@@ -145,6 +145,7 @@ public class DashboardActivity extends BaseActivity implements
                 startActivity(new Intent(DashboardActivity.this, BudgetPlannerActivity.class)));
         findViewById(R.id.profileIcon).setOnClickListener(v ->
                 startActivity(new Intent(DashboardActivity.this, ProfileActivity.class)));
+        loadDashboardTasks();
     }
     @Override
     protected int getCurrentMenuItemId() {
@@ -262,6 +263,13 @@ public class DashboardActivity extends BaseActivity implements
                                 }
                                 taskAdapter.updateTasks(dashboardTasks);
                                 taskAdapter.notifyDataSetChanged();
+                                TextView tasksDueTodayTitle = findViewById(R.id.tasksDueTodayTitle);
+                                if (dashboardTasks.isEmpty()) {
+                                    tasksDueTodayTitle.setText("No Tasks for Today");
+                                } else {
+                                    // Optionally set the title to something else when tasks are available.
+                                    tasksDueTodayTitle.setText("Tasks for Today");
+                                }
                                 ImageView emptyTasksImage = findViewById(R.id.emptyTasksImage);
                                 if (emptyTasksImage != null) {
                                     emptyTasksImage.setVisibility(dashboardTasks.isEmpty() ? View.VISIBLE : View.GONE);
