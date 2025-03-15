@@ -231,7 +231,7 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
                 requireContext(),
                 "https://medium2.p.rapidapi.com/",
                 "x-rapidapi-key",
-                getResources().getString(R.string.school_api_key)
+                getResources().getString(Integer.parseInt("123")) // Make sure to remove
         ).create(BlogsApi.class);
 
         String[] tags = {"education", "study tips", "studying for exams"}; // Example tags

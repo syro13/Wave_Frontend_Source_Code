@@ -18,6 +18,7 @@ public class TaskAdapterTests {
         List<Task> taskList = new ArrayList<>();
         taskList.add(new Task("Task 1", "10:00 AM", "Work", "June", "High", "school", false, 2024));
         taskList.add(new Task("Task 2", "11:00 AM", "Personal", "June", "Low","house", true,2025));
+
         TaskAdapter adapter = new TaskAdapter(taskList, null);
 
         // Act
