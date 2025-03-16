@@ -12,7 +12,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -47,14 +46,19 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
     private ImageView noBlogsImage, noPodcastsImage;
     private ProgressBar loadingIndicator;
 
-    private final List<BlogResponse> blogs = new ArrayList<>();
-    private final List<Podcast> podcasts = new ArrayList<>();
+    private List<Blogs_Response> blogs = new ArrayList<>();
+    private List<PodcastsResponse> podcasts = new ArrayList<>();
     private int loadingTasksRemaining = 0;
+    private static final String TAG = "API_RESPONSE";
+    private final WellnessAPI apiService = RetrofitClient.getClient().create(WellnessAPI.class);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wellness);
+
+
+
 
         // Set up bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
@@ -83,8 +87,6 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         // Start loading tasks
         updateQuoteImage();
         fetchTodaysQuoteWithCache();
-        setupBlogsRecyclerView();
-        setupPodcastsRecyclerView();
         loadCachedBlogs();
         loadCachedPodcasts();
 
@@ -243,58 +245,19 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             }
         });
     }
-
-    private void setupPodcastsRecyclerView() {
-        podcastRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        podcastAdapter = new PodcastAdapter(this, podcasts);
-        podcastRecyclerView.setAdapter(podcastAdapter);
-    }
-
-    private void loadCachedPodcasts() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String cachedPodcastsJson = prefs.getString(PREFS_PODCASTS, null);
-        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
-        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
-
-        if (cachedPodcastsJson != null && lastFetchDate == todayDate) {
-            podcasts.clear();
-            podcasts.addAll(PodcastSearchResponse.fromJsonList(cachedPodcastsJson));
-
-            if (podcasts.size() > MAX_PODCASTS) {
-                podcasts.subList(MAX_PODCASTS, podcasts.size()).clear();
-            }
-
-            podcastAdapter.notifyDataSetChanged();
-           noPodcastsImage.setVisibility(View.GONE);
-           noPodcastsText.setVisibility(View.GONE);
-            taskCompleted();
-        } else {
-            fetchPodcastsFromApi(prefs, todayDate);
-        }
-    }
-
-    private void fetchPodcastsFromApi(SharedPreferences prefs, int todayDate) {
-        PodcastsApi api = RetrofitClient.getRetrofitInstance(
-                this,
-                "https://listen-api.listennotes.com/api/v2/",
-                "X-ListenAPI-Key",
-                getResources().getString(Integer.parseInt("123")) // MAKE SURE TO REMOVE
-        ).create(PodcastsApi.class);
-
-        api.searchPodcasts("wellness", "episode", 10, 30, 1, 1).enqueue(new Callback<PodcastSearchResponse>() {
+    private void fetchPodcastsFromApi() {
+        Call<List<PodcastsResponse>> podcastsCall = apiService.getPodcastsData();
+        podcastsCall.enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<PodcastSearchResponse> call, Response<PodcastSearchResponse> response) {
+            public void onResponse(Call<List<PodcastsResponse>> call, Response<List<PodcastsResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    podcasts.clear();
-                    podcasts.addAll(response.body().getPodcasts());
-
-                    if (podcasts.size() > MAX_PODCASTS) {
-                        podcasts.subList(MAX_PODCASTS, podcasts.size()).clear();
+                    podcasts = new ArrayList<>(response.body());
+                    if (podcasts.size() > 4) {
+                        podcasts = podcasts.subList(0, 4);
                     }
-
-                    podcastAdapter.notifyDataSetChanged();
-                    savePodcastsToCache(podcasts, todayDate);
-
+                    Log.d(TAG, "Podcast: " + podcasts);
+                    savePodcastsToCache(podcasts);
+                    setupPodcastsRecyclerView(podcasts);
                     // Hide placeholders when data is fetched
                     noPodcastsImage.setVisibility(View.GONE);
                     noPodcastsText.setVisibility(View.GONE);
@@ -302,41 +265,104 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
                     // Show placeholders if the response is empty or invalid
                     showNoPodcastsAvailable();
                 }
-                taskCompleted();
             }
 
             @Override
-            public void onFailure(Call<PodcastSearchResponse> call, Throwable t) {
-                Log.e("WellnessActivity", "Error fetching podcasts", t);
-                showNoPodcastsAvailable();
-                taskCompleted();
+            public void onFailure(Call<List<PodcastsResponse>> call, Throwable t) {
+                Log.e(TAG, "API call failed: " + t.getMessage());
             }
         });
     }
-
-
-
-    private void savePodcastsToCache(List<Podcast> podcasts, int todayDate) {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PREFS_PODCASTS, PodcastSearchResponse.toJsonList(podcasts));
-        editor.putInt(KEY_LAST_FETCH, todayDate);
-        editor.apply();
-    }
-
-    private void showNoPodcastsAvailable() {
-        if (podcasts.isEmpty()) {
-            noPodcastsImage.setVisibility(View.VISIBLE);
-            noPodcastsText.setVisibility(View.VISIBLE);
-            taskCompleted();
+    private void setupPodcastsRecyclerView(List<PodcastsResponse> podcastsList) {
+        if (podcastAdapter == null) {
+            podcastRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            podcastAdapter = new PodcastAdapter(this, podcastsList);
+            podcastRecyclerView.setAdapter(podcastAdapter);
+        } else {
+            podcastAdapter.notifyDataSetChanged();
         }
     }
 
-    private void setupBlogsRecyclerView() {
-        blogRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        blogAdapter = new BlogAdapter(this, blogs);
-        blogRecyclerView.setAdapter(blogAdapter);
+    private void fetchBlogsFromApi(){
+        Call<List<Blogs_Response>> blogsCall = apiService.getBlogsData();
+        blogsCall.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(Call<List<Blogs_Response>> call, Response<List<Blogs_Response>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    blogs = new ArrayList<>(response.body());
+                    if (blogs.size() > 4) {
+                        blogs = blogs.subList(0, 4);
+                    }
+                    Log.d(TAG, "Blogs: " + blogs);
+                    saveBlogsToCache(blogs);
+                    setupBlogsRecyclerView(blogs);
+                } else {
+                    Log.e(TAG, "Failed to get blogs");
+                    showNoBlogsAvailable();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Blogs_Response>> call, Throwable t) {
+                Log.e(TAG, "API call failed: " + t.getMessage());
+            }
+        });
     }
+    private void loadCachedPodcasts() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String cachedPodcastsJson = prefs.getString(PREFS_PODCASTS, null);
+        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
+        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+
+        if (cachedPodcastsJson != null && lastFetchDate == todayDate) {
+            List<PodcastsResponse> cachedPodcasts = PodcastsResponse.fromJsonList(cachedPodcastsJson);
+
+            if (cachedPodcasts.size() > MAX_PODCASTS) {
+                cachedPodcasts = cachedPodcasts.subList(0, MAX_PODCASTS);
+            }
+
+            Log.d(TAG, "Loaded Podcasts from Cache: " + cachedPodcasts);
+
+            podcasts.clear();
+            podcasts.addAll(cachedPodcasts);
+
+            setupPodcastsRecyclerView(podcasts);
+        } else {
+            fetchPodcastsFromApi();
+        }
+    }
+
+
+    private void savePodcastsToCache(List<PodcastsResponse> podcasts) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        String podcastsJson = PodcastsResponse.toJsonList(podcasts);
+        editor.putString(PREFS_PODCASTS, podcastsJson);
+        editor.putInt(KEY_LAST_FETCH, Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
+
+        editor.apply();
+        Log.d(TAG, "Saved Podcasts to Cache: " + podcastsJson);
+    }
+
+
+    private void showNoPodcastsAvailable() {
+        if (podcastAdapter == null || podcastAdapter.getItemCount() == 0) {
+            noPodcastsImage.setVisibility(View.VISIBLE);
+            noPodcastsText.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void setupBlogsRecyclerView(List<Blogs_Response> blogsList) {
+        if (blogAdapter == null) {
+            blogRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            blogAdapter = new BlogAdapter(this, blogsList);
+            blogRecyclerView.setAdapter(blogAdapter);
+        } else {
+            blogAdapter.notifyDataSetChanged();
+        }
+    }
+
 
     private void loadCachedBlogs() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
@@ -345,150 +371,35 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 
         if (cachedBlogsJson != null && lastFetchDate == todayDate) {
-            blogs.clear();
-            blogs.addAll(BlogResponse.fromJsonList(cachedBlogsJson));
+            List<Blogs_Response> cachedBlogs = Blogs_Response.fromJsonList(cachedBlogsJson);
 
-            if (blogs.size() > MAX_BLOGS) {
-                blogs.subList(MAX_BLOGS, blogs.size()).clear();
+            if (cachedBlogs.size() > MAX_BLOGS) {
+                cachedBlogs = cachedBlogs.subList(0, MAX_BLOGS);
             }
 
-            blogAdapter.notifyDataSetChanged();
-            noBlogsImage.setVisibility(View.GONE);
-            noBlogsText.setVisibility(View.GONE);
-            taskCompleted();
+            Log.d(TAG, "Loaded Blogs from Cache: " + cachedBlogs);
+            blogs.clear();
+            blogs.addAll(cachedBlogs);
+
+            setupBlogsRecyclerView(blogs);
         } else {
-            blogs.clear();
-            fetchBlogsFromApi(prefs, todayDate);
+            fetchBlogsFromApi();
         }
     }
 
-    private void fetchBlogsFromApi(SharedPreferences prefs, int todayDate) {
-        BlogsApi api = RetrofitClient.getRetrofitInstance(
-                this,
-                "https://medium2.p.rapidapi.com/",
-                "x-rapidapi-key",
-                getResources().getString(Integer.parseInt("123")) // MAKE SURE TO REMOVE
-        ).create(BlogsApi.class);
 
-        String[] tags = {"self-improvement", "meditation", "wellness"};
-        for (String tag : tags) {
-            if (blogs.size() >= MAX_BLOGS) break; // Stop if enough blogs are fetched
-            loadingTasksRemaining++; // Increment task count for each tag fetch
-            api.getRecommendedFeed(tag, 1).enqueue(new Callback<RecommendedFeedResponse>() {
-                @Override
-                public void onResponse(Call<RecommendedFeedResponse> call, Response<RecommendedFeedResponse> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        List<String> recommendedFeed = response.body().getRecommendedFeed();
-
-                        if (!recommendedFeed.isEmpty()) {
-                            String firstArticleId = recommendedFeed.get(0);
-                            fetchArticleDetails(api, firstArticleId, tag, prefs, todayDate);
-                        } else {
-                            // Show placeholders if no articles are found for the tag
-                            showNoBlogsAvailable();
-                            taskCompleted();
-                        }
-                    } else {
-                        showNoBlogsAvailable();
-                        taskCompleted();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<RecommendedFeedResponse> call, Throwable t) {
-                    showNoBlogsAvailable();
-                    taskCompleted();
-                }
-            });
-        }
-        // After successfully fetching blogs
-        noBlogsImage.setVisibility(View.GONE);
-        noBlogsText.setVisibility(View.GONE);
-    }
-
-
-    private void fetchArticleDetails(BlogsApi api, String articleId, String tag, SharedPreferences prefs, int todayDate) {
-        if (blogs.size() >= MAX_BLOGS) return;
-        loadingTasksRemaining++;
-        api.getArticleInfo(articleId).enqueue(new Callback<ArticleDetails>() {
-            @Override
-            public void onResponse(Call<ArticleDetails> call, Response<ArticleDetails> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    ArticleDetails article = response.body();
-                    fetchUserInfo(api, article.getAuthor(), userFullName -> {
-                        addArticleToRecyclerView(article, tag, userFullName);
-
-                        if (blogs.size() == MAX_BLOGS) {
-                            saveBlogsToCache(blogs, todayDate);
-                        }
-                        taskCompleted();
-                    });
-                } else {
-                    showNoBlogsAvailable();
-                    taskCompleted();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ArticleDetails> call, Throwable t) {
-                showNoBlogsAvailable();
-                taskCompleted();
-            }
-        });
-    }
-
-    private void fetchUserInfo(BlogsApi api, String userId, OnUserFullNameFetched callback) {
-        api.getUserInfo(userId).enqueue(new Callback<UserInfo>() {
-            @Override
-            public void onResponse(Call<UserInfo> call, Response<UserInfo> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String fullName = response.body().getFullName();
-                    callback.onFetched(fullName != null ? fullName : "Unknown Author");
-                } else {
-                    callback.onFetched("Unknown Author");
-                }
-                taskCompleted();
-            }
-
-            @Override
-            public void onFailure(Call<UserInfo> call, Throwable t) {
-                callback.onFetched("Unknown Author");
-                taskCompleted();
-            }
-        });
-    }
-
-    private void addArticleToRecyclerView(ArticleDetails article, String tag, String authorFullName) {
-        if (blogs.size() >= MAX_BLOGS) return;
-        // Check if the blog already exists in the list
-        for (BlogResponse existingBlog : blogs) {
-            if (existingBlog.getTitle().equals(article.getTitle()) &&
-                    existingBlog.getAuthor().equals(authorFullName)) {
-                return; // Don't add duplicates
-            }
-        }
-
-
-        BlogResponse blog = new BlogResponse(
-                article.getTitle(),
-                authorFullName,
-                tag,
-                article.getUrl(),
-                article.getImageUrl()
-        );
-
-        blogs.add(blog);
-        blogAdapter.notifyDataSetChanged();
-        noBlogsImage.setVisibility(View.GONE);
-    }
-
-    private void saveBlogsToCache(List<BlogResponse> blogs, int todayDate) {
+    private void saveBlogsToCache(List<Blogs_Response> blogs) {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PREFS_BLOGS, BlogResponse.toJsonList(blogs));
-        editor.putInt(KEY_LAST_FETCH, todayDate);
+
+        String blogsJson = Blogs_Response.toJsonList(blogs);
+        editor.putString(PREFS_BLOGS, blogsJson);
+        editor.putInt(KEY_LAST_FETCH, Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
+
         editor.apply();
+        Log.d(TAG, "Saved Blogs to Cache: " + blogsJson);
     }
+
 
     private void showNoBlogsAvailable() {
         if (blogs.isEmpty()) {
