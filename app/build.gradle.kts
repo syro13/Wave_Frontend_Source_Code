@@ -61,6 +61,7 @@ dependencies {
     }
     testImplementation(libs.junit)
     testImplementation(libs.ext.junit)
+    testImplementation(libs.junit.jupiter)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation(libs.core.ktx)
