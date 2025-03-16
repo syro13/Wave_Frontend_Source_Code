@@ -283,7 +283,6 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         }
     }
 
-
     private void fetchBlogsFromApi(){
         Call<List<Blogs_Response>> blogsCall = apiService.getBlogsData();
         blogsCall.enqueue(new Callback<>() {
@@ -379,7 +378,6 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             }
 
             Log.d(TAG, "Loaded Blogs from Cache: " + cachedBlogs);
-
             blogs.clear();
             blogs.addAll(cachedBlogs);
 

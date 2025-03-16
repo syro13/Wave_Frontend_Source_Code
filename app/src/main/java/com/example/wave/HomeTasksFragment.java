@@ -294,7 +294,7 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
                 requireContext(),
                 "https://medium2.p.rapidapi.com/",
                 "x-rapidapi-key",
-                getResources().getString(R.string.home_api_key)
+                getResources().getString(Integer.parseInt("123")) // MAKE SURE TO REMOVE THIS
         ).create(BlogsApi.class);
 
         String[] tags = {"home", "cleaning", "decorating"};
