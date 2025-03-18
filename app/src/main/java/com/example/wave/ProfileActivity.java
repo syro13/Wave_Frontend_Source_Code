@@ -2,8 +2,10 @@ package com.example.wave;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -20,6 +22,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.example.wave.utils.UserUtils;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -181,7 +184,7 @@ public class ProfileActivity extends BaseActivity {
                 if (task.isSuccessful()) {
                     user.reload().addOnCompleteListener(reloadTask -> {
                         if (reloadTask.isSuccessful()) {
-                            AppController.getInstance().updateProfileImageUrl(imageUrl);
+                            UserUtils.saveUserData(getApplicationContext(), user);
                             loadUserProfile();
                             Toast.makeText(ProfileActivity.this, "Profile Image Updated!", Toast.LENGTH_SHORT).show();
                         }
@@ -194,27 +197,40 @@ public class ProfileActivity extends BaseActivity {
     }
 
     private void loadUserProfile() {
-        if (user != null) {
-
-            // Load Profile Name
-            if (user.getDisplayName() != null) {
-                profileName.setText(user.getDisplayName());
-            } else {
-                profileName.setText("User");
+            // Ensure the user object is not null
+            user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user == null) {
+                Log.e("ProfileActivity", "User is null, cannot load profile.");
+                return;
             }
 
-            // Load Profile Image
-            if (user.getPhotoUrl() != null) {
-                Glide.with(this)
-                        .load(user.getPhotoUrl())
-                        .placeholder(R.drawable.profile_image)
-                        .error(R.drawable.profile_image)
-                        .circleCrop()
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .into(profileImage);
-            } else {
-                profileImage.setImageResource(R.drawable.profile_image);
+            // Ensure UI components are initialized
+            if (profileName == null || profileImage == null) {
+                Log.e("ProfileActivity", "UI components are not initialized.");
+                return;
             }
-        }
+
+            // Load Name from Firebase
+            String displayName = user.getDisplayName();
+            profileName.setText(displayName != null ? displayName : "User");
+
+            // Load Profile Image from SharedPreferences
+            SharedPreferences preferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
+            String cachedProfileImage = preferences.getString("profile_image_url", AppController.DEFAULT_PROFILE_IMAGE_URL);
+
+            if (cachedProfileImage == null || cachedProfileImage.trim().isEmpty()) {
+                Log.w("ProfileActivity", "Cached profile image is empty, using default.");
+                cachedProfileImage = AppController.DEFAULT_PROFILE_IMAGE_URL;
+            }
+
+            // Load Image with Glide (Handling Errors)
+            Glide.with(this)
+                    .load(cachedProfileImage)
+                    .placeholder(R.drawable.profile_image)
+                    .error(R.drawable.profile_image)
+                    .circleCrop()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(profileImage);
     }
+
 }
