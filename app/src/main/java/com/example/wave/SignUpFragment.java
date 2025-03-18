@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.wave.utils.UserUtils;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -171,7 +172,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            setDefaultProfileImage(user, user.getDisplayName());
+                            UserUtils.saveUserData(requireContext(), user);
                         }
                     } else {
                         Toast.makeText(getContext(), "Facebook Sign-In Failed", Toast.LENGTH_SHORT).show();
@@ -182,26 +183,23 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
     @Override
     public void updateUI(FirebaseUser user) {
         if (user != null) {
-                setDefaultProfileImage(user, user.getDisplayName());
+            UserUtils.saveUserData(requireContext(), user);
         } else {
             Toast.makeText(getContext(), "Twitter Sign-In Failed", Toast.LENGTH_SHORT).show();
         }
     }
 
     /**
-
-    /**
-     * Navigate to Dashboard after successful login.
+     *
+     * @param requestCode The integer request code originally supplied to
+     *                    startActivityForResult(), allowing you to identify who this
+     *                    result came from.
+     * @param resultCode The integer result code returned by the child activity
+     *                   through its setResult().
+     * @param data An Intent, which can return result data to the caller
+     *               (various data can be attached to Intent "extras").
+     *
      */
-    private void navigateToDashboard(FirebaseUser user) {
-        if (getActivity() != null && user != null) {
-            Intent intent = new Intent(getActivity(), DashboardActivity.class);
-            intent.putExtra("USER_NAME", user.getDisplayName());
-            startActivity(intent);
-            getActivity().finish();
-        }
-    }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
 
@@ -262,9 +260,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             if (isSignUp) {
-                                setDefaultProfileImage(user, account.getDisplayName());
-                            } else {
-                                navigateToDashboard(user);
+                                UserUtils.saveUserData(requireContext(), user);
                             }
                         }
                     } else {
@@ -272,19 +268,6 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                     }
                 });
     }
-
-    private void navigateToDashboard(String displayName) {
-        if (getActivity() != null) {
-            Intent intent = new Intent(getActivity(), DashboardActivity.class);
-            intent.putExtra("USER_NAME", displayName);
-            startActivity(intent);
-            getActivity().finish();
-        } else {
-            Toast.makeText(getContext(), "Navigation failed: Context is unavailable.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-
 
     /**
      * Handles user sign-up with email and password.
@@ -326,29 +309,12 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            setDefaultProfileImage(user, name);
+                            UserUtils.saveUserData(requireContext(), user);
                         }
                     } else {
                         Toast.makeText(getContext(), "Sign-Up Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
-    }
-
-    private void setDefaultProfileImage(FirebaseUser user, String name) {
-        String defaultImageUrl = AppController.DEFAULT_PROFILE_IMAGE_URL;
-        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                .setDisplayName(name)
-                .setPhotoUri(Uri.parse(defaultImageUrl))
-                .build();
-
-        user.updateProfile(profileUpdates).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                AppController.getInstance().updateProfileImageUrl(defaultImageUrl);
-                navigateToDashboard(user);
-            } else {
-                Toast.makeText(getContext(), "Failed to update profile!", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     /**
