@@ -481,13 +481,20 @@ public class CombinedCalendarFragment extends Fragment implements
                     .collection(taskCollection)
                     .document(taskId)
                     .set(newTask)
-                    .addOnSuccessListener(aVoid -> Log.d("Firestore", "Task successfully added!"))
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("Firestore", "Task successfully added!");
+                        // Schedule the reminder if the toggle is enabled.
+                        if (newTask.isRemind()) {
+                            ReminderManager.scheduleReminder(requireContext(), newTask);
+                        }
+                    })
                     .addOnFailureListener(e -> {
                         Log.e("Firestore", "Error adding task", e);
                         Toast.makeText(requireContext(), "Error adding task", Toast.LENGTH_SHORT).show();
                     });
         }
     }
+
 
 
 

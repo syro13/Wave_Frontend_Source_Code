@@ -563,13 +563,12 @@ public class SchoolCalendarFragment extends Fragment implements
                     taskType,
                     remind,
                     year,
-                    0,
+                    0, // Default stability value
                     System.currentTimeMillis(),
                     repeatedDate, // Full date string (if used elsewhere)
                     false,
                     repeatOption
             );
-
 
             // Save the task to the "schooltasks" collection for School tasks.
             db.collection("users")
@@ -577,10 +576,17 @@ public class SchoolCalendarFragment extends Fragment implements
                     .collection("schooltasks")
                     .document(taskId)
                     .set(newTask)
-                    .addOnSuccessListener(aVoid -> Log.d("Firestore", "Task successfully added!"))
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("Firestore", "Task successfully added!");
+                        // If reminders are enabled, schedule a reminder for the task.
+                        if (newTask.isRemind()) {
+                            ReminderManager.scheduleReminder(requireContext(), newTask);
+                        }
+                    })
                     .addOnFailureListener(e -> Log.e("Firestore", "Error adding task", e));
         }
     }
+
 
 
     // Update the "Tasks for Today" title based on whether there are tasks for the selected day.

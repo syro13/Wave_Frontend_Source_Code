@@ -536,20 +536,20 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                     taskId,
                     title,
                     time,
-                    dateParts[0], // Day
-                    getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1), // Month
+                    dateParts[0], // Day only for filtering (if needed)
+                    getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1), // Month string
                     priority,
                     taskType,
                     remind,
                     year,
-                    0,
+                    0, // Default stability value
                     System.currentTimeMillis(),
                     repeatedDate, // Full date string
                     false,
                     repeatOption
             );
 
-            // Save the task to Firestore
+            // Save the task to the "housetasks" collection.
             db.collection("users")
                     .document(userId)
                     .collection("housetasks")
@@ -557,11 +557,18 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                     .set(newTask)
                     .addOnSuccessListener(aVoid -> {
                         Log.d("Firestore", "Task successfully added!");
-                        // The snapshot listener will update the taskList and UI automatically
+                        // If reminder toggle is enabled, schedule a reminder.
+                        if (newTask.isRemind()) {
+                            ReminderManager.scheduleReminder(requireContext(), newTask);
+                        }
                     })
-                    .addOnFailureListener(e -> Log.e("Firestore", "Error adding task", e));
+                    .addOnFailureListener(e -> {
+                        Log.e("Firestore", "Error adding task", e);
+                        Toast.makeText(requireContext(), "Error adding task", Toast.LENGTH_SHORT).show();
+                    });
         }
     }
+
 
     // Update the title above daily tasks based on tasks for the selected date
     private void updateTasksTitle(List<Task> selectedDateTasks, int selectedDay) {
