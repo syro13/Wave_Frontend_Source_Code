@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SnapHelper;
 
 import com.bumptech.glide.Glide;
+import com.example.wave.utils.UserUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -85,7 +86,7 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
         });
         // Fetch the user's display name from Firebase Authentication
         if (user != null) {
-            String displayName = user.getDisplayName();
+            String displayName = UserUtils.getSavedUserName(this);
             if (displayName != null && !displayName.isEmpty()) {
                 greetingTextView.setText("Hello " + displayName + "!");
             } else {
