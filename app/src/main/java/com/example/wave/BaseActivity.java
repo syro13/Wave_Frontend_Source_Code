@@ -77,13 +77,32 @@ public abstract class BaseActivity extends AppCompatActivity {
             profileIcon = findViewById(R.id.profileIcon);
         }
         if (profileIcon != null) {
-            String profileImageUrl = AppController.getInstance().getProfileImageUrl();
+            String cachedProfileImage = AppController.getInstance().getProfileImageUrl();
             Glide.with(this)
-                    .load(profileImageUrl)
+                    .load(cachedProfileImage)
                     .placeholder(R.drawable.profile_image)
                     .error(R.drawable.profile_image)
                     .circleCrop()
                     .into(profileIcon);
+            // Fetch latest image in the background
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user != null) {
+                Uri photoUri = user.getPhotoUrl();
+                if (photoUri != null) {
+                    String latestImageUrl = photoUri.toString();
+                    if (!latestImageUrl.equals(cachedProfileImage)) {
+                        // Update the cache and UI
+                        AppController.getInstance().updateProfileImageUrl(latestImageUrl);
+
+                        Glide.with(this)
+                                .load(latestImageUrl)
+                                .placeholder(R.drawable.profile_image)
+                                .error(R.drawable.profile_image)
+                                .circleCrop()
+                                .into(profileIcon);
+                    }
+                }
+            }
         }else {
                 profileIcon.setImageResource(R.drawable.profile_image);
             }
