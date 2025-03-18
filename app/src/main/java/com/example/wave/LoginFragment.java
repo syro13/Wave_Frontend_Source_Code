@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import com.example.wave.utils.UserUtils;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -168,8 +169,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            String displayName = account.getDisplayName();
-                            setDefaultProfileImage(user,user.getDisplayName()); // Override default Google profile pic
+                            UserUtils.saveUserData(requireContext(), user);
                         }
                     } else {
                        Log.e("LoginFragment", "Firebase Authentication failed", task.getException());
@@ -186,7 +186,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
     @Override
     public void updateUI(FirebaseUser user) {
         if (user != null) {
-                setDefaultProfileImage(user, user.getDisplayName()); // Override Facebook profile pic
+            UserUtils.saveUserData(requireContext(), user);
         } else {
             Toast.makeText(getContext(), "Twitter Login Failed", Toast.LENGTH_SHORT).show();
         }
@@ -219,7 +219,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            setDefaultProfileImage(user, user.getDisplayName()); // Override Facebook profile pic
+                            UserUtils.saveUserData(requireContext(), user);
                         }
                     } else {
                         Toast.makeText(getContext(), "Facebook Login Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
@@ -229,63 +229,6 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
     /**
      * Navigate to Dashboard after successful login.
      */
-    private void navigateToDashboard(String displayName) {
-        if (getActivity() != null) {
-            Intent intent = new Intent(getActivity(), DashboardActivity.class);
-            intent.putExtra("USER_NAME", displayName);
-            startActivity(intent);
-            getActivity().finish();
-        } else {
-            Toast.makeText(getContext(), "Navigation failed: Context is unavailable.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void setDefaultProfileImage(FirebaseUser user, String name) {
-        String defaultImageUrl = AppController.DEFAULT_PROFILE_IMAGE_URL;
-
-        // Check if the current photo URL is from an OAuth provider
-        Uri currentPhotoUri = user.getPhotoUrl();
-        final String profileUrl;  // Declare as final
-
-        if (currentPhotoUri != null) {
-            String photoUrlString = currentPhotoUri.toString();
-
-            if (!photoUrlString.contains("googleusercontent.com") &&
-                    !photoUrlString.contains("facebook.com") &&
-                    !photoUrlString.contains("twimg.com")) {
-                profileUrl = photoUrlString;  // Use existing profile picture
-            } else {
-                profileUrl = defaultImageUrl; // Override OAuth image with default
-            }
-        } else {
-            profileUrl = defaultImageUrl; // No image exists, use default
-        }
-
-        // Update Firebase profile with the chosen image
-        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                .setDisplayName(name)
-                .setPhotoUri(Uri.parse(profileUrl)) // Use default OR existing image
-                .build();
-
-        user.updateProfile(profileUpdates).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                AppController.getInstance().updateProfileImageUrl(profileUrl);
-                navigateToDashboard(user);
-            } else {
-                Toast.makeText(getContext(), "Failed to update profile!", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-
-    private void navigateToDashboard(FirebaseUser user) {
-        if (getActivity() != null && user != null) {
-            Intent intent = new Intent(getActivity(), DashboardActivity.class);
-            intent.putExtra("USER_NAME", user.getDisplayName());
-            startActivity(intent);
-            getActivity().finish();
-        }
-    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -321,13 +264,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            // Update profile image URL as soon as login is successful
-                            Uri photoUri = user.getPhotoUrl();
-                            if (photoUri != null) {
-                                AppController.getInstance().updateProfileImageUrl(photoUri.toString());
-                            }
-
-                            navigateToDashboard(user);
+                            UserUtils.saveUserData(requireContext(), user);
                         }
                     }
                     else {
