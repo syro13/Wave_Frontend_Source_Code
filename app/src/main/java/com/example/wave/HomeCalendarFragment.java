@@ -355,22 +355,54 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                     && t.getMonth().equalsIgnoreCase(currentMonth)
                     && t.getYear() == currentYear
                     && !t.isCompleted()) {
-                homeTaskDates.add(t.getDate());
+                String dateStr = t.getDate();
+                if (dateStr.contains("/")) {
+                    String[] dateParts = dateStr.split("/");
+                    if (dateParts.length == 3) {
+                        homeTaskDates.add(dateParts[0]); // Only the day portion
+                    }
+                } else {
+                    homeTaskDates.add(dateStr);
+                }
             }
         }
         return homeTaskDates;
     }
 
+
     // Filter tasks for a given day and category
     private List<Task> filterTasksByDateBasedOnCategory(int day, String category) {
+        if (!"Home".equals(category)) {
+            Log.e("filterTasksByDateBasedOnCategory", "Invalid category: " + category);
+            return new ArrayList<>();
+        }
+
         List<Task> filteredTasks = new ArrayList<>();
         for (Task t : taskList) {
-            if (Integer.parseInt(t.getDate()) == day && t.getCategory().equals(category)) {
-                filteredTasks.add(t);
+            if (!"Home".equals(t.getCategory())) continue;
+
+            String dateStr = t.getDate();
+            if (!dateStr.contains("/")) {
+                dateStr = dateStr + "/" + (calendar.get(Calendar.MONTH) + 1) + "/" + calendar.get(Calendar.YEAR);
+            }
+            String[] dateParts = dateStr.split("/");
+            if (dateParts.length != 3) {
+                Log.e("filterTasksByDateBasedOnCategory", "Invalid date format for task: " + t.getDate());
+                continue;
+            }
+
+            try {
+                int taskDay = Integer.parseInt(dateParts[0]);
+                if (taskDay == day) {
+                    filteredTasks.add(t);
+                }
+            } catch (NumberFormatException e) {
+                Log.e("filterTasksByDateBasedOnCategory", "Error parsing day from date: " + t.getDate(), e);
             }
         }
         return filteredTasks;
     }
+
 
     // onTaskEdited: update Firestore; listener will update UI
     @Override
@@ -429,37 +461,42 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         int currentYear = calendar.get(Calendar.YEAR);
 
         for (Task t : taskList) {
-            // Parse the task's date to extract the day, month, and year
-            String[] dateParts = t.getDate().split("/");
+            // Get the task’s date string; if it does not contain "/" assume it’s only the day.
+            String dateStr = t.getDate();
+            if (!dateStr.contains("/")) {
+                dateStr = dateStr + "/" + (calendar.get(Calendar.MONTH) + 1) + "/" + currentYear;
+            }
+            String[] dateParts = dateStr.split("/");
             if (dateParts.length != 3) {
                 Log.e("TaskFilter", "Invalid date format for task: " + t.getDate());
                 continue;
             }
+            int taskDay, taskMonth, taskYear;
+            try {
+                taskDay = Integer.parseInt(dateParts[0]);
+                taskMonth = Integer.parseInt(dateParts[1]) - 1; // convert to 0-based month index
+                taskYear = Integer.parseInt(dateParts[2]);
+            } catch (NumberFormatException e) {
+                Log.e("TaskFilter", "Error parsing date from task: " + t.getDate(), e);
+                continue;
+            }
 
-            int taskDay = Integer.parseInt(dateParts[0]);
-            int taskMonth = Integer.parseInt(dateParts[1]) - 1; // Convert to 0-based index
-            int taskYear = Integer.parseInt(dateParts[2]);
-
-            // Check if the task matches the selected day, month, and year
-            if (taskDay == day && taskMonth == calendar.get(Calendar.MONTH) && taskYear == currentYear
-                    && "Home".equals(t.getCategory()) && !t.isCompleted()) {
+            // Only add tasks that match today's day, month, and year and belong to "Home"
+            if (taskDay == day && taskMonth == calendar.get(Calendar.MONTH)
+                    && taskYear == currentYear && "Home".equals(t.getCategory())
+                    && !t.isCompleted()) {
                 todayTasks.add(t);
             }
         }
 
-        // Update the adapter and UI
         taskAdapter.updateTasks(todayTasks);
         taskAdapter.notifyDataSetChanged();
         updateTasksTitle(todayTasks, day);
 
-        // Show the empty state image if there are no tasks for today
         ImageView emptyTasksImage = getView().findViewById(R.id.emptyTasksImage);
-        if (todayTasks.isEmpty()) {
-            emptyTasksImage.setVisibility(View.VISIBLE);
-        } else {
-            emptyTasksImage.setVisibility(View.GONE);
-        }
+        emptyTasksImage.setVisibility(todayTasks.isEmpty() ? View.VISIBLE : View.GONE);
     }
+
 
 
     // Update the weekly tasks section
@@ -468,29 +505,60 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             Log.e("updateWeeklyTasks", "View is null, skipping UI update.");
             return;
         }
+
+        // Formatter for full date (d/M/yyyy)
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
         String currentDateString = calendar.get(Calendar.DAY_OF_MONTH) + "/"
                 + (calendar.get(Calendar.MONTH) + 1) + "/"
                 + calendar.get(Calendar.YEAR);
-        List<Task> allWeeklyTasks = filterTasksByWeek(currentDateString);
-        List<Task> weeklyHomeTasks = new ArrayList<>();
-        for (Task task : allWeeklyTasks) {
-            if ("Home".equals(task.getCategory()) && !task.isCompleted()) {
-                weeklyHomeTasks.add(task);
+
+        LocalDate currentDate;
+        try {
+            currentDate = LocalDate.parse(currentDateString, formatter);
+        } catch (DateTimeParseException e) {
+            Log.e("updateWeeklyTasks", "Error parsing current date: " + e.getMessage());
+            return;
+        }
+
+        int currentWeek = currentDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+        List<Task> weeklyTasks = new ArrayList<>();
+
+        for (Task t : taskList) {
+            if (!"Home".equals(t.getCategory()) || t.isCompleted()) continue;
+
+            String dateStr = t.getDate();
+            if (!dateStr.contains("/")) {
+                dateStr = dateStr + "/" + (getMonthIndex(t.getMonth()) + 1) + "/" + t.getYear();
+            }
+            try {
+                LocalDate taskDate = LocalDate.parse(dateStr, formatter);
+                int taskWeek = taskDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+                if (taskWeek == currentWeek
+                        && taskDate.getYear() == currentDate.getYear()
+                        && taskDate.getMonthValue() == currentDate.getMonthValue()) {
+                    weeklyTasks.add(t);
+                }
+            } catch (DateTimeParseException e) {
+                Log.e("updateWeeklyTasks", "Error parsing task date: " + t.getDate() + ", " + e.getMessage());
             }
         }
-        weeklyHomeTasks.sort((t1, t2) -> getPriorityValue(t1.getPriority()) - getPriorityValue(t2.getPriority()));
+
+        // Sort weekly tasks by priority (lower number means higher priority)
+        weeklyTasks.sort((t1, t2) -> getPriorityValue(t1.getPriority()) - getPriorityValue(t2.getPriority()));
+
         View tasksTitle = getView().findViewById(R.id.tasksDueThisWeekTitle);
         View weeklyRecyclerView = getView().findViewById(R.id.weeklyTaskRecyclerView);
-        if (weeklyHomeTasks.isEmpty()) {
+        if (weeklyTasks.isEmpty()) {
             tasksTitle.setVisibility(View.GONE);
             weeklyRecyclerView.setVisibility(View.GONE);
         } else {
             tasksTitle.setVisibility(View.VISIBLE);
             weeklyRecyclerView.setVisibility(View.VISIBLE);
-            weeklyTaskAdapter.updateTasks(weeklyHomeTasks);
+            weeklyTaskAdapter.updateTasks(weeklyTasks);
             weeklyTaskAdapter.notifyDataSetChanged();
         }
     }
+
     private Task.RepeatOption getRepeatOptionFromString(String repeatOptionString) {
         switch (repeatOptionString) {
             case "Repeat every Monday":
@@ -521,10 +589,10 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             return;
         }
 
-        // Convert the repeat option string to the RepeatOption enum
+        // Convert the repeat option string to the RepeatOption enum.
         Task.RepeatOption repeatOption = getRepeatOptionFromString(repeatOptionString);
 
-        // Get the repeated dates for the current month
+        // Get the repeated dates for the current month.
         List<String> repeatedDates = getRepeatedDates(date, repeatOption);
 
         for (String repeatedDate : repeatedDates) {
@@ -532,19 +600,21 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             String[] dateParts = repeatedDate.split("/");
             int year = Integer.parseInt(dateParts[2]);
 
+            // Create a new Task.
+            // For Home tasks, we store the full date string in the 'full date' field.
             Task newTask = new Task(
                     taskId,
                     title,
                     time,
-                    dateParts[0], // Day only for filtering (if needed)
-                    getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1), // Month string
+                    dateParts[0], // You can store just the day for quick filtering if needed.
+                    getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1),
                     priority,
                     taskType,
                     remind,
                     year,
                     0, // Default stability value
                     System.currentTimeMillis(),
-                    repeatedDate, // Full date string
+                    repeatedDate, // Full date string (e.g., "8/3/2025")
                     false,
                     repeatOption
             );
@@ -557,7 +627,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                     .set(newTask)
                     .addOnSuccessListener(aVoid -> {
                         Log.d("Firestore", "Task successfully added!");
-                        // If reminder toggle is enabled, schedule a reminder.
                         if (newTask.isRemind()) {
                             ReminderManager.scheduleReminder(requireContext(), newTask);
                         }
@@ -568,6 +637,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                     });
         }
     }
+
 
 
     // Update the title above daily tasks based on tasks for the selected date
@@ -593,6 +663,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         updateTasksForToday(todayDay);
         updateWeeklyTasks();
     }
+
 
 
     // Utility methods

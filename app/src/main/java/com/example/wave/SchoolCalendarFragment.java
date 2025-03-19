@@ -329,15 +329,21 @@ public class SchoolCalendarFragment extends Fragment implements
             if ("School".equals(t.getCategory()) &&
                     t.getMonth().equalsIgnoreCase(currentMonth) &&
                     t.getYear() == currentYear) {
-                // Extract just the day portion
-                String[] dateParts = t.getDate().split("/");
-                if(dateParts.length == 3) {
-                    schoolTaskDates.add(dateParts[0]); // e.g. "8" instead of "8/3/2025"
+                String dateStr = t.getDate();
+                if (dateStr.contains("/")) {
+                    String[] dateParts = dateStr.split("/");
+                    if (dateParts.length == 3) {
+                        schoolTaskDates.add(dateParts[0]); // e.g., "8" instead of "8/3/2025"
+                    }
+                } else {
+                    schoolTaskDates.add(dateStr);
                 }
             }
         }
+        Log.d("getSchoolTaskDates", "School Task Dates Highlighted: " + schoolTaskDates);
         return schoolTaskDates;
     }
+
 
 
     // Filter tasks for a given day (for School category)
@@ -351,8 +357,11 @@ public class SchoolCalendarFragment extends Fragment implements
         for (Task t : taskList) {
             if (!"School".equals(t.getCategory())) continue;
 
-            // Expecting date in "d/M/yyyy" format.
-            String[] dateParts = t.getDate().split("/");
+            String dateStr = t.getDate();
+            if (!dateStr.contains("/")) {
+                dateStr = dateStr + "/" + (calendar.get(Calendar.MONTH) + 1) + "/" + calendar.get(Calendar.YEAR);
+            }
+            String[] dateParts = dateStr.split("/");
             if (dateParts.length != 3) {
                 Log.e("filterTasksByDateBasedOnCategory", "Invalid date format for task: " + t.getDate());
                 continue;
@@ -369,6 +378,7 @@ public class SchoolCalendarFragment extends Fragment implements
         }
         return filteredTasks;
     }
+
 
 
 
@@ -420,37 +430,43 @@ public class SchoolCalendarFragment extends Fragment implements
         int currentYear = calendar.get(Calendar.YEAR);
 
         for (Task t : taskList) {
-            // Parse the task's date (which should now be stored as full "day/month/year")
-            String[] dateParts = t.getDate().split("/");
+            // Ensure we have a full date (format: "d/M/yyyy")
+            String dateStr = t.getDate();
+            if (!dateStr.contains("/")) {
+                // If only day is stored, append current month and year
+                dateStr = dateStr + "/" + (calendar.get(Calendar.MONTH) + 1) + "/" + currentYear;
+            }
+            String[] dateParts = dateStr.split("/");
             if (dateParts.length != 3) {
                 Log.e("TaskFilter", "Invalid date format for task: " + t.getDate());
                 continue;
             }
+            int taskDay, taskMonth, taskYear;
+            try {
+                taskDay = Integer.parseInt(dateParts[0]);
+                taskMonth = Integer.parseInt(dateParts[1]) - 1; // adjust for 0-based index
+                taskYear = Integer.parseInt(dateParts[2]);
+            } catch (NumberFormatException e) {
+                Log.e("TaskFilter", "Error parsing date from task: " + t.getDate(), e);
+                continue;
+            }
 
-            int taskDay = Integer.parseInt(dateParts[0]);
-            int taskMonth = Integer.parseInt(dateParts[1]) - 1; // 0-based month index
-            int taskYear = Integer.parseInt(dateParts[2]);
-
-            // Check if the task matches the selected day, month, and year
-            if (taskDay == day && taskMonth == calendar.get(Calendar.MONTH) && taskYear == currentYear
-                    && "School".equals(t.getCategory()) && !t.isCompleted()) {
+            // Compare against today's date
+            if (taskDay == day && taskMonth == calendar.get(Calendar.MONTH)
+                    && taskYear == currentYear && "School".equals(t.getCategory())
+                    && !t.isCompleted()) {
                 todayTasks.add(t);
             }
         }
 
-        // Update the adapter and UI
         taskAdapter.updateTasks(todayTasks);
         taskAdapter.notifyDataSetChanged();
         updateTasksTitle(todayTasks, day);
 
-        // Show/hide the empty state image
         ImageView emptyTasksImage = getView().findViewById(R.id.emptyTasksImage);
-        if (todayTasks.isEmpty()) {
-            emptyTasksImage.setVisibility(View.VISIBLE);
-        } else {
-            emptyTasksImage.setVisibility(View.GONE);
-        }
+        emptyTasksImage.setVisibility(todayTasks.isEmpty() ? View.VISIBLE : View.GONE);
     }
+
 
 
 
@@ -462,9 +478,9 @@ public class SchoolCalendarFragment extends Fragment implements
         }
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
-        String currentDateString = calendar.get(Calendar.DAY_OF_MONTH) + "/"
-                + (calendar.get(Calendar.MONTH) + 1) + "/"
-                + calendar.get(Calendar.YEAR);
+        String currentDateString = calendar.get(Calendar.DAY_OF_MONTH) + "/" +
+                (calendar.get(Calendar.MONTH) + 1) + "/" +
+                calendar.get(Calendar.YEAR);
 
         LocalDate currentDate;
         try {
@@ -475,14 +491,16 @@ public class SchoolCalendarFragment extends Fragment implements
         }
 
         int currentWeek = currentDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-
         List<Task> weeklySchoolTasks = new ArrayList<>();
+
         for (Task t : taskList) {
             if (!"School".equals(t.getCategory()) || t.isCompleted()) continue;
-
             try {
-                // Parse the full task date (which is already stored as "d/M/yyyy")
-                LocalDate taskDate = LocalDate.parse(t.getDate(), formatter);
+                String dateStr = t.getDate();
+                if (!dateStr.contains("/")) {
+                    dateStr = dateStr + "/" + (getMonthIndex(t.getMonth()) + 1) + "/" + t.getYear();
+                }
+                LocalDate taskDate = LocalDate.parse(dateStr, formatter);
                 int taskWeek = taskDate.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
                 if (taskWeek == currentWeek) {
                     weeklySchoolTasks.add(t);
@@ -492,12 +510,11 @@ public class SchoolCalendarFragment extends Fragment implements
             }
         }
 
-        // Sort by priority (lower number indicates higher priority)
+        // Sort by priority (lower number = higher priority)
         weeklySchoolTasks.sort((t1, t2) -> getPriorityValue(t1.getPriority()) - getPriorityValue(t2.getPriority()));
 
         View tasksTitle = getView().findViewById(R.id.tasksDueThisWeekTitle);
         View weeklyRecyclerView = getView().findViewById(R.id.weeklyTaskRecyclerView);
-
         if (weeklySchoolTasks.isEmpty()) {
             tasksTitle.setVisibility(View.GONE);
             weeklyRecyclerView.setVisibility(View.GONE);
@@ -508,6 +525,7 @@ public class SchoolCalendarFragment extends Fragment implements
             weeklyTaskAdapter.notifyDataSetChanged();
         }
     }
+
 
     private Task.RepeatOption getRepeatOptionFromString(String repeatOptionString) {
         switch (repeatOptionString) {
