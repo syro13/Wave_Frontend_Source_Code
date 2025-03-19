@@ -344,6 +344,52 @@ public class SchoolCalendarFragment extends Fragment implements
         return schoolTaskDates;
     }
 
+    private final ActivityResultLauncher<Intent> editTaskLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Task updatedTask = result.getData().getParcelableExtra("updatedTask");
+                    if (updatedTask != null) {
+                        updateExistingTask(updatedTask);
+                    }
+                }
+            });
+
+    @Override
+    public void onTaskEdited(Task task, int position) {
+        // Open EditTasksActivity with the selected task
+        Intent intent = new Intent(requireContext(), EditTasksActivity.class);
+        intent.putExtra("task", task);
+        editTaskLauncher.launch(intent);
+    }
+
+    private void updateExistingTask(Task updatedTask) {
+        if (updatedTask.getId() == null) {
+            Log.e("updateExistingTask", "Updated task ID is null. Cannot update.");
+            return;
+        }
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot update task");
+            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Update Firestore with the edited task
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .document(updatedTask.getId())
+                .set(updatedTask)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Firestore", "Task successfully updated");
+                    updateCalendar();
+                    updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error updating task", e));
+    }
+
 
 
     // Filter tasks for a given day (for School category)
@@ -378,49 +424,6 @@ public class SchoolCalendarFragment extends Fragment implements
         }
         return filteredTasks;
     }
-
-
-
-
-    @Override
-    public void onTaskEdited(Task updatedTask, int position) {
-        updateExistingTask(updatedTask);
-    }
-
-    // Update an existing task by matching its ID
-    private void updateExistingTask(Task updatedTask) {
-        if (updatedTask.getId() == null) {
-            Log.e("updateExistingTask", "Updated task ID is null. Cannot update.");
-            return;
-        }
-        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
-        if (userId == null) {
-            Log.e("Firestore", "User not logged in, cannot update task");
-            Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        db.collection("users")
-                .document(userId)
-                .collection("schooltasks")
-                .document(updatedTask.getId())
-                .set(updatedTask)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d("Firestore", "Task successfully updated");
-                    // The snapshot listener will update the UI.
-                })
-                .addOnFailureListener(e -> Log.e("Firestore", "Error updating task", e));
-    }
-
-    private final ActivityResultLauncher<Intent> editTaskLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Task updatedTask = result.getData().getParcelableExtra("updatedTask");
-                    if (updatedTask != null) {
-                        updateExistingTask(updatedTask);
-                    }
-                }
-            });
 
     // Update today's tasks based on the current day (School category)
     // Update today's tasks for School tasks only.
