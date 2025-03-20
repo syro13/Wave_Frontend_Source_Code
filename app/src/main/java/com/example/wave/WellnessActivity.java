@@ -30,16 +30,16 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class WellnessActivity extends BaseActivity implements NetworkReceiver.NetworkChangeListener {
-    private NetworkReceiver networkReceiver;
+public class WellnessActivity extends BaseActivity {
+
     private static final String PREFS_NAME = "WellnessPrefs";
     private static final String KEY_QUOTE = "quoteText";
     private static final String KEY_AUTHOR = "quoteAuthor";
     private static final String PREFS_BLOGS = "PrefsBlogs";
     private static final String PREFS_PODCASTS = "PrefsPodcasts";
     private static final String KEY_LAST_FETCH = "lastFetchDate";
-    private static final int MAX_BLOGS = 3;
-    private static final int MAX_PODCASTS = 3;
+    private static final int MAX_BLOGS = 4;
+    private static final int MAX_PODCASTS = 4;
 
     private ImageView quoteImage;
     private TextView quoteText, quoteAuthor,noPodcastsText,noBlogsText;
@@ -89,101 +89,42 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         setupPrompts();
 
 
-        // Start with progress bar visible
-        loadingIndicator.setVisibility(View.VISIBLE);
-
-        // Increment the loading task counter for each task
-        loadingTasksRemaining = 3;
+        showLoading();
 
         // Start loading tasks
         updateQuoteImage();
-        fetchTodaysQuoteWithCache();
-        loadCachedBlogs();
-        loadCachedPodcasts();
+        loadData();
 
-        // Register the network receiver
-        networkReceiver = new NetworkReceiver(this);
-        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(networkReceiver, filter);
-        findViewById(R.id.profileIcon).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Start Budget Activity
-                Intent intent = new Intent(WellnessActivity.this, ProfileActivity.class);
-                startActivity(intent);
-            }
-        });
     }
-    @Override
-    protected int getCurrentMenuItemId() {
-        return -1; // No selection
-    }
-
-
-    @Override
-    public void onNetworkRestored() {
-        Log.d("WellnessActivity", "Network restored. Checking data...");
-        reloadDataIfNeeded();  // Reload only if data is not already cached
-    }
-
-    private void reloadDataIfNeeded() {
+    private void loadData() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
         int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 
-        boolean needsReload = false;
+        boolean useCache = (lastFetchDate == todayDate);
 
-        loadingIndicator.setVisibility(View.VISIBLE);
+        // Reset the task counter
+        loadingTasksRemaining = 0;
 
-        // Check if quote data needs to be reloaded
-        String cachedQuote = prefs.getString(KEY_QUOTE, null);
-        String cachedAuthor = prefs.getString(KEY_AUTHOR, null);
-        if (cachedQuote == null || cachedAuthor == null || lastFetchDate != todayDate) {
-            Log.d("WellnessActivity", "Reloading Quotes...");
-            fetchTodaysQuoteWithCache();
-            needsReload = true;
-        } else {
-            Log.d("WellnessActivity", "Quotes are already cached.");
-        }
-
-        // Check if blog data needs to be reloaded
-        String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
-        if (cachedBlogsJson == null || lastFetchDate != todayDate) {
-            Log.d("WellnessActivity", "Reloading Blogs...");
+        // Load cached or fetch new
+        if (useCache) {
             loadCachedBlogs();
-            needsReload = true;
-        } else {
-            Log.d("WellnessActivity", "Blogs are already cached.");
-        }
-
-        // Check if podcast data needs to be reloaded
-        String cachedPodcastsJson = prefs.getString(PREFS_PODCASTS, null);
-        if (cachedPodcastsJson == null || lastFetchDate != todayDate) {
-            Log.d("WellnessActivity", "Reloading Podcasts...");
             loadCachedPodcasts();
-            needsReload = true;
+            fetchTodaysQuoteWithCache();
         } else {
-            Log.d("WellnessActivity", "Podcasts are already cached.");
-        }
-
-        // Hide placeholders if reload is required
-        if (needsReload) {
-            Toast.makeText(this, "Internet restored. Reloading data...", Toast.LENGTH_SHORT).show();
-            noBlogsImage.setVisibility(View.GONE);
-            noPodcastsImage.setVisibility(View.GONE);
-            noBlogsText.setVisibility(View.GONE);
-            noPodcastsText.setVisibility(View.GONE);
-        } else {
-            Log.d("WellnessActivity", "No reload required. Data is up-to-date.");
-            loadingIndicator.setVisibility(View.GONE); // Hide the loading indicator
+            fetchBlogsFromApi();
+            fetchPodcastsFromApi();
+            fetchTodaysQuoteFromApi(prefs, todayDate);
         }
     }
-
+    private void showLoading() {
+        loadingIndicator.setVisibility(View.VISIBLE);
+        loadingOverlay.setVisibility(View.VISIBLE);
+    }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(networkReceiver);
+    protected int getCurrentMenuItemId() {
+        return -1; // No selection
     }
 
     private void updateQuoteImage() {
@@ -206,11 +147,9 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String cachedQuote = prefs.getString(KEY_QUOTE, null);
         String cachedAuthor = prefs.getString(KEY_AUTHOR, null);
-        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
-
         int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 
-        if (cachedQuote != null && cachedAuthor != null && lastFetchDate == todayDate) {
+        if (cachedQuote != null && cachedAuthor != null) {
             quoteText.setText(cachedQuote);
             quoteAuthor.setText(cachedAuthor);
             taskCompleted();
@@ -220,6 +159,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
     }
 
     private void fetchTodaysQuoteFromApi(SharedPreferences prefs, int todayDate) {
+        loadingTasksRemaining++;
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://zenquotes.io/api/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -257,6 +197,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         });
     }
     private void fetchPodcastsFromApi() {
+        loadingTasksRemaining++;
         Call<List<PodcastsResponse>> podcastsCall = apiService.getPodcastsData();
         podcastsCall.enqueue(new Callback<>() {
             @Override
@@ -269,9 +210,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
                     Log.d(TAG, "Podcast: " + podcasts);
                     savePodcastsToCache(podcasts);
                     setupPodcastsRecyclerView(podcasts);
-                    // Hide placeholders when data is fetched
-                    noPodcastsImage.setVisibility(View.GONE);
-                    noPodcastsText.setVisibility(View.GONE);
+                    hideNoPodcastsAvailable();
                 } else {
                     // Show placeholders if the response is empty or invalid
                     showNoPodcastsAvailable();
@@ -282,21 +221,18 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             @Override
             public void onFailure(Call<List<PodcastsResponse>> call, Throwable t) {
                 Log.e(TAG, "API call failed: " + t.getMessage());
+                showNoPodcastsAvailable();
                 taskCompleted();
             }
         });
     }
-    private void setupPodcastsRecyclerView(List<PodcastsResponse> podcastsList) {
-        if (podcastAdapter == null) {
-            podcastRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-            podcastAdapter = new PodcastAdapter(this, podcastsList);
-            podcastRecyclerView.setAdapter(podcastAdapter);
-        } else {
-            podcastAdapter.updateData(podcastsList);
-        }
+    private void hideNoPodcastsAvailable() {
+        noPodcastsImage.setVisibility(View.GONE);
+        noPodcastsText.setVisibility(View.GONE);
     }
 
     private void fetchBlogsFromApi(){
+        loadingTasksRemaining++;
         Call<List<Blogs_Response>> blogsCall = apiService.getBlogsData();
         blogsCall.enqueue(new Callback<>() {
             @Override
@@ -319,6 +255,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             @Override
             public void onFailure(Call<List<Blogs_Response>> call, Throwable t) {
                 Log.e(TAG, "API call failed: " + t.getMessage());
+                showNoBlogsAvailable();
                 taskCompleted();
             }
         });
@@ -326,10 +263,8 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
     private void loadCachedPodcasts() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String cachedPodcastsJson = prefs.getString(PREFS_PODCASTS, null);
-        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
-        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 
-        if (cachedPodcastsJson != null && lastFetchDate == todayDate) {
+        if (cachedPodcastsJson != null) {
             List<PodcastsResponse> cachedPodcasts = PodcastsResponse.fromJsonList(cachedPodcastsJson);
 
             if (cachedPodcasts.size() > MAX_PODCASTS) {
@@ -341,24 +276,20 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             podcasts.clear();
             podcasts.addAll(cachedPodcasts);
 
-            setupPodcastsRecyclerView(podcasts);
+            if (podcasts.isEmpty()) {
+                showNoPodcastsAvailable();  // Show placeholder if cache is empty
+            } else {
+                setupPodcastsRecyclerView(podcasts);
+                hideNoPodcastsAvailable();
+            }
         } else {
-            fetchPodcastsFromApi();
+            showNoPodcastsAvailable();  // Show placeholder if no cache exists
         }
+        taskCompleted();
     }
 
 
-    private void savePodcastsToCache(List<PodcastsResponse> podcasts) {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
 
-        String podcastsJson = PodcastsResponse.toJsonList(podcasts);
-        editor.putString(PREFS_PODCASTS, podcastsJson);
-        editor.putInt(KEY_LAST_FETCH, Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
-
-        editor.apply();
-        Log.d(TAG, "Saved Podcasts to Cache: " + podcastsJson);
-    }
 
 
     private void showNoPodcastsAvailable() {
@@ -367,7 +298,22 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             noPodcastsText.setVisibility(View.VISIBLE);
         }
     }
+    private void showNoBlogsAvailable() {
+        if (blogAdapter == null || blogAdapter.getItemCount() == 0) {
+            noBlogsImage.setVisibility(View.VISIBLE);
+            noBlogsText.setVisibility(View.VISIBLE);
+        }
+    }
 
+    private void setupPodcastsRecyclerView(List<PodcastsResponse> podcastsList) {
+        if (podcastAdapter == null) {
+            podcastRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            podcastAdapter = new PodcastAdapter(this, podcastsList);
+            podcastRecyclerView.setAdapter(podcastAdapter);
+        } else {
+            podcastAdapter.updateData(podcastsList);
+        }
+    }
     private void setupBlogsRecyclerView(List<Blogs_Response> blogsList) {
         if (blogAdapter == null) {
             blogRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -382,10 +328,9 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
     private void loadCachedBlogs() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
-        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
-        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 
-        if (cachedBlogsJson != null && lastFetchDate == todayDate) {
+
+        if (cachedBlogsJson != null) {
             List<Blogs_Response> cachedBlogs = Blogs_Response.fromJsonList(cachedBlogsJson);
 
             if (cachedBlogs.size() > MAX_BLOGS) {
@@ -396,13 +341,28 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             blogs.clear();
             blogs.addAll(cachedBlogs);
 
-            setupBlogsRecyclerView(blogs);
+            if (blogs.isEmpty()) {
+                showNoBlogsAvailable();  // Show placeholder if cache is empty
+            } else {
+                setupBlogsRecyclerView(blogs);
+            }
         } else {
-            fetchBlogsFromApi();
+            showNoBlogsAvailable();  // Show placeholder if no cache exists
         }
+        taskCompleted();
     }
 
+    private void savePodcastsToCache(List<PodcastsResponse> podcasts) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
 
+        String podcastsJson = PodcastsResponse.toJsonList(podcasts);
+        editor.putString(PREFS_PODCASTS, podcastsJson);
+        editor.putInt(KEY_LAST_FETCH, Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
+
+        editor.apply();
+        Log.d(TAG, "Saved Podcasts to Cache: " + podcastsJson);
+    }
     private void saveBlogsToCache(List<Blogs_Response> blogs) {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
@@ -415,19 +375,18 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         Log.d(TAG, "Saved Blogs to Cache: " + blogsJson);
     }
 
-
-    private void showNoBlogsAvailable() {
-        if (blogs.isEmpty()) {
-            noBlogsImage.setVisibility(View.VISIBLE);
-            noBlogsText.setVisibility(View.VISIBLE);
-            taskCompleted();
-        }
-    }
-
     private synchronized void taskCompleted() {
         loadingTasksRemaining--;
         if (loadingTasksRemaining <= 0) {
             loadingIndicator.setVisibility(View.GONE);
+            loadingOverlay.setVisibility(View.GONE);
+            // Ensure placeholders are shown if no data was loaded
+            if (blogs.isEmpty()) {
+                showNoBlogsAvailable();
+            }
+            if (podcasts.isEmpty()) {
+                showNoPodcastsAvailable();
+            }
         }
     }
     private void setupPrompts() {
