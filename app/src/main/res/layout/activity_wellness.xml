@@ -221,6 +221,25 @@
                 android:layout_marginTop="2dp"
                 android:layout_margin="15dp"
                 android:orientation="horizontal" />
+            <!-- AI Prompts Section -->
+                <TextView
+                    android:id="@+id/PromptsTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Quick Prompts"
+                    android:fontFamily="@font/archivo_medium"
+                    android:textStyle="normal"
+                    android:textSize="24sp"
+                    android:layout_marginStart="16dp"
+                    android:textColor="@color/black" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/promptsRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_margin="15dp"
+                    android:orientation="horizontal"/>
 
             <!-- No Blogs Placeholder -->
             <ImageView
@@ -254,7 +273,15 @@
         android:layout_gravity="center"
         android:indeterminateTint="@color/dark_blue"
         android:visibility="gone" />
-
+    <!-- Full-Screen Click-Blocking Overlay -->
+    <View
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true" />
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
