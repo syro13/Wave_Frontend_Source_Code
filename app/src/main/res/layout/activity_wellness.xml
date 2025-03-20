@@ -40,7 +40,7 @@
                     android:id="@+id/profileIcon"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:src="@drawable/ic_profile_placeholder"
+                    android:src="@drawable/profile_image"
                     android:contentDescription="Profile Icon"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
