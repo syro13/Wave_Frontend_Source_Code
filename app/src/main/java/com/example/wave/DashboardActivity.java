@@ -84,15 +84,6 @@ public class DashboardActivity extends BaseActivity implements TaskAdapter.OnTas
                 startActivity(intent);
             }
         });
-        // Fetch the user's display name from Firebase Authentication
-        if (user != null) {
-            String displayName = UserUtils.getSavedUserName(this);
-            if (displayName != null && !displayName.isEmpty()) {
-                greetingTextView.setText("Hello " + displayName + "!");
-            } else {
-                greetingTextView.setText("Hello User!"); // Default fallback
-            }
-        }
 
         // Initialize Task List and Adapter
         taskList = new ArrayList<>();
