@@ -71,8 +71,6 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         setupBottomNavigation(bottomNavigationView);
 
-// Clear SharedPreferences for testing
- //       getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().clear().apply();
         // Initialize views
         quoteImage = findViewById(R.id.quoteImage);
         quoteText = findViewById(R.id.quoteText);
@@ -278,11 +276,13 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
                     // Show placeholders if the response is empty or invalid
                     showNoPodcastsAvailable();
                 }
+                taskCompleted();
             }
 
             @Override
             public void onFailure(Call<List<PodcastsResponse>> call, Throwable t) {
                 Log.e(TAG, "API call failed: " + t.getMessage());
+                taskCompleted();
             }
         });
     }
@@ -292,7 +292,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             podcastAdapter = new PodcastAdapter(this, podcastsList);
             podcastRecyclerView.setAdapter(podcastAdapter);
         } else {
-            podcastAdapter.notifyDataSetChanged();
+            podcastAdapter.updateData(podcastsList);
         }
     }
 
@@ -313,11 +313,13 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
                     Log.e(TAG, "Failed to get blogs");
                     showNoBlogsAvailable();
                 }
+                taskCompleted();
             }
 
             @Override
             public void onFailure(Call<List<Blogs_Response>> call, Throwable t) {
                 Log.e(TAG, "API call failed: " + t.getMessage());
+                taskCompleted();
             }
         });
     }
@@ -372,7 +374,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             blogAdapter = new BlogAdapter(this, blogsList);
             blogRecyclerView.setAdapter(blogAdapter);
         } else {
-            blogAdapter.notifyDataSetChanged();
+            blogAdapter.updateData(blogsList);
         }
     }
 
