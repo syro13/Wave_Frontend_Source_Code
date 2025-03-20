@@ -58,18 +58,6 @@ public class DashboardActivity extends BaseActivity implements
     private FirebaseAuth auth;
     private FirebaseAuth.AuthStateListener authListener;
 
-    private final ActivityResultLauncher<Intent> editTaskLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Task updatedTask = result.getData().getParcelableExtra("updatedTask");
-                    int position = result.getData().getIntExtra("position", -1);
-                    if (updatedTask != null && position != -1 && position < taskList.size()) {
-                        taskList.set(position, updatedTask);
-                        taskAdapter.notifyItemChanged(position);
-                    }
-                }
-            });
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -132,6 +120,7 @@ public class DashboardActivity extends BaseActivity implements
         SnapHelper snapHelper = new LinearSnapHelper();
         snapHelper.attachToRecyclerView(taskRecyclerView);
 
+
         // Load dashboard UI components.
         loadCurrentDate();
         loadWeatherIcon();
@@ -153,11 +142,11 @@ public class DashboardActivity extends BaseActivity implements
     }
 
     @Override
-    public void onTaskEdited(Task updatedTask, int position) {
-        if (position >= 0 && position < taskList.size()) {
-            taskList.set(position, updatedTask);
-            taskAdapter.notifyItemChanged(position);
-        }
+    public void onTaskEdited(Task task, int position) {
+        Intent intent = new Intent(this, EditTasksActivity.class);
+        intent.putExtra("task", task);
+        intent.putExtra("position", position);
+        editTaskLauncher.launch(intent);
     }
 
     @Override
@@ -169,6 +158,41 @@ public class DashboardActivity extends BaseActivity implements
     public void onTaskCompleted(Task task) {
         loadDashboardTasks();
     }
+
+    private final ActivityResultLauncher<Intent> editTaskLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    loadDashboardTasks(); // Reload the entire list
+                }
+            });
+
+    private void updateTaskInFirestore(Task updatedTask, int position) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot update task");
+            Toast.makeText(this, "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String collection = updatedTask.getCategory().equals("Home") ? "housetasks" : "schooltasks";
+
+        db.collection("users")
+                .document(userId)
+                .collection(collection)
+                .document(updatedTask.getId())
+                .set(updatedTask)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Firestore", "Task successfully updated: " + updatedTask.getTitle());
+                    loadDashboardTasks(); // Refresh task list
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error updating task", e));
+    }
+
+
+
+
 
     private void loadWeatherIcon() {
         ImageView weatherIcon = findViewById(R.id.weatherIcon);
@@ -233,7 +257,8 @@ public class DashboardActivity extends BaseActivity implements
 
     private void loadDashboardTasks() {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
-                ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
         if (userId == null) return;
 
         List<Task> dashboardTasks = new ArrayList<>();
@@ -243,6 +268,7 @@ public class DashboardActivity extends BaseActivity implements
                 .whereEqualTo("completed", false)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
+                    dashboardTasks.clear();
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         Task task = doc.toObject(Task.class);
                         if (isTaskForToday(task)) {
@@ -261,15 +287,15 @@ public class DashboardActivity extends BaseActivity implements
                                         dashboardTasks.add(task);
                                     }
                                 }
-                                taskAdapter.updateTasks(dashboardTasks);
+                                // Update adapter and refresh UI
+                                taskList.clear();
+                                taskList.addAll(dashboardTasks);
                                 taskAdapter.notifyDataSetChanged();
+
+                                // Handle empty UI state
                                 TextView tasksDueTodayTitle = findViewById(R.id.tasksDueTodayTitle);
-                                if (dashboardTasks.isEmpty()) {
-                                    tasksDueTodayTitle.setText("No Tasks for Today");
-                                } else {
-                                    // Optionally set the title to something else when tasks are available.
-                                    tasksDueTodayTitle.setText("Tasks for Today");
-                                }
+                                tasksDueTodayTitle.setText(dashboardTasks.isEmpty() ? "No Tasks for Today" : "Tasks for Today");
+
                                 ImageView emptyTasksImage = findViewById(R.id.emptyTasksImage);
                                 if (emptyTasksImage != null) {
                                     emptyTasksImage.setVisibility(dashboardTasks.isEmpty() ? View.VISIBLE : View.GONE);
@@ -279,6 +305,7 @@ public class DashboardActivity extends BaseActivity implements
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error fetching School tasks", e));
     }
+
 
     private boolean isTaskForToday(Task task) {
         Calendar today = Calendar.getInstance();
