@@ -8,7 +8,10 @@ import android.util.Log;
 
 import com.example.wave.AppController;
 import com.example.wave.LoadingActivity;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserInfo;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 public class UserUtils {
 
@@ -16,44 +19,86 @@ public class UserUtils {
 
     /**
      * Saves the user's profile image and name to SharedPreferences and updates AppController.
-     * Also redirects the user to LoadingActivity after saving.
+     * Ensures OAuth users (Google, Facebook, etc.) start with the default image until they manually change it.
      *
      * @param context Application context
-     * @param user FirebaseUser object containing user details
+     * @param user    FirebaseUser object containing user details
+     * @param newName The name entered by the user during sign-up
      */
-    public static void saveUserData(Context context, FirebaseUser user) {
+    public static void saveUserData(Context context, FirebaseUser user, String newName) {
         if (user == null) {
             Log.e("UserUtils", "Cannot save user data: FirebaseUser is null");
             return;
         }
 
-        // Force reload user data to get the latest name
-        user.reload().addOnCompleteListener(task -> {
-            SharedPreferences preferences = context.getSharedPreferences(USER_PREFS, Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = preferences.edit();
+        SharedPreferences preferences = context.getSharedPreferences(USER_PREFS, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
 
-            // Save user name (use latest updated name from Firebase)
-            String displayName = (user.getDisplayName() != null && !user.getDisplayName().isEmpty())
-                    ? user.getDisplayName()
-                    : "User"; // Fallback name
-            editor.putString("user_name", displayName);
+        String userId = user.getUid();
+        boolean hasUserSetProfileImage = preferences.getBoolean(userId + "_profile_image_set", false);
+        boolean isSocialLoginUser = false;
 
-            // Save profile image URL
-            Uri photoUri = user.getPhotoUrl();
-            String profileImageUrl = (photoUri != null) ? photoUri.toString() : AppController.DEFAULT_PROFILE_IMAGE_URL;
-            editor.putString("profile_image_url", profileImageUrl);
+        for (UserInfo userInfo : user.getProviderData()) {
+            String providerId = userInfo.getProviderId();
+            if (providerId.equals("google.com") || providerId.equals("twitter.com") || providerId.equals("facebook.com")) {
+                isSocialLoginUser = true;
+                break;
+            }
+        }
 
-            editor.apply(); // Save the data
+        String profileImageUrl;
 
-            // Update AppController for instant in-memory access
-            AppController.getInstance().updateProfileImageUrl(profileImageUrl);
+        if (isSocialLoginUser && !hasUserSetProfileImage) {
+            profileImageUrl = null; // Use the default XML image
+        } else {
+            profileImageUrl = preferences.getString(userId + "_profile_image_url", null);
+        }
 
-            Log.d("UserUtils", "User data saved: " + displayName + ", " + profileImageUrl);
+        editor.putString(userId + "_profile_image_url", profileImageUrl);
+        editor.putBoolean(userId + "_profile_image_set", hasUserSetProfileImage);
+        editor.apply();
 
-            // Navigate to LoadingActivity after saving user data
-            navigateToLoadingActivity(context);
-            updateDashboardUI(context);
+        AppController.getInstance().updateProfileImageUrl(profileImageUrl);
+
+        // 🛠 Update Firebase User Profile with our forced image
+        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                .setDisplayName(newName)
+                .setPhotoUri(profileImageUrl != null ? Uri.parse(profileImageUrl) : null) // Ensures Firebase does not override
+                .build();
+
+        user.updateProfile(profileUpdates).addOnCompleteListener(updateTask -> {
+            if (updateTask.isSuccessful()) {
+                user.reload().addOnCompleteListener(reloadTask -> {
+                    Log.d("UserUtils", "User data saved: " + newName + ", " + profileImageUrl);
+                    updateDashboardUI(context);
+                    navigateToLoadingActivity(context);
+                });
+            } else {
+                Log.e("UserUtils", "Failed to update user profile", updateTask.getException());
+            }
         });
+    }
+
+    /**
+     * Marks that the user has set a custom profile image in ProfileActivity.
+     *
+     * @param context  Application context
+     * @param imageUrl The new profile image URL
+     */
+    public static void markUserProfileImageAsSet(Context context, String imageUrl) {
+        SharedPreferences preferences = context.getSharedPreferences(USER_PREFS, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            String userId = user.getUid();
+            editor.putBoolean(userId + "_profile_image_set", true); // Mark as manually set
+            editor.putString(userId + "_profile_image_url", imageUrl); // Save new profile image
+            editor.apply();
+        }
+
+        AppController.getInstance().updateProfileImageUrl(imageUrl);
+        Log.d("UserUtils", "User manually set profile image: " + imageUrl);
     }
 
     /**
@@ -78,6 +123,7 @@ public class UserUtils {
         context.startActivity(intent);
         Log.d("UserUtils", "Navigating to LoadingActivity...");
     }
+
     /**
      * Updates the UI in DashboardActivity with the latest user name.
      * @param context Application context
@@ -87,5 +133,4 @@ public class UserUtils {
         context.sendBroadcast(intent);
         Log.d("UserUtils", "Broadcast sent to update Dashboard UI.");
     }
-
 }
