@@ -31,6 +31,7 @@ activity = "1.9.3"
 espressoContrib = "3.6.1"
 espresso = "3.6.1"
 protobuf = "3.25.1"
+facebook-login = "13.0.1"
 
 [libraries]
 appcompat-v170 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
