@@ -1,5 +1,7 @@
 package com.example.wave;
 
+import static androidx.test.InstrumentationRegistry.getContext;
+
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -18,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -40,17 +43,21 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
 
     private ImageView quoteImage;
     private TextView quoteText, quoteAuthor,noPodcastsText,noBlogsText;
-    private RecyclerView blogRecyclerView, podcastRecyclerView;
+    private RecyclerView blogRecyclerView, podcastRecyclerView, promptsRecyclerView;
     private BlogAdapter blogAdapter;
     private PodcastAdapter podcastAdapter;
     private ImageView noBlogsImage, noPodcastsImage;
     private ProgressBar loadingIndicator;
+    private View loadingOverlay;
 
     private List<Blogs_Response> blogs = new ArrayList<>();
     private List<PodcastsResponse> podcasts = new ArrayList<>();
     private int loadingTasksRemaining = 0;
     private static final String TAG = "API_RESPONSE";
     private final WellnessAPI apiService = RetrofitClient.getClient().create(WellnessAPI.class);
+    private AIPromptsAdapter promptsAdapter;
+    private List<String> displayPromptsList;
+    private List<String> actualPromptsList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +84,12 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         noBlogsImage = findViewById(R.id.noBlogsImage);
         noBlogsText = findViewById(R.id.noBlogsText);
         loadingIndicator = findViewById(R.id.loadingIndicator);
+        loadingOverlay = findViewById(R.id.loadingOverlay);
+        promptsRecyclerView = findViewById(R.id.promptsRecyclerView);
+
+        promptsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        setupPrompts();
+
 
         // Start with progress bar visible
         loadingIndicator.setVisibility(View.VISIBLE);
@@ -415,4 +428,76 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             loadingIndicator.setVisibility(View.GONE);
         }
     }
+    private void setupPrompts() {
+        displayPromptsList = Arrays.asList(
+                "How can I manage stress effectively?",
+                "Give me tips for staying motivated in my studies",
+                "Suggest a quick mindfulness exercise",
+                "How do I improve my sleep habits?",
+                "Recommend a healthy daily routine for students"
+        );
+
+        actualPromptsList = Arrays.asList(
+                "Provide simple and effective stress management techniques that students can use daily to stay mentally healthy.",
+                "Give motivation strategies and study techniques that can help students stay consistent and avoid burnout.",
+                "Suggest a short mindfulness or breathing exercise that students can do to relax and refocus their minds.",
+                "Explain practical steps to improve sleep quality, especially for students struggling with irregular sleep patterns.",
+                "Describe an ideal daily routine for students that balances academics, self-care, and physical well-being."
+        );
+
+        promptsAdapter = new AIPromptsAdapter(displayPromptsList, actualPromptsList, this::showPopup);
+        promptsRecyclerView.setAdapter(promptsAdapter);
+    }
+
+    private void showPopup(String displayPrompt, String actualPrompt) {
+        // Disable prompt clicking to prevent multiple selections
+        promptsRecyclerView.setEnabled(false);
+        loadingOverlay.setVisibility(View.VISIBLE);
+        // Show ProgressBar when fetching AI response
+        loadingIndicator.setVisibility(View.VISIBLE);
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://updatedservice-621971573276.us-central1.run.app/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        AIService aiService = retrofit.create(AIService.class);
+        AIPromptRequest request = new AIPromptRequest(actualPrompt);
+
+        aiService.getAIResponse(request).enqueue(new Callback<AIResponse>() {
+            @Override
+            public void onResponse(Call<AIResponse> call, Response<AIResponse> response) {
+
+                // Hide ProgressBar once response is received
+                loadingIndicator.setVisibility(View.GONE);
+                loadingOverlay.setVisibility(View.GONE); // Re-enable interactions
+                if (response.isSuccessful() && response.body() != null) {
+                    String aiResponse = response.body().getResponse();
+                    AIContentDialog dialog = AIContentDialog.newInstance(displayPrompt, aiResponse);
+                    // Show dialog and re-enable clicks only after it's dismissed
+                    dialog.show(getSupportFragmentManager(), "AIContentDialog");
+                    getSupportFragmentManager().executePendingTransactions();
+
+                    dialog.getDialog().setOnDismissListener(dialogInterface -> {
+                        promptsRecyclerView.setEnabled(true); // Re-enable clicks after dialog closes
+                    });
+                } else {
+                    // Hide ProgressBar in case of failure
+                    loadingIndicator.setVisibility(View.GONE);
+                    loadingOverlay.setVisibility(View.GONE);
+                    promptsRecyclerView.setEnabled(true);
+                    Toast.makeText(WellnessActivity.this, "Failed to get AI response", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AIResponse> call, Throwable t) {
+                // Hide ProgressBar in case of failure
+                loadingIndicator.setVisibility(View.GONE);
+                loadingOverlay.setVisibility(View.GONE);
+                promptsRecyclerView.setEnabled(true);
+                Toast.makeText(WellnessActivity.this, "Error connecting to AI server", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 }
