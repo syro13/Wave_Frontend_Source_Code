@@ -302,21 +302,34 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     }
 
 
-    // --- UPDATED onTaskDeleted() method for SchoolCalendarFragment ---
     @Override
     public void onTaskDeleted(Task task) {
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Delete Task")
+                .setMessage("Are you sure you want to delete \"" + task.getTitle() + "\"?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    deleteTask(task); // Call the method to delete the task
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    // Separate method to handle task deletion after confirmation
+    private void deleteTask(Task task) {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                 : null;
+
         if (userId == null) {
             Log.e("Firestore", "User not logged in, cannot delete task");
             Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
             return;
         }
+
         // Archive the task by writing it to the "cancelledTasks" collection
         db.collection("users")
                 .document(userId)
-                .collection("cancelledHomeTasks")
+                .collection("cancelledSchoolTasks")
                 .document(task.getId())
                 .set(task)
                 .addOnSuccessListener(aVoid -> {
