@@ -44,9 +44,7 @@ public class EditTasksActivity extends AppCompatActivity {
         taskTitleInput = findViewById(R.id.taskTitleInput);
         selectDate = findViewById(R.id.selectDate);
         selectTime = findViewById(R.id.selectTime);
-        remindSwitch = findViewById(R.id.remindSwitch);
         editTaskButton = findViewById(R.id.editTaskButton);
-        repeatSpinner = findViewById(R.id.repeatSpinner);
 
         schoolTaskButton = findViewById(R.id.schoolTaskButtonInput);
         homeTaskButton = findViewById(R.id.homeTaskButtonInput);
@@ -98,47 +96,6 @@ public class EditTasksActivity extends AppCompatActivity {
                 break;
         }
 
-        // Set Repeat Spinner
-        setSpinnerSelection(task.getRepeatOption());
-    }
-
-    /**
-     * Sets the spinner to the correct repeat option when editing a task.
-     */
-    private void setSpinnerSelection(Task.RepeatOption repeatOption) {
-        if (repeatSpinner == null) return;
-
-        String repeatText = getRepeatOptionString(repeatOption);
-        for (int i = 0; i < repeatSpinner.getCount(); i++) {
-            if (repeatSpinner.getItemAtPosition(i).toString().equals(repeatText)) {
-                repeatSpinner.setSelection(i);
-                break;
-            }
-        }
-    }
-
-    /**
-     * Converts RepeatOption enum to user-friendly string.
-     */
-    private String getRepeatOptionString(Task.RepeatOption repeatOption) {
-        switch (repeatOption) {
-            case REPEAT_EVERY_MONDAY:
-                return "Repeat every Monday";
-            case REPEAT_EVERY_TUESDAY:
-                return "Repeat every Tuesday";
-            case REPEAT_EVERY_WEDNESDAY:
-                return "Repeat every Wednesday";
-            case REPEAT_EVERY_THURSDAY:
-                return "Repeat every Thursday";
-            case REPEAT_EVERY_FRIDAY:
-                return "Repeat every Friday";
-            case REPEAT_EVERY_SATURDAY:
-                return "Repeat every Saturday";
-            case REPEAT_EVERY_SUNDAY:
-                return "Repeat every Sunday";
-            default:
-                return "Does not repeat";
-        }
     }
 
 
