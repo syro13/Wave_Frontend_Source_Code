@@ -68,4 +68,10 @@ public class PodcastAdapter extends RecyclerView.Adapter<PodcastAdapter.PodcastV
             playButton = itemView.findViewById(R.id.podcastPlayCircle);
         }
     }
+    public void updateData(List<PodcastsResponse> newPodcasts) {
+        podcasts.clear();
+        podcasts.addAll(newPodcasts);
+        notifyDataSetChanged(); // This forces RecyclerView to refresh
+    }
+
 }
