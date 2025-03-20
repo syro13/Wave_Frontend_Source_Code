@@ -172,7 +172,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            UserUtils.saveUserData(requireContext(), user);
+                            UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
                         }
                     } else {
                         Toast.makeText(getContext(), "Facebook Sign-In Failed", Toast.LENGTH_SHORT).show();
@@ -183,7 +183,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
     @Override
     public void updateUI(FirebaseUser user) {
         if (user != null) {
-            UserUtils.saveUserData(requireContext(), user);
+            UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
         } else {
             Toast.makeText(getContext(), "Twitter Sign-In Failed", Toast.LENGTH_SHORT).show();
         }
@@ -260,7 +260,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             if (isSignUp) {
-                                UserUtils.saveUserData(requireContext(), user);
+                                UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
                             }
                         }
                     } else {
@@ -309,7 +309,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            UserUtils.saveUserData(requireContext(), user);
+                            UserUtils.saveUserData(requireContext(), user, name);
                         }
                     } else {
                         Toast.makeText(getContext(), "Sign-Up Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
