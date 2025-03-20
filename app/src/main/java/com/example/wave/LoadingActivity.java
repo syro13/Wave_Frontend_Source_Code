@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -46,14 +47,23 @@ public class LoadingActivity extends AppCompatActivity {
             editor.putString("user_name", userName);
         }
 
-        // Fetch profile image URL
-        Uri photoUri = user.getPhotoUrl();
-        String profileImageUrl = (photoUri != null) ? photoUri.toString() : AppController.DEFAULT_PROFILE_IMAGE_URL;
-        editor.putString("profile_image_url", profileImageUrl);
+        String storedImageUrl = preferences.getString("profile_image_url", null);
+        Uri firebasePhotoUri = user.getPhotoUrl();
+        String firebasePhotoUrl = (firebasePhotoUri != null) ? firebasePhotoUri.toString() : null;
+
+        // Only update if needed (prevents flickering from default image)
+        if (storedImageUrl == null || storedImageUrl.equals(AppController.DEFAULT_PROFILE_IMAGE_URL)) {
+            editor.putString("profile_image_url", (firebasePhotoUrl != null) ? firebasePhotoUrl : AppController.DEFAULT_PROFILE_IMAGE_URL);
+        }
+
         editor.apply();
 
-        // Preload the image in Glide cache
-        Glide.with(this).load(profileImageUrl).preload();
+        // Preload image to make sure it's cached before UI loads
+        Glide.with(this)
+                .load(firebasePhotoUrl)
+                .diskCacheStrategy(DiskCacheStrategy.ALL) // Ensures fast loading
+                .preload();
+
 
         // Ensure minimum loading time
         new Handler().postDelayed(this::navigateToDashboard, MIN_LOADING_TIME);
