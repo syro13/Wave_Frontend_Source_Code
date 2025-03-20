@@ -205,15 +205,6 @@
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
-                    <!-- Expansion Icon -->
-                    <ImageView
-                        android:id="@+id/expandCollapseIcon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:contentDescription="Expand or Collapse"
-                        android:src="@drawable/ic_expand_more" />
                 </RelativeLayout>
 
                 <!-- Divider -->
