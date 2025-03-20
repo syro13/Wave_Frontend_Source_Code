@@ -3,6 +3,7 @@ package com.example.wave;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -33,6 +34,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.auth.UserInfo;
 
 public class ProfileActivity extends BaseActivity {
     private static final int PICK_IMAGE_REQUEST = 1;
@@ -53,7 +55,7 @@ public class ProfileActivity extends BaseActivity {
 
         // UI Elements
         profileImage = findViewById(R.id.profileIcon);
-        profileName = findViewById(R.id.profileName);
+        profileName = findViewById(R.id.userNameTextView);
         progressBar = findViewById(R.id.progressBar);
         LinearLayout changeAccountImage = findViewById(R.id.changeAccountImage);
         LinearLayout changeAccountName = findViewById(R.id.changeAccountName);
@@ -83,6 +85,12 @@ public class ProfileActivity extends BaseActivity {
         setupBottomNavigation(bottomNavigationView);
 
         logoutButton.setOnClickListener(v -> logoutUser());
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        loadUserProfile();
     }
     private void logoutUser() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -184,8 +192,16 @@ public class ProfileActivity extends BaseActivity {
                 if (task.isSuccessful()) {
                     user.reload().addOnCompleteListener(reloadTask -> {
                         if (reloadTask.isSuccessful()) {
-                            UserUtils.saveUserData(getApplicationContext(), user);
-                            loadUserProfile();
+                            UserUtils.markUserProfileImageAsSet(getApplicationContext(), imageUrl);
+                            // Force Glide to load the new image immediately
+                            Glide.with(ProfileActivity.this)
+                                    .load(imageUrl)
+                                    .placeholder(Drawable.createFromPath(imageUrl)) // Use the new image as placeholder to prevent flickering
+                                    .error(R.drawable.profile_image)
+                                    .circleCrop()
+                                    .diskCacheStrategy(DiskCacheStrategy.NONE) // Avoids loading old cached image
+                                    .skipMemoryCache(true)
+                                    .into(profileImage);
                             Toast.makeText(ProfileActivity.this, "Profile Image Updated!", Toast.LENGTH_SHORT).show();
                         }
                     });
@@ -194,43 +210,6 @@ public class ProfileActivity extends BaseActivity {
                 }
             });
         }
-    }
-
-    private void loadUserProfile() {
-            // Ensure the user object is not null
-            user = FirebaseAuth.getInstance().getCurrentUser();
-            if (user == null) {
-                Log.e("ProfileActivity", "User is null, cannot load profile.");
-                return;
-            }
-
-            // Ensure UI components are initialized
-            if (profileName == null || profileImage == null) {
-                Log.e("ProfileActivity", "UI components are not initialized.");
-                return;
-            }
-
-            // Load Name from Firebase
-            String displayName = user.getDisplayName();
-            profileName.setText(displayName != null ? displayName : "User");
-
-            // Load Profile Image from SharedPreferences
-            SharedPreferences preferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
-            String cachedProfileImage = preferences.getString("profile_image_url", AppController.DEFAULT_PROFILE_IMAGE_URL);
-
-            if (cachedProfileImage == null || cachedProfileImage.trim().isEmpty()) {
-                Log.w("ProfileActivity", "Cached profile image is empty, using default.");
-                cachedProfileImage = AppController.DEFAULT_PROFILE_IMAGE_URL;
-            }
-
-            // Load Image with Glide (Handling Errors)
-            Glide.with(this)
-                    .load(cachedProfileImage)
-                    .placeholder(R.drawable.profile_image)
-                    .error(R.drawable.profile_image)
-                    .circleCrop()
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .into(profileImage);
     }
 
 }
