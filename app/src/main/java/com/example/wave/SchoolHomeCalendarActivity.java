@@ -224,7 +224,6 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
         MaterialButton lowPriorityButton = dialogView.findViewById(R.id.lowPriorityButton);
         EditText selectDateInput = dialogView.findViewById(R.id.selectDate);
         EditText selectTimeInput = dialogView.findViewById(R.id.selectTime);
-        SwitchMaterial remindSwitch = dialogView.findViewById(R.id.remindSwitch);
         View createTaskButton = dialogView.findViewById(R.id.createTaskButton);
 
         // Initialize the Spinner from the dialog layout
@@ -326,7 +325,6 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
             String taskTitle = taskTitleInput.getText().toString();
             String taskDate = selectDateInput.getText().toString();
             String taskTime = selectTimeInput.getText().toString();
-            boolean remind = remindSwitch.isChecked();
 
             // Get the selected repeat option from the Spinner
             String repeatOptionString = repeatSpinner.getSelectedItem().toString();
@@ -340,7 +338,6 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
                             taskPriority[0],
                             taskDate,
                             taskTime,
-                            remind,
                             taskType[0],
                             repeatOptionString // Pass the selected repeat option
                     );
@@ -350,7 +347,6 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
                             taskPriority[0],
                             taskDate,
                             taskTime,
-                            remind,
                             taskType[0],
                             repeatOptionString // Pass the selected repeat option
                     );
@@ -360,7 +356,6 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
                             taskPriority[0],
                             taskDate,
                             taskTime,
-                            remind,
                             taskType[0],
                             repeatOptionString // Pass the selected repeat option
                     );

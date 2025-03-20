@@ -74,7 +74,6 @@ public class EditTasksActivity extends AppCompatActivity {
         taskTitleInput.setText(task.getTitle());
         selectDate.setText(task.getFullDate());
         selectTime.setText(task.getTime());
-        remindSwitch.setChecked(task.isRemind());
         selectedTaskType = task.getCategory();
         selectedPriority = task.getPriority();
 
@@ -186,7 +185,7 @@ public class EditTasksActivity extends AppCompatActivity {
         // Update Task Object
         Task updatedTask = new Task(
                 task.getId(), updatedTitle, updatedTime, dateParts[0], getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1),
-                selectedPriority, newCategory, updatedRemind, Integer.parseInt(dateParts[2]), task.getStability(),
+                selectedPriority, newCategory, Integer.parseInt(dateParts[2]), task.getStability(),
                 System.currentTimeMillis(), updatedDate, false, Task.RepeatOption.DOES_NOT_REPEAT
         );
 

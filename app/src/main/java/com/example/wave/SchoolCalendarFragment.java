@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -20,7 +19,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -554,7 +552,7 @@ public class SchoolCalendarFragment extends Fragment implements
     // Add a new task to the School tasks collection
     // Add a new task to the School tasks collection.
 // This method now saves school tasks to the "schooltasks" collection.
-    public void addTaskToCalendar(String title, String priority, String date, String time, boolean remind, String taskType, String repeatOptionString) {
+    public void addTaskToCalendar(String title, String priority, String date, String time, String taskType, String repeatOptionString) {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (userId == null) {
@@ -582,7 +580,6 @@ public class SchoolCalendarFragment extends Fragment implements
                     getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1),
                     priority,
                     taskType,
-                    remind,
                     year,
                     0, // Default stability value
                     System.currentTimeMillis(),
@@ -599,10 +596,6 @@ public class SchoolCalendarFragment extends Fragment implements
                     .set(newTask)
                     .addOnSuccessListener(aVoid -> {
                         Log.d("Firestore", "Task successfully added!");
-                        // If reminders are enabled, schedule a reminder for the task.
-                        if (newTask.isRemind()) {
-                            ReminderManager.scheduleReminder(requireContext(), newTask);
-                        }
                     })
                     .addOnFailureListener(e -> Log.e("Firestore", "Error adding task", e));
         }

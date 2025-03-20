@@ -19,7 +19,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -581,7 +580,7 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
     }
 
     // Add a new task to Firestore; the listener will update UI
-    public void addTaskToCalendar(String title, String priority, String date, String time, boolean remind, String taskType, String repeatOptionString) {
+    public void addTaskToCalendar(String title, String priority, String date, String time, String taskType, String repeatOptionString) {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (userId == null) {
@@ -610,7 +609,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                     getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1),
                     priority,
                     taskType,
-                    remind,
                     year,
                     0, // Default stability value
                     System.currentTimeMillis(),
@@ -627,9 +625,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
                     .set(newTask)
                     .addOnSuccessListener(aVoid -> {
                         Log.d("Firestore", "Task successfully added!");
-                        if (newTask.isRemind()) {
-                            ReminderManager.scheduleReminder(requireContext(), newTask);
-                        }
                     })
                     .addOnFailureListener(e -> {
                         Log.e("Firestore", "Error adding task", e);

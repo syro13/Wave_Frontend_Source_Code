@@ -3,7 +3,6 @@ package com.example.wave;
 import static android.app.Activity.RESULT_OK;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,7 +18,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -421,7 +419,7 @@ public class CombinedCalendarFragment extends Fragment implements
         }
     }
     public void addTaskToCalendar(String taskTitle, String taskPriority, String taskDate, String taskTime,
-                                  boolean remind, String taskType, String repeatOptionString) {
+                                  String taskType, String repeatOptionString) {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (userId == null) {
@@ -468,7 +466,6 @@ public class CombinedCalendarFragment extends Fragment implements
                     getMonthYearList().get(Integer.parseInt(repeatedDateParts[1]) - 1), // Month string (e.g., "March")
                     taskPriority,
                     taskType,
-                    remind,
                     repeatedYear,
                     0, // Default stability value
                     System.currentTimeMillis(),
@@ -523,7 +520,6 @@ public class CombinedCalendarFragment extends Fragment implements
                         "month", updatedTask.getMonth(),
                         "priority", updatedTask.getPriority(),
                         "category", updatedTask.getCategory(),
-                        "remind", updatedTask.isRemind(),
                         "year", updatedTask.getYear(),
                         "fullDate", updatedTask.getFullDate(),
                         "completed", updatedTask.isCompleted(),
