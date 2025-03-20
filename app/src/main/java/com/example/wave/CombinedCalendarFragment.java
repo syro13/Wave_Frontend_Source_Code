@@ -111,8 +111,16 @@ public class CombinedCalendarFragment extends Fragment implements
         ImageView previousMonth = view.findViewById(R.id.previousMonth);
         ImageView nextMonth = view.findViewById(R.id.nextMonth);
 
+// Setup month-year spinner
+        MonthYearSpinnerAdapter spinnerAdapter = new MonthYearSpinnerAdapter(requireContext(), getMonthYearList());
+        spinnerAdapter.setDropDownViewResource(R.layout.month_year_spinner_dropdown_item);
+        monthYearDropdown.setAdapter(spinnerAdapter);
+
+// Set the spinner to the current month AFTER setting the adapter
+        int currentMonthIndex = calendar.get(Calendar.MONTH);
+        monthYearDropdown.post(() -> monthYearDropdown.setSelection(currentMonthIndex));
+
 // Handle previous month click
-        // Handle previous month click
         previousMonth.setOnClickListener(v -> {
             calendar.add(Calendar.MONTH, -1); // Move to previous month
             calendar.set(Calendar.DAY_OF_MONTH, 1); // Reset to first day to prevent out-of-range issues
@@ -128,12 +136,7 @@ public class CombinedCalendarFragment extends Fragment implements
             updateCalendar();  // Refresh calendar UI
         });
 
-
-
-        // Setup month-year spinner
-        MonthYearSpinnerAdapter spinnerAdapter = new MonthYearSpinnerAdapter(requireContext(), getMonthYearList());
-        spinnerAdapter.setDropDownViewResource(R.layout.month_year_spinner_dropdown_item);
-        monthYearDropdown.setAdapter(spinnerAdapter);
+// Handle spinner selection changes
         monthYearDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
@@ -143,7 +146,9 @@ public class CombinedCalendarFragment extends Fragment implements
                     updateCalendar();
                 }
             }
-            @Override public void onNothingSelected(AdapterView<?> parent) { }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) { }
         });
 
 

@@ -87,8 +87,6 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
         weeklyTaskRecyclerView = view.findViewById(R.id.weeklyTaskRecyclerView);
         monthYearDropdown = view.findViewById(R.id.monthYearDropdown);
         TextView tasksDueThisWeekTitle = view.findViewById(R.id.tasksDueThisWeekTitle);
-        ImageView previousMonth = view.findViewById(R.id.previousMonth);
-        ImageView nextMonth = view.findViewById(R.id.nextMonth);
         TextView selectedDateText = view.findViewById(R.id.selectedDateText);
 
         // Set today's date on the header
@@ -115,29 +113,51 @@ public class HomeCalendarFragment extends Fragment implements TaskAdapter.OnTask
             updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         });
 
-        // Setup month/year spinner
+// Find Previous and Next Month Arrows
+        ImageView previousMonth = view.findViewById(R.id.previousMonth);
+        ImageView nextMonth = view.findViewById(R.id.nextMonth);
+
+// Setup month-year spinner
         MonthYearSpinnerAdapter spinnerAdapter = new MonthYearSpinnerAdapter(requireContext(), getMonthYearList());
         spinnerAdapter.setDropDownViewResource(R.layout.month_year_spinner_dropdown_item);
         monthYearDropdown.setAdapter(spinnerAdapter);
-        monthYearDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-                if (v instanceof TextView) ((TextView) v).setTextColor(Color.BLACK);
-                calendar.set(Calendar.MONTH, position);
-                updateCalendar();
-            }
-            @Override public void onNothingSelected(AdapterView<?> parent) { }
-        });
+
+// Set the spinner to the current month AFTER setting the adapter
+        int currentMonthIndex = calendar.get(Calendar.MONTH);
+        monthYearDropdown.post(() -> monthYearDropdown.setSelection(currentMonthIndex));
+
+// Handle previous month click
         previousMonth.setOnClickListener(v -> {
-            calendar.add(Calendar.MONTH, -1);
-            updateCalendar();
-            monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
+            calendar.add(Calendar.MONTH, -1); // Move to previous month
+            calendar.set(Calendar.DAY_OF_MONTH, 1); // Reset to first day to prevent out-of-range issues
+            monthYearDropdown.setSelection(calendar.get(Calendar.MONTH)); // Ensure dropdown syncs
+            updateCalendar();  // Refresh calendar UI
         });
+
+// Handle next month click
         nextMonth.setOnClickListener(v -> {
-            calendar.add(Calendar.MONTH, 1);
-            updateCalendar();
-            monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
+            calendar.add(Calendar.MONTH, 1); // Move to next month
+            calendar.set(Calendar.DAY_OF_MONTH, 1); // Reset to first day to prevent out-of-range issues
+            monthYearDropdown.setSelection(calendar.get(Calendar.MONTH)); // Ensure dropdown syncs
+            updateCalendar();  // Refresh calendar UI
         });
-        monthYearDropdown.setSelection(todayMonth);
+
+// Handle spinner selection changes
+        monthYearDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+                if (calendar.get(Calendar.MONTH) != position) {  // Avoid unnecessary reloads
+                    calendar.set(Calendar.MONTH, position);
+                    calendar.set(Calendar.DAY_OF_MONTH, 1); // Reset to first day for safety
+                    updateCalendar();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) { }
+        });
+
+
 
         // Initialize calendar adapter (for Home tasks)
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
