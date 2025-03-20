@@ -169,7 +169,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            UserUtils.saveUserData(requireContext(), user);
+                            UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
                         }
                     } else {
                        Log.e("LoginFragment", "Firebase Authentication failed", task.getException());
@@ -186,7 +186,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
     @Override
     public void updateUI(FirebaseUser user) {
         if (user != null) {
-            UserUtils.saveUserData(requireContext(), user);
+            UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
         } else {
             Toast.makeText(getContext(), "Twitter Login Failed", Toast.LENGTH_SHORT).show();
         }
@@ -219,7 +219,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            UserUtils.saveUserData(requireContext(), user);
+                            UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
                         }
                     } else {
                         Toast.makeText(getContext(), "Facebook Login Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
@@ -264,7 +264,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            UserUtils.saveUserData(requireContext(), user);
+                            UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
                         }
                     }
                     else {
