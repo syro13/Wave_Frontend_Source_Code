@@ -89,8 +89,6 @@ public class CombinedCalendarFragment extends Fragment implements
         schoolToggleButton = view.findViewById(R.id.schoolToggleButton);
         bothToggleButton = view.findViewById(R.id.bothToggleButton);
         houseToggleButton = view.findViewById(R.id.houseToggleButton);
-        ImageView previousMonth = view.findViewById(R.id.previousMonth);
-        ImageView nextMonth = view.findViewById(R.id.nextMonth);
         TextView selectedDateText = view.findViewById(R.id.selectedDateText);
         updateSelectedDateText(selectedDateText, calendar.get(Calendar.DAY_OF_MONTH));
 
@@ -109,19 +107,46 @@ public class CombinedCalendarFragment extends Fragment implements
             }
             updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         });
+// Find Previous and Next Month Arrows
+        ImageView previousMonth = view.findViewById(R.id.previousMonth);
+        ImageView nextMonth = view.findViewById(R.id.nextMonth);
+
+// Handle previous month click
+        // Handle previous month click
+        previousMonth.setOnClickListener(v -> {
+            calendar.add(Calendar.MONTH, -1); // Move to previous month
+            calendar.set(Calendar.DAY_OF_MONTH, 1); // Reset to first day to prevent out-of-range issues
+            monthYearDropdown.setSelection(calendar.get(Calendar.MONTH)); // Ensure dropdown syncs
+            updateCalendar();  // Refresh calendar UI
+        });
+
+// Handle next month click
+        nextMonth.setOnClickListener(v -> {
+            calendar.add(Calendar.MONTH, 1); // Move to next month
+            calendar.set(Calendar.DAY_OF_MONTH, 1); // Reset to first day to prevent out-of-range issues
+            monthYearDropdown.setSelection(calendar.get(Calendar.MONTH)); // Ensure dropdown syncs
+            updateCalendar();  // Refresh calendar UI
+        });
+
+
 
         // Setup month-year spinner
         MonthYearSpinnerAdapter spinnerAdapter = new MonthYearSpinnerAdapter(requireContext(), getMonthYearList());
         spinnerAdapter.setDropDownViewResource(R.layout.month_year_spinner_dropdown_item);
         monthYearDropdown.setAdapter(spinnerAdapter);
         monthYearDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-                calendar.set(Calendar.MONTH, position);
-                updateCalendar();
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+                if (calendar.get(Calendar.MONTH) != position) {  // Avoid unnecessary reloads
+                    calendar.set(Calendar.MONTH, position);
+                    calendar.set(Calendar.DAY_OF_MONTH, 1); // Reset to first day for safety
+                    updateCalendar();
+                }
             }
             @Override public void onNothingSelected(AdapterView<?> parent) { }
         });
-        monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
+
+
 
         // Initialize calendar adapter
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
@@ -740,17 +765,14 @@ public class CombinedCalendarFragment extends Fragment implements
             calendarAdapter.updateCategory(getCurrentSelectedCategory());
         }
 
-        int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
-        // You can unselect if there are no tasks (optional):
-        // if(filterTasksByDateBasedOnCategory(todayDay, getCurrentSelectedCategory()).isEmpty()){
-        //     calendarAdapter.setSelectedDate(null);
-        // } else {
-        //     calendarAdapter.setSelectedDate(String.valueOf(todayDay));
-        // }
-        calendarAdapter.setSelectedDate(String.valueOf(todayDay));
-        updateTasksForToday(todayDay);
+        // Ensure the selected month in Spinner matches the actual calendar month
+        monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
+
+        // Refresh task lists and UI
+        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         updateWeeklyTasks();
     }
+
 
     // ----- UPDATED getSchoolTaskDates() -----
     private Set<String> getSchoolTaskDates() {

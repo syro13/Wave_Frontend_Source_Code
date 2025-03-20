@@ -240,15 +240,14 @@
                         android:contentDescription="Previous Month"
                         android:src="@drawable/ic_arrowleft" />
 
-                    <!-- Month and Year Dropdown -->
                     <Spinner
                         android:id="@+id/monthYearDropdown"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:textColor="@color/black"
-                        android:entries="@array/month_year_array"
-                        android:spinnerMode="dropdown" />
+                        android:spinnerMode="dropdown" /> <!-- Removes Default Arrow -->
+
 
                     <!-- Next Arrow -->
                     <ImageView
