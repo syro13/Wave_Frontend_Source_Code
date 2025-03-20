@@ -126,7 +126,12 @@ public class DashboardActivity extends BaseActivity implements
         loadWeatherIcon();
 
         // Set up click listeners for other dashboard cards.
-        findViewById(R.id.homeTasksCard).setOnClickListener(v ->
+        findViewById(R.id.homeTasksCard).setOnClickListener(v -> {
+            Intent intent = new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class);
+            intent.putExtra("showHomeTasks", true); // Flag to indicate home tasks should load
+            startActivity(intent);
+        });
+        findViewById(R.id.schoolTasksCard).setOnClickListener(v ->
                 startActivity(new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class)));
         findViewById(R.id.wellnessTasksCard).setOnClickListener(v ->
                 startActivity(new Intent(DashboardActivity.this, WellnessActivity.class)));

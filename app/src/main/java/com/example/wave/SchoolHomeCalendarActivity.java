@@ -279,45 +279,47 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
             schoolButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.transparent)));
         });
 
-        // Handle task priority selection
         highPriorityButton.setOnClickListener(v -> {
             taskPriority[0] = "High";
 
-            // Apply blue border
-            highPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.blue)));
+            // Apply blue border and force redraw
+            highPriorityButton.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.blue)));
             highPriorityButton.setStrokeWidth(4);
-            highPriorityButton.invalidate(); // Ensure UI updates immediately
+            highPriorityButton.refreshDrawableState(); // ✅ Forces UI to refresh
 
-            // Reset other buttons (removes blue border)
-            mediumPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.default_stroke)));
-            lowPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.default_stroke)));
+            // Reset other buttons
+            resetButtonStroke(mediumPriorityButton);
+            resetButtonStroke(lowPriorityButton);
         });
 
         mediumPriorityButton.setOnClickListener(v -> {
             taskPriority[0] = "Medium";
 
-            // Apply blue border
-            mediumPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.blue)));
+            // Apply blue border and force redraw
+            mediumPriorityButton.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.blue)));
             mediumPriorityButton.setStrokeWidth(4);
-            mediumPriorityButton.invalidate();
+            mediumPriorityButton.refreshDrawableState(); // ✅ Forces UI to refresh
 
             // Reset other buttons
-            highPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.default_stroke)));
-            lowPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.default_stroke)));
+            resetButtonStroke(highPriorityButton);
+            resetButtonStroke(lowPriorityButton);
         });
 
         lowPriorityButton.setOnClickListener(v -> {
             taskPriority[0] = "Low";
 
-            // Apply blue border
-            lowPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.blue)));
+            // Apply blue border and force redraw
+            lowPriorityButton.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.blue)));
             lowPriorityButton.setStrokeWidth(4);
-            lowPriorityButton.invalidate();
+            lowPriorityButton.refreshDrawableState(); // ✅ Forces UI to refresh
 
             // Reset other buttons
-            highPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.default_stroke)));
-            mediumPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.default_stroke)));
+            resetButtonStroke(highPriorityButton);
+            resetButtonStroke(mediumPriorityButton);
         });
+
+
+
 
         // Handle task creation
         createTaskButton.setOnClickListener(v -> {
@@ -373,6 +375,12 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
         });
 
         dialog.show();
+    }
+
+    private void resetButtonStroke(MaterialButton button) {
+        button.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.transparent))); // Remove border
+        button.setStrokeWidth(2); // Keep minimal stroke to allow dynamic change
+        button.refreshDrawableState(); // ✅ Forces UI to refresh
     }
 
 
