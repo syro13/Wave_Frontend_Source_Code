@@ -70,5 +70,9 @@ public class BlogAdapter extends RecyclerView.Adapter<BlogAdapter.BlogViewHolder
             image = itemView.findViewById(R.id.blogImage);
         }
     }
-
+    public void updateData(List<Blogs_Response> newBlogs) {
+        blogs.clear();
+        blogs.addAll(newBlogs);
+        notifyDataSetChanged();
+    }
 }
