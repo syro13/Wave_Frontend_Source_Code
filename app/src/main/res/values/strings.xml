@@ -65,6 +65,7 @@
     <string name="today">TODAY</string>
     <string name="expand_or_collapse">Expand or Collapse</string>
     <string name="wellnessCard">Wellness</string>
+    <string name="onboarding_animation" />
     <!-- Month-Year Array -->
         <string-array name="month_year_array">
             <item>January 2025</item>
