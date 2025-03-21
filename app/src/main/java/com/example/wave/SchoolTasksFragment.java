@@ -124,6 +124,21 @@ public class SchoolTasksFragment extends Fragment  {
             Intent intent = new Intent(requireContext(), ProfileActivity.class);
             startActivity(intent);
         });
+        CardView calendarFromTasksButton = view.findViewById(R.id.CalendarFromTasksButton); // ✅ CardView
+        if (calendarFromTasksButton == null) {
+            Log.e("SchoolTasksFragment", "CalendarFromTasksButton CardView NOT found in XML!");
+        } else {
+            Log.d("SchoolTasksFragment", "CalendarFromTasksButton CardView found, setting click listener...");
+
+            calendarFromTasksButton.setOnClickListener(v -> {
+                Log.d("SchoolTasksFragment", "CalendarFromTasksButton clicked, navigating to HomeCalendarFragment...");
+
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.home_school_tasks_container, new SchoolCalendarFragment()) // Ensure correct ID
+                        .addToBackStack(null) // Allows back navigation
+                        .commit();
+            });
+        }
 
         return view;
     }

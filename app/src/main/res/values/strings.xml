@@ -64,6 +64,7 @@
     <string name="select_time">Select Time</string>
     <string name="today">TODAY</string>
     <string name="expand_or_collapse">Expand or Collapse</string>
+    <string name="wellnessCard">Wellness</string>
     <!-- Month-Year Array -->
         <string-array name="month_year_array">
             <item>January 2025</item>
