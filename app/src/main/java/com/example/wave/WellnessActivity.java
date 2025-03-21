@@ -119,7 +119,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(networkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        //registerReceiver(networkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
         int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
@@ -132,6 +132,15 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             loadCachedBlogs();
             loadCachedPodcasts();
             fetchTodaysQuoteWithCache();
+            // If cache is empty, fetch new data
+            if (blogs.isEmpty()) {
+                Log.d(TAG, "Cached blogs empty, fetching new ones...");
+                fetchBlogsFromApi();
+            }
+            if (podcasts.isEmpty()) {
+                Log.d(TAG, "Cached podcasts empty, fetching new ones...");
+                fetchPodcastsFromApi();
+            }
         }
     }
 
