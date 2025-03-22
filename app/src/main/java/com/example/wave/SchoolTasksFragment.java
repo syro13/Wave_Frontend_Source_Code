@@ -159,8 +159,8 @@ public class SchoolTasksFragment extends Fragment  {
         ListView schoolNotesList = dialog.findViewById(R.id.school_notes_list);
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
-        lp.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.85); // 85% of screen width
-        lp.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.65);
+        lp.width  = (int) (getResources().getDisplayMetrics().widthPixels  * 0.95); // 95% of screen width
+        lp.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.80); // 80% of screen height
         dialog.getWindow().setAttributes(lp);
 
         // Set title
