@@ -118,7 +118,7 @@ public class ProfileActivity extends BaseActivity {
         auth.signOut();
 
         // Clear shared preferences (user data)
-        getSharedPreferences("USER_DATA", MODE_PRIVATE).edit().clear().apply();
+        getSharedPreferences("user_prefs", MODE_PRIVATE).edit().clear().apply();
 
         // Clear Glide image cache
         Glide.get(this).clearMemory();
