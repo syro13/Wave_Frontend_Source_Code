@@ -30,7 +30,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class WellnessActivity extends BaseActivity implements NetworkReceiver.NetworkChangeListener{
+public class WellnessActivity extends BaseActivity{
     private NetworkReceiver networkReceiver;
     private static final String PREFS_NAME = "WellnessPrefs";
     private static final String KEY_QUOTE = "quoteText";
@@ -64,8 +64,8 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wellness);
 
-
-
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
 
         // Set up bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
@@ -93,16 +93,15 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
 
         // Start loading tasks
         updateQuoteImage();
-        // Register the network receiver
-        networkReceiver = new NetworkReceiver(this);
-        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(networkReceiver, filter);
+//        // Register the network receiver
+//        networkReceiver = new NetworkReceiver(this);
+//        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+//        registerReceiver(networkReceiver, filter);
 
         loadData();
-
     }
     @Override
-    public void onNetworkRestored() {
+    public void onNetworkConnected() {
         Log.d("WellnessActivity", "Internet restored! Reloading data...");
         runOnUiThread(() -> {
             showLoading();
@@ -110,11 +109,11 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         });
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(networkReceiver);
-    }
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        unregisterReceiver(networkReceiver);
+//    }
 
     @Override
     protected void onResume() {
