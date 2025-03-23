@@ -49,6 +49,10 @@ public class ProfileActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
+
         // Firebase
         user = FirebaseAuth.getInstance().getCurrentUser();
         storageReference = FirebaseStorage.getInstance().getReference("profile_images");
