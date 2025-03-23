@@ -10,10 +10,12 @@ import android.util.Log;
 public class NetworkReceiver extends BroadcastReceiver {
 
     public interface NetworkChangeListener {
-        void onNetworkRestored();
+        void onNetworkConnected();
+        void onNetworkDisconnected();
     }
 
     private final NetworkChangeListener listener;
+    private boolean wasConnected = true; // To prevent duplicate callbacks
 
     public NetworkReceiver(NetworkChangeListener listener) {
         this.listener = listener;
@@ -23,17 +25,19 @@ public class NetworkReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
 
-        if (isConnected) {
-            Log.d("NetworkReceiver", "Internet connection restored.");
-            if (listener != null) {
-                listener.onNetworkRestored();
+        if (listener != null) {
+            if (isConnected && !wasConnected) {
+                Log.d("NetworkReceiver", "Internet reconnected.");
+                listener.onNetworkConnected();
+            } else if (!isConnected && wasConnected) {
+                Log.d("NetworkReceiver", "Internet disconnected.");
+                listener.onNetworkDisconnected();
             }
-        } else {
-            Log.d("NetworkReceiver", "No internet connection.");
         }
-    }
 
+        wasConnected = isConnected;
+    }
 }
 
