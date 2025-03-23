@@ -7,6 +7,8 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -17,6 +19,8 @@ import android.widget.Toast;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
@@ -93,10 +97,6 @@ public class WellnessActivity extends BaseActivity{
 
         // Start loading tasks
         updateQuoteImage();
-//        // Register the network receiver
-//        networkReceiver = new NetworkReceiver(this);
-//        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-//        registerReceiver(networkReceiver, filter);
 
         loadData();
     }
@@ -108,12 +108,6 @@ public class WellnessActivity extends BaseActivity{
             loadData();
         });
     }
-
-//    @Override
-//    protected void onPause() {
-//        super.onPause();
-//        unregisterReceiver(networkReceiver);
-//    }
 
     @Override
     protected void onResume() {
@@ -155,10 +149,12 @@ public class WellnessActivity extends BaseActivity{
 
         // Load cached or fetch new
         if (useCache) {
+            loadingTasksRemaining += 3;
             loadCachedBlogs();
             loadCachedPodcasts();
             fetchTodaysQuoteWithCache();
         } else {
+            loadingTasksRemaining += 3;
             fetchBlogsFromApi();
             fetchPodcastsFromApi();
             fetchTodaysQuoteFromApi(prefs, todayDate);
@@ -207,7 +203,6 @@ public class WellnessActivity extends BaseActivity{
     }
 
     private void fetchTodaysQuoteFromApi(SharedPreferences prefs, int todayDate) {
-        loadingTasksRemaining++;
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://zenquotes.io/api/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -245,7 +240,6 @@ public class WellnessActivity extends BaseActivity{
         });
     }
     private void fetchPodcastsFromApi() {
-        loadingTasksRemaining++;
         Call<List<PodcastsResponse>> podcastsCall = apiService.getPodcastsData();
         podcastsCall.enqueue(new Callback<>() {
             @Override
@@ -283,7 +277,6 @@ public class WellnessActivity extends BaseActivity{
         noBlogsText.setVisibility(View.GONE);
     }
     private void fetchBlogsFromApi(){
-        loadingTasksRemaining++;
         Call<List<Blogs_Response>> blogsCall = apiService.getBlogsData();
         blogsCall.enqueue(new Callback<>() {
             @Override
@@ -295,6 +288,7 @@ public class WellnessActivity extends BaseActivity{
                     }
                     Log.d(TAG, "Blogs: " + blogs);
                     saveBlogsToCache(blogs);
+                    preloadBlogImages(blogs);
                     setupBlogsRecyclerView(blogs);
                     hideNoBlogsAvailable();
                 } else {
@@ -393,6 +387,7 @@ public class WellnessActivity extends BaseActivity{
             Log.d(TAG, "Loaded Blogs from Cache: " + cachedBlogs);
             if (!cachedBlogs.isEmpty()) {
                 if (blogAdapter == null) {
+                    preloadBlogImages(cachedBlogs);
                     setupBlogsRecyclerView(cachedBlogs);
                 } else {
                     blogAdapter.updateData(cachedBlogs);
@@ -405,6 +400,14 @@ public class WellnessActivity extends BaseActivity{
             showNoBlogsAvailable();
         }
         taskCompleted();
+    }
+    private void preloadBlogImages(List<Blogs_Response> blogList) {
+        for (Blogs_Response blog : blogList) {
+            Glide.with(this)
+                    .load(blog.getImage())
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .preload();
+        }
     }
 
     private void savePodcastsToCache(List<PodcastsResponse> podcasts) {
@@ -435,15 +438,12 @@ public class WellnessActivity extends BaseActivity{
         if (loadingTasksRemaining <= 0) {
             loadingIndicator.setVisibility(View.GONE);
             loadingOverlay.setVisibility(View.GONE);
-            // Ensure placeholders are shown if no data was loaded
-            if (blogs.isEmpty()) {
-                showNoBlogsAvailable();
-            }
-            if (podcasts.isEmpty()) {
-                showNoPodcastsAvailable();
-            }
+
+            if (blogs.isEmpty()) showNoBlogsAvailable(); else hideNoBlogsAvailable();
+            if (podcasts.isEmpty()) showNoPodcastsAvailable(); else hideNoPodcastsAvailable();
         }
     }
+
     private void setupPrompts() {
         displayPromptsList = Arrays.asList(
                 "How can I manage stress effectively?",
