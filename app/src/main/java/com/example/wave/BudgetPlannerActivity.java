@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -63,6 +64,8 @@ public class BudgetPlannerActivity extends BaseActivity {
     private double totalBudget = 0;
     private double amountSpent = 0;
     private String userId;
+    private TextView aiSuggestionContent;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +105,7 @@ public class BudgetPlannerActivity extends BaseActivity {
 
         promptsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         setupPrompts();
+        aiSuggestionContent = findViewById(R.id.aiSuggestionContent);
 
         // Always initialize expense categories, even before budget
         initializeExpenseCategories();
@@ -346,11 +350,132 @@ public class BudgetPlannerActivity extends BaseActivity {
         totalBudgetValue.setText("€" + String.format("%.2f", totalBudget));
 
         updateButtonStates(totalBudget, amountSpent, progress);
+        fetchAISuggestions();
     }
     @Override
     protected int getCurrentMenuItemId() {
         return -1; // No selection
     }
+    private void fetchAISuggestions() {
+        if (totalBudget <= 0) {
+            aiSuggestionContent.setText("Set a budget first to get tailored tips.");
+            return;
+        }
+
+        DocumentReference budgetDocRef = db.collection("users")
+                .document(userId)
+                .collection("budget")
+                .document("data");
+
+        CollectionReference expensesRef = budgetDocRef.collection("expenses");
+
+        expensesRef.get().addOnSuccessListener(expenseSnapshot -> {
+                    Map<String, Double> categorySpending = new HashMap<>();
+                    double totalSpent = 0;
+
+                    for (QueryDocumentSnapshot doc : expenseSnapshot) {
+                        String category = doc.getId(); // Using document ID as category
+                        double amount = doc.getDouble("amount") != null ? doc.getDouble("amount") : 0;
+                        categorySpending.put(category, amount);
+                        totalSpent += amount;
+                    }
+
+                    double remainingBudget = totalBudget - totalSpent;
+
+                    StringBuilder breakdown = new StringBuilder();
+                    for (Map.Entry<String, Double> entry : categorySpending.entrySet()) {
+                        String category = entry.getKey();
+                        double spent = entry.getValue();
+                        double percentOfTotal = (spent / totalBudget) * 100;
+
+                        breakdown.append(category)
+                                .append(": €").append(String.format("%.2f", spent))
+                                .append(" (").append(String.format("%.1f", percentOfTotal)).append("% of budget)")
+                                .append("; ");
+                    }
+
+                    String prompt = String.format(
+                            "I need SPECIFIC and PERSONALIZED budget suggestions for this exact situation:\n\n" +
+                                    "Weekly budget: €%.2f\n" +
+                                    "Total spent so far: €%.2f (%.1f%% of budget)\n" +
+                                    "Remaining budget: €%.2f (%.1f%% of budget)\n\n" +
+                                    "Category breakdown:\n%s\n\n" +
+                                    "Based ONLY on these exact numbers and categories, provide 3 SPECIFIC suggestions that:\n" +
+                                    "1. Directly reference actual amounts and categories from the data\n" +
+                                    "2. Include specific euro amounts and percentages in the recommendations\n" +
+                                    "3. Suggest concrete actions for the remaining €%.2f\n\n" +
+                                    "AVOID generic advice. Each suggestion must mention specific categories and amounts from the data.",
+                            totalBudget,
+                            totalSpent,
+                            (totalSpent / totalBudget) * 100,
+                            remainingBudget,
+                            (remainingBudget / totalBudget) * 100,
+                            breakdown.toString().trim(),
+                            remainingBudget
+                    );
+
+                    callAIService(prompt);
+                })
+                .addOnFailureListener(e ->
+                        aiSuggestionContent.setText("Failed to load expenses for AI suggestions.")
+                );
+    }
+
+    private void callAIService(String prompt) {
+        aiSuggestionContent.setText("Creating personalized suggestions...");
+
+        Log.d("BudgetAI", "Sending prompt: " + prompt);
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://updatedservice-621971573276.us-central1.run.app/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        AIService aiService = retrofit.create(AIService.class);
+        aiService.getAIResponse(new AIPromptRequest(prompt)).enqueue(new Callback<AIResponse>() {
+            @Override
+            public void onResponse(Call<AIResponse> call, Response<AIResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String aiResponse = response.body().getResponse().trim()
+                            .replaceAll("^\\d+\\.\\s*", "")
+                            .replaceAll("(?i)Suggestion \\d+:\\s*", "")
+                            .replaceAll("(?m)^", "")
+                            .trim();
+
+                    String[] suggestions = response.body().getResponse().trim().split("\\n\\n");
+                    StringBuilder formattedResponse = new StringBuilder();
+                    int max = Math.min(suggestions.length, 3);
+
+                    for (int i = 0; i < max; i++) {
+                        String clean = suggestions[i]
+                                .replaceAll("(?i)^(Suggestion\\s*\\d+:\\s*|\\d+\\.\\s*)", "")
+                                .trim();
+
+                        formattedResponse
+                                .append(i + 1)
+                                .append(". ")
+                                .append(clean);
+
+                        if (i < max - 1) {
+                            formattedResponse.append("\n\n");
+                        }
+                    }
+
+                    aiSuggestionContent.setText(formattedResponse.toString());
+
+                } else {
+                    aiSuggestionContent.setText("Unable to load suggestions right now.");
+                }
+            }
+            @Override
+            public void onFailure(Call<AIResponse> call, Throwable t) {
+                aiSuggestionContent.setText("Error fetching suggestions.");
+                Log.e("BudgetAI", "AI call failed", t);
+            }
+        });
+    }
+
+
 
     private void setupPrompts() {
         displayPromptsList = Arrays.asList(
