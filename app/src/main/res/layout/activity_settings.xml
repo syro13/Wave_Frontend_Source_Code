@@ -207,4 +207,5 @@
         app:labelVisibilityMode="labeled"
         app:itemIconTint="@color/nav_icon_selector"
         app:itemTextColor="@color/nav_text_selector" />
+    <include layout="@layout/no_internet_overlay" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
