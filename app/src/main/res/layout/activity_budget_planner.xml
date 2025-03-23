@@ -395,4 +395,5 @@
         app:labelVisibilityMode="labeled"
         app:itemIconTint="@color/black"
         app:itemTextColor="@color/black" />
+    <include layout="@layout/no_internet_overlay" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
