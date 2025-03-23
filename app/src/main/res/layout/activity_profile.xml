@@ -410,4 +410,5 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:visibility="gone"/>
+    <include layout="@layout/no_internet_overlay" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
