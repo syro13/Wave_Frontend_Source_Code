@@ -27,7 +27,6 @@ public class EditTasksActivity extends AppCompatActivity {
     private EditText taskTitleInput, selectDate, selectTime;
     private MaterialButton schoolTaskButton, homeTaskButton;
     private MaterialButton highPriorityButton, mediumPriorityButton, lowPriorityButton;
-    private SwitchMaterial remindSwitch;
     private Button editTaskButton;
     private Spinner repeatSpinner;
 
@@ -160,37 +159,75 @@ public class EditTasksActivity extends AppCompatActivity {
         String updatedTitle = taskTitleInput.getText().toString().trim();
         String updatedTime = selectTime.getText().toString().trim();
         String updatedDate = selectDate.getText().toString().trim();
-        boolean updatedRemind = remindSwitch.isChecked();
 
+        // Basic validation
         if (updatedTitle.isEmpty() || updatedDate.isEmpty() || updatedTime.isEmpty()) {
             Toast.makeText(this, "All fields must be filled!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Parse date values
+        // Parse the updatedDate "day/month/year"
         String[] dateParts = updatedDate.split("/");
         if (dateParts.length != 3) {
             Toast.makeText(this, "Invalid date format!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String previousCategory = task.getCategory(); // Get the previous category
-        String newCategory = selectedTaskType; // Get the new category
+        String previousCategory = task.getCategory();   // old category
+        String newCategory = selectedTaskType;          // new category user selected
 
-        // Only remove from Firestore if the category has changed
+        // If category changed, remove from old collection
         if (!previousCategory.equals(newCategory)) {
             deleteTaskFromOldCategory(task.getId(), previousCategory);
         }
 
-        // Update Task Object
+        // Build the updated Task object
         Task updatedTask = new Task(
-                task.getId(), updatedTitle, updatedTime, dateParts[0], getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1),
-                selectedPriority, newCategory, Integer.parseInt(dateParts[2]), task.getStability(),
-                System.currentTimeMillis(), updatedDate, false, Task.RepeatOption.DOES_NOT_REPEAT
+                task.getId(),
+                updatedTitle,
+                updatedTime,
+                dateParts[0],      // the day
+                getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1), // the month string
+                selectedPriority,
+                newCategory,
+                Integer.parseInt(dateParts[2]),  // year
+                task.getStability(),
+                System.currentTimeMillis(),
+                updatedDate,
+                false,
+                Task.RepeatOption.DOES_NOT_REPEAT // or adapt if you have a repeat spinner
         );
 
-        updateTaskInFirestore(updatedTask);
+        // Now actually write this updatedTask to Firestore
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (userId == null) {
+            Toast.makeText(this, "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String collectionName = "School".equals(updatedTask.getCategory())
+                ? "schooltasks"
+                : "housetasks";
+
+        FirebaseFirestore.getInstance().collection("users")
+                .document(userId)
+                .collection(collectionName)
+                .document(updatedTask.getId())
+                .set(updatedTask)
+                .addOnSuccessListener(aVoid -> {
+                    // Return the updated task to the caller
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("updatedTask", updatedTask);
+                    setResult(RESULT_OK, resultIntent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "Error updating task", e);
+                    Toast.makeText(this, "Failed to update task", Toast.LENGTH_SHORT).show();
+                });
     }
+
 
     /**
      * Deletes the task from the old category collection.

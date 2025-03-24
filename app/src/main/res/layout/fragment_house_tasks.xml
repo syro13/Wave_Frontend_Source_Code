@@ -32,7 +32,8 @@
                 android:paddingTop="16dp"
                 android:paddingBottom="16dp">
 
-                <!-- Wave Logo -->
+
+                <!-- Header Content -->
                 <ImageView
                     android:id="@+id/waveLogo"
                     android:layout_width="48dp"
@@ -40,8 +41,10 @@
                     android:layout_alignParentStart="true"
                     android:layout_alignParentTop="true"
                     android:layout_marginStart="16dp"
+                    android:layout_marginTop="16dp"
                     android:src="@drawable/ic_wave_logo"
-                    android:contentDescription="Wave Logo" />
+                    android:contentDescription="Wave Logo"
+                    android:scaleType="centerInside" />
 
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/profileIcon"

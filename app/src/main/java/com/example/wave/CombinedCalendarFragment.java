@@ -348,10 +348,17 @@ public class CombinedCalendarFragment extends Fragment implements
             return;
         }
 
-        // Determine collection based on task category
-        String taskCollection = "schooltasks".equals(task.getCategory()) ? "schooltasks" : "hometasks";
-        String archiveCollection = "schooltasks".equals(task.getCategory()) ? "cancelledSchoolTasks" : "cancelledHomeTasks";
+        String cat = task.getCategory(); // e.g. "School", "Home", or "Both"
+        String taskCollection;
+        String archiveCollection;
 
+        if ("School".equals(cat) || "Both".equals(cat)) {
+            taskCollection = "schooltasks";
+            archiveCollection = "cancelledSchoolTasks";
+        } else { // "Home" or anything else
+            taskCollection = "housetasks";
+            archiveCollection = "cancelledHomeTasks";
+        }
         // Archive the task before deletion
         db.collection("users")
                 .document(userId)

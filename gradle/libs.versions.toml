@@ -32,8 +32,6 @@ activity = "1.9.3"
 espressoContrib = "3.6.1"
 espresso = "3.6.1"
 junitJupiter = "5.8.1"
-facebook-login="16.3.0"
-firebaseFirestore = "25.1.2"
 protobuf = "3.25.1"
 facebook-login = "16.3.0"
 
@@ -47,7 +45,6 @@ core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
-firebase-firestore = { module = "com.google.firebase:firebase-firestore", version.ref = "firebaseFirestore" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging", version.ref = "firebaseMessaging" }
 fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -63,7 +60,6 @@ material-v1120 = { module = "com.google.android.material:material", version.ref 
 material-v190 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 play-services-auth-v2070 = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuthVersion" }
-protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobufJavalite" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espresso" }
