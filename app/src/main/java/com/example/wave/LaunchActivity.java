@@ -55,10 +55,10 @@ public class LaunchActivity extends AppCompatActivity {
             // First-time user → Go to Get Started Screen
             intent = new Intent(this, IntroActivity.class);
         } else if (currentUser != null) {
-            // Refresh token before navigating to Dashboard
+            // Refresh token before navigating to LoadingActivity
             refreshAuthToken(currentUser);
-            // User is already signed in → Go to Dashboard
-            intent = new Intent(this, DashboardActivity.class);
+            // User is already signed in → Go to LoadingActivity
+            intent = new Intent(this, LoadingActivity.class);
         } else {
             // Onboarding done, but user is not signed in → Go to Login/Signup
             intent = new Intent(this, LoginSignUpActivity.class);

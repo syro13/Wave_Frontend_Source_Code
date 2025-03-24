@@ -15,7 +15,7 @@
     <string name="description">Description</string>
     <string name="title">Title</string>
     <string name="budget_smarter_study_better_live_healthier">Budget Smarter. Study Better. Live Healthier.</string>
-    <string name="email_or_username">Email or Username</string>
+    <string name="email_or_username">Email</string>
     <string name="password">Password</string>
     <string name="default_web_client_id">621971573276-14q3ib2mrr0d1ccg5epdsu3n0rpdjtu1.apps.googleusercontent.com</string>
     <string name="Home">Home</string>
@@ -33,8 +33,8 @@
     <string name="facebook_app_id">1165164088675483</string>
     <string name="fb_login_protocol_scheme">fb1165164088675483</string>
     <string name="facebook_client_token">0b840bbb2256146305cfb635cdd21904</string>
-    <string name="tasks_icon">tasks icon</string>
     <string name="tasks_completed_icon">tasks_completed_icon</string>
+    <string name="tasks_icon">tasks_icon</string>
     <string name="tasks_pending_icon">tasks_pending_icon</string>
     <string name="my_calendar">My Calendar</string>
     <string name="notes">Notes\n</string>
@@ -43,20 +43,51 @@
     <string name="grocery_list">Grocery List</string>
     <string name="Home_hacks_and_guides"><![CDATA[Home Hacks & Guides\n]]></string>
     <string name="add_task">Add Task</string>
+    <string name="enter_task_title">Enter Task Title *</string>
+    <string name="task_type">Task Type*</string>
+    <string name="school">School</string>
+    <string name="task_priority">Task Priority*</string>
+    <string name="high">High</string>
+    <string name="medium">Medium</string>
+    <string name="low">Low</string>
+    <string name="due_by">Due By*</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
+    <string name="remind">Remind</string>
+    <string name="remind_icon">remind_icon</string>
+    <string name="create_task">Create Task</string>
+    <string name="calendar_icon">Calendar Icon</string>
+    <string name="clock_icon">Clock Icon</string>
+    <string name="edit_task">Edit Task</string>
+    <string name="repeat">Repeat</string>
+    <string name="select_date">Select Date</string>
+    <string name="select_time">Select Time</string>
+    <string name="today">TODAY</string>
+    <string name="expand_or_collapse">Expand or Collapse</string>
     <!-- Month-Year Array -->
-    <string-array name="month_year_array">
-        <item>January 2025</item>
-        <item>February 2025</item>
-        <item>March 2025</item>
-        <item>April 2025</item>
-        <item>May 2025</item>
-        <item>June 2025</item>
-        <item>July 2025</item>
-        <item>August 2025</item>
-        <item>September 2025</item>
-        <item>October 2025</item>
-        <item>November 2025</item>
-        <item>December 2025</item>
+        <string-array name="month_year_array">
+            <item>January 2025</item>
+            <item>February 2025</item>
+            <item>March 2025</item>
+            <item>April 2025</item>
+            <item>May 2025</item>
+            <item>June 2025</item>
+            <item>July 2025</item>
+            <item>August 2025</item>
+            <item>September 2025</item>
+            <item>October 2025</item>
+            <item>November 2025</item>
+            <item>December 2025</item>
+        </string-array>
+    <string-array name="repeat_options">
+        <item>Does not repeat</item>
+        <item>Repeat every Monday</item>
+        <item>Repeat every Tuesday</item>
+        <item>Repeat every Wednesday</item>
+        <item>Repeat every Thursday</item>
+        <item>Repeat every Friday</item>
+        <item>Repeat every Saturday</item>
+        <item>Repeat every Sunday</item>
     </string-array>
-</resources>
+    </resources>
 
