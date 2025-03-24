@@ -7,7 +7,6 @@ converterGson = "2.9.0"
 coreKtx = "1.15.0"
 desugar_jdk_libs = "2.1.4"
 firebaseBom = "33.6.0"
-firebaseFirestore = "25.1.2"
 fragmentKtx = "1.8.5"
 googleMaterial = "1.12.0"
 junit = "4.13.2"
@@ -32,7 +31,6 @@ espressoContrib = "3.6.1"
 espresso = "3.6.1"
 junitJupiter = "5.8.1"
 facebook-login="16.3.0"
-espressoContrib = "3.6.1"
 firebaseFirestore = "25.1.2"
 protobuf = "3.25.1"
 
@@ -45,7 +43,6 @@ core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
-firebase-firestore = { module = "com.google.firebase:firebase-firestore", version.ref = "firebaseFirestore" }
 fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -70,8 +67,6 @@ espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib"
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
 facebook-login = { module = "com.facebook.android:facebook-login", version.ref = "facebook-login" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
-protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
-
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 
