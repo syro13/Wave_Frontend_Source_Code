@@ -505,6 +505,7 @@
                         app:cardElevation="4dp"
                         app:cardBackgroundColor="@color/light_blue"
                         android:padding="15dp"
+                        android:id="@+id/schoolNotesCard"
                         >
 
                         <LinearLayout

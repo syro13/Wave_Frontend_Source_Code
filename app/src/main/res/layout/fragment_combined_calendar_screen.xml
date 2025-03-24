@@ -189,7 +189,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentStart="true"
                         android:text="TODAY"
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="@color/dark_gray"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -268,7 +268,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                    app:spanCount="7" />
+                    app:spanCount="7" /> <!-- Default 7 columns (Full Month) -->
+
             </LinearLayout>
 
             <!-- Tasks Section -->
@@ -286,6 +287,15 @@
                     android:text="Today"
                     android:textColor="@color/black"
                     android:textSize="20sp" />
+
+                <ImageView
+                    android:id="@+id/emptyTasksImage"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:scaleType="fitCenter"
+                    android:visibility="gone"
+                    android:src="@drawable/empty_tasks_state"
+                    android:layout_gravity="center" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/taskRecyclerView"
