@@ -166,6 +166,21 @@ public class SchoolTasksFragment extends Fragment  {
                 saveSchoolNotes(schoolNotes);
             }
         });
+    }
+
+    interface OnFetchCompleteListener {
+        void onFetchComplete(boolean success);
+    }
+
+    private void fetchBlogsFromApi(SharedPreferences prefs, int todayDate, OnFetchCompleteListener listener) {
+        if (!isAdded()) return; // Ensure Fragment is attached
+
+        BlogsApi api = RetrofitClient.getRetrofitInstance(
+                requireContext(),
+                "https://medium2.p.rapidapi.com/",
+                "x-rapidapi-key",
+                getResources().getString(Integer.parseInt("123")) // Make sure to remove
+        ).create(BlogsApi.class);
 
         // Handle back button
         backArrow.setOnClickListener(v -> dialog.dismiss());
