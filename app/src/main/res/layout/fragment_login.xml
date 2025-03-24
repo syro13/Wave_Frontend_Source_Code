@@ -104,25 +104,45 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/toggleContainer" />
 
-            <!-- Password Field -->
-            <EditText
-                android:id="@+id/passwordInput"
+            <!-- Password Field with Eye Icon -->
+            <RelativeLayout
+                android:id="@+id/password"
                 android:layout_width="261dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/edittext_background"
-                android:fontFamily="@font/archivo_medium"
-                android:hint="@string/password"
-                android:textColorHint="@color/gray"
-                android:inputType="textPassword"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:textSize="16sp"
-                android:textColor="@android:color/black"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.509"
+                app:layout_constraintTop_toBottomOf="@id/emailInput"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/emailInput" />
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <EditText
+                    android:id="@+id/passwordInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/edittext_background"
+                    android:fontFamily="@font/archivo_medium"
+                    android:hint="@string/password"
+                    android:inputType="textPassword"
+                    android:textColorHint="@color/gray"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="48dp" />
+
+                <ImageView
+                    android:id="@+id/passwordToggle"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="12dp"
+                    android:src="@drawable/ic_eye_closed"
+                    android:contentDescription="Toggle password visibility"
+                    android:enabled="false"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:alpha="0.4" />
+            </RelativeLayout>
+
 
             <!-- Forgot Password Link -->
             <TextView
@@ -136,7 +156,7 @@
                 android:textColor="@color/blue"
                 android:textSize="14sp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/passwordInput" />
+                app:layout_constraintTop_toBottomOf="@id/password" />
 
             <!-- Log In Button -->
             <Button
