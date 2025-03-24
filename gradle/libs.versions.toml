@@ -31,6 +31,9 @@ fragmentTesting = "1.8.5"
 activity = "1.9.3"
 espressoContrib = "3.6.1"
 espresso = "3.6.1"
+junitJupiter = "5.8.1"
+facebook-login="16.3.0"
+firebaseFirestore = "25.1.2"
 protobuf = "3.25.1"
 facebook-login = "16.3.0"
 
@@ -66,8 +69,11 @@ retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit
 espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espresso" }
 fragment-testing = { group = "androidx.fragment", name = "fragment-testing", version.ref = "fragmentTesting" }
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
-facebook-login = { module = "com.facebook.android:facebook-login", version.ref = "facebook-login" }
 espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espressoContrib" }
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
+facebook-login = { module = "com.facebook.android:facebook-login", version.ref = "facebook-login" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -43,16 +43,17 @@
                     android:src="@drawable/ic_wave_logo"
                     android:contentDescription="Wave Logo" />
 
-                <!-- Profile Icon -->
-                <ImageView
+                <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/profileIcon"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/profile_image"
+                    android:contentDescription="Profile Icon"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="16dp"
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentTop="true"
-                    android:layout_marginEnd="16dp"
-                    android:src="@drawable/ic_profile_placeholder"
-                    android:contentDescription="Profile Icon" />
+                    app:shapeAppearanceOverlay="@style/CircularImageView"/>
 
                 <!-- Title Text -->
                 <TextView

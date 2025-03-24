@@ -63,6 +63,7 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.ext.junit)
+    testImplementation(libs.junit.jupiter)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation(libs.core.ktx)
@@ -100,6 +101,7 @@ dependencies {
     implementation (libs.converter.gson)
     implementation (libs.material.v1120)
     implementation("com.google.protobuf:protobuf-javalite:3.25.1")
+    implementation ("com.google.firebase:firebase-storage:20.3.0")
 }
 
 configurations.all {

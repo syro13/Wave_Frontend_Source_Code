@@ -101,7 +101,7 @@
                 android:layout_marginTop="12dp"
                 android:background="@drawable/edittext_background"
                 android:fontFamily="@font/archivo_medium"
-                android:hint="Email or Username"
+                android:hint="@string/email_or_username"
                 android:inputType="textEmailAddress"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"

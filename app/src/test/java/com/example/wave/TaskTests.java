@@ -1,101 +1,65 @@
 package com.example.wave;
 
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 public class TaskTests {
 
-    // Tests the Task constructor and getters
     @Test
     public void testTaskConstructorAndGetters() {
         // Arrange
-        String title = "Complete Assignment";
-        String time = "10:00 AM";
-        String category = "School";
-        boolean isOverdue = false;
-        boolean isHighPriority = true;
-
-        // Act
-        Task task = new Task(title, time, category, isOverdue, isHighPriority);
+        Task task = new Task("Complete Assignment", "10:00 AM", "18", "January", "High", "School", true, 2024);
 
         // Assert
-        assertEquals(title, task.getTitle());
-        assertEquals(time, task.getTime());
-        assertEquals(category, task.getCategory());
-        assertFalse(task.isOverdue());
-        assertTrue(task.isHighPriority());
+        assertEquals("Complete Assignment", task.getTitle());
+        assertEquals("10:00 AM", task.getTime());
+        assertEquals("18", task.getDate());
+        assertEquals("January", task.getMonth());
+        assertEquals("High", task.getPriority());
+        assertEquals("School", task.getCategory());
+        assertTrue(task.isRemind());
+        assertEquals(2024, task.getYear());
     }
 
-    // Tests the getTitle method
+    @Test
+    public void testBooleanRemind() {
+        Task task = new Task("Doctor Appointment", "3:30 PM", "5", "June", "High", "Health", false, 2023);
+        Task taskWithReminder = new Task("Doctor Appointment", "3:30 PM", "5", "June", "High", "Health", true, 2023);
+        assertFalse(task.isRemind());
+        assertTrue(taskWithReminder.isRemind());
+    }
+
     @Test
     public void testGetTitle() {
-        // Arrange
-        String title = "Buy Groceries";
-        Task task = new Task(title, "12:00 PM", "Personal", false, false);
-
-        // Act
+        Task task = new Task("Buy Groceries", "12:00 PM", "20", "March", "Medium", "Personal", false, 2024);
         String result = task.getTitle();
-
-        // Assert
-        assertEquals(title, result);
+        assertEquals("Buy Groceries", result);
     }
 
-    // Tests the getTime method
     @Test
     public void testGetTime() {
-        // Arrange
-        String time = "12:00 PM";
-        Task task = new Task("Buy Groceries", time, "Personal", false, false);
-
-        // Act
+        Task task = new Task("Buy Groceries", "12:00 PM", "20", "March", "Medium", "Personal", false, 2024);
         String result = task.getTime();
-
-        // Assert
-        assertEquals(time, result);
+        assertEquals("12:00 PM", result);
     }
 
-    // Tests the getCategory method
     @Test
     public void testGetCategory() {
-        // Arrange
-        String category = "Home";
-        Task task = new Task("Clean Kitchen", "8:00 PM", category, false, false);
-
-        // Act
+        Task task = new Task("Clean Kitchen", "8:00 PM", "15", "April", "Low", "Home", false, 2023);
         String result = task.getCategory();
-
-        // Assert
-        assertEquals(category, result);
+        assertEquals("Home", result);
     }
 
-    // Tests the isOverdue method
     @Test
-    public void testIsOverdue() {
-        // Arrange
-        boolean isOverdue = true;
-        Task task = new Task("Submit Report", "5:00 PM", "Work", isOverdue, false);
-
-        // Act
-        boolean result = task.isOverdue();
-
-        // Assert
+    public void testIsRemind() {
+        Task task = new Task("Submit Report", "5:00 PM", "10", "May", "High", "Work", true, 2025);
+        boolean result = task.isRemind();
         assertTrue(result);
     }
 
-    // Tests the isHighPriority method
     @Test
-    public void testIsHighPriority() {
-        // Arrange
-        boolean isHighPriority = true;
-        Task task = new Task("Pay Bills", "3:00 PM", "Finance", false, isHighPriority);
-
-        // Act
-        boolean result = task.isHighPriority();
-
-        // Assert
-        assertTrue(result);
+    public void testEmptyTitle() {
+        Task task = new Task("", "10:00 AM", "1", "January", "High", "Work", false, 2023);
+        assertEquals("", task.getTitle());
     }
 }
