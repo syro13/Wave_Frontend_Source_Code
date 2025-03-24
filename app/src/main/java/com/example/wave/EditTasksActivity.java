@@ -18,6 +18,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -26,108 +27,61 @@ public class EditTasksActivity extends AppCompatActivity {
     private EditText taskTitleInput, selectDate, selectTime;
     private MaterialButton schoolTaskButton, homeTaskButton;
     private MaterialButton highPriorityButton, mediumPriorityButton, lowPriorityButton;
-    private SwitchMaterial remindSwitch;
     private Button editTaskButton;
     private Spinner repeatSpinner;
 
     private String selectedTaskType = "School";
     private String selectedPriority = "Medium";
 
-    // The Task being edited
     private Task task;
-    private Task previousTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_task_screen);
 
-        // Initialize UI elements
         taskTitleInput = findViewById(R.id.taskTitleInput);
         selectDate = findViewById(R.id.selectDate);
         selectTime = findViewById(R.id.selectTime);
-        remindSwitch = findViewById(R.id.remindSwitch);
         editTaskButton = findViewById(R.id.editTaskButton);
-        repeatSpinner = findViewById(R.id.repeatSpinner); // If used
 
-        // Category Buttons
         schoolTaskButton = findViewById(R.id.schoolTaskButtonInput);
         homeTaskButton = findViewById(R.id.homeTaskButtonInput);
-
-        // Priority Buttons
         highPriorityButton = findViewById(R.id.highPriorityButton);
         mediumPriorityButton = findViewById(R.id.mediumPriorityButton);
         lowPriorityButton = findViewById(R.id.lowPriorityButton);
 
-        // Retrieve the Task passed from the previous activity
-        if (getIntent().hasExtra("task")) {
-            task = getIntent().getParcelableExtra("task");
-            if (task != null) {
-                Log.d("EditTasksActivity", "Received Task: " + task.getTitle());
-                populateTaskData(task); // Populate fields with existing data
-            } else {
-                Log.e("EditTasksActivity", "Received Task is NULL");
-                finish();
-            }
-        } else {
-            Log.e("EditTasksActivity", "No Task received in Intent");
+        task = getIntent().getParcelableExtra("task");
+        if (task == null) {
+            Log.e("EditTasksActivity", "Received Task is NULL");
+            Toast.makeText(this, "Error: Task data missing!", Toast.LENGTH_SHORT).show();
             finish();
+            return;
         }
+        populateTaskData(task);
 
-        // Date Picker Dialog
-        selectDate.setOnClickListener(v -> {
-            Calendar c = Calendar.getInstance();
-            int year = c.get(Calendar.YEAR);
-            int month = c.get(Calendar.MONTH);
-            int day = c.get(Calendar.DAY_OF_MONTH);
+        selectDate.setOnClickListener(v -> showDatePicker());
+        selectTime.setOnClickListener(v -> showTimePicker());
 
-            DatePickerDialog datePickerDialog = new DatePickerDialog(
-                    EditTasksActivity.this,
-                    (view, selectedYear, selectedMonth, selectedDay) -> {
-                        String formattedDate = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
-                        selectDate.setText(formattedDate);
-                    },
-                    year, month, day);
-            datePickerDialog.show();
-        });
-
-        // Time Picker Dialog
-        selectTime.setOnClickListener(v -> {
-            Calendar c = Calendar.getInstance();
-            int hour = c.get(Calendar.HOUR_OF_DAY);
-            int minute = c.get(Calendar.MINUTE);
-
-            TimePickerDialog timePickerDialog = new TimePickerDialog(
-                    EditTasksActivity.this,
-                    (view, selectedHour, selectedMinute) -> {
-                        selectTime.setText(String.format("%02d:%02d", selectedHour, selectedMinute));
-                    },
-                    hour, minute, true);
-            timePickerDialog.show();
-        });
-
-        // Set up category & priority button clicks
         setupTaskTypeSelection();
         setupPrioritySelection();
 
-        // Handle the "Save" (edit) button
         editTaskButton.setOnClickListener(v -> saveEditedTask());
     }
 
     private void populateTaskData(Task task) {
         taskTitleInput.setText(task.getTitle());
-        selectDate.setText(task.getFullDate()); // Use full date
+        selectDate.setText(task.getFullDate());
         selectTime.setText(task.getTime());
-        remindSwitch.setChecked(task.isRemind());
+        selectedTaskType = task.getCategory();
+        selectedPriority = task.getPriority();
 
-        // Restore category selection
         if ("School".equals(task.getCategory())) {
             schoolTaskButton.performClick();
         } else {
             homeTaskButton.performClick();
         }
 
-        // Restore priority selection
         switch (task.getPriority()) {
             case "High":
                 highPriorityButton.performClick();
@@ -140,109 +94,64 @@ public class EditTasksActivity extends AppCompatActivity {
                 break;
         }
 
-        // Set up repeat spinner (if used)
-        if (repeatSpinner != null) {
-            // TODO: Implement repeat logic
-        }
+    }
+
+
+    private void showDatePicker() {
+        Calendar c = Calendar.getInstance();
+        new DatePickerDialog(this, (view, year, month, day) ->
+                selectDate.setText(day + "/" + (month + 1) + "/" + year),
+                c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH))
+                .show();
+    }
+
+    private void showTimePicker() {
+        Calendar c = Calendar.getInstance();
+        new TimePickerDialog(this, (view, hour, minute) ->
+                selectTime.setText(String.format("%02d:%02d", hour, minute)),
+                c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), true)
+                .show();
     }
 
     private void setupTaskTypeSelection() {
         schoolTaskButton.setOnClickListener(v -> {
             selectedTaskType = "School";
-            highlightSelectedCategory(selectedTaskType);
+            highlightSelectedCategory(schoolTaskButton, homeTaskButton);
         });
         homeTaskButton.setOnClickListener(v -> {
             selectedTaskType = "Home";
-            highlightSelectedCategory(selectedTaskType);
+            highlightSelectedCategory(homeTaskButton, schoolTaskButton);
         });
     }
 
     private void setupPrioritySelection() {
         highPriorityButton.setOnClickListener(v -> {
             selectedPriority = "High";
-            highlightSelectedPriority(selectedPriority);
+            highlightSelectedPriority(highPriorityButton, mediumPriorityButton, lowPriorityButton);
         });
         mediumPriorityButton.setOnClickListener(v -> {
             selectedPriority = "Medium";
-            highlightSelectedPriority(selectedPriority);
+            highlightSelectedPriority(mediumPriorityButton, highPriorityButton, lowPriorityButton);
         });
         lowPriorityButton.setOnClickListener(v -> {
             selectedPriority = "Low";
-            highlightSelectedPriority(selectedPriority);
+            highlightSelectedPriority(lowPriorityButton, highPriorityButton, mediumPriorityButton);
         });
     }
 
-    private void highlightSelectedCategory(String category) {
-        int blueColor = getResources().getColor(R.color.blue);
-        int transparentColor = getResources().getColor(R.color.transparent);
-
-        // Reset both
-        schoolTaskButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
-        homeTaskButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
-        schoolTaskButton.setStrokeWidth(2);
-        homeTaskButton.setStrokeWidth(2);
-
-        if ("School".equals(category)) {
-            schoolTaskButton.setStrokeColor(ColorStateList.valueOf(blueColor));
-            schoolTaskButton.setStrokeWidth(4);
-        } else if ("Home".equals(category)) {
-            homeTaskButton.setStrokeColor(ColorStateList.valueOf(blueColor));
-            homeTaskButton.setStrokeWidth(4);
-        }
+    private void highlightSelectedCategory(MaterialButton selected, MaterialButton unselected) {
+        selected.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.blue)));
+        selected.setStrokeWidth(4);
+        unselected.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.transparent)));
+        unselected.setStrokeWidth(2);
     }
 
-    private void highlightSelectedPriority(String priority) {
-        int blueColor = getResources().getColor(R.color.blue);
-        int transparentColor = getResources().getColor(R.color.transparent);
-
-        // Reset all
-        highPriorityButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
-        mediumPriorityButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
-        lowPriorityButton.setStrokeColor(ColorStateList.valueOf(transparentColor));
-        highPriorityButton.setStrokeWidth(2);
-        mediumPriorityButton.setStrokeWidth(2);
-        lowPriorityButton.setStrokeWidth(2);
-
-        switch (priority) {
-            case "High":
-                highPriorityButton.setStrokeColor(ColorStateList.valueOf(blueColor));
-                highPriorityButton.setStrokeWidth(4);
-                break;
-            case "Medium":
-                mediumPriorityButton.setStrokeColor(ColorStateList.valueOf(blueColor));
-                mediumPriorityButton.setStrokeWidth(4);
-                break;
-            case "Low":
-                lowPriorityButton.setStrokeColor(ColorStateList.valueOf(blueColor));
-                lowPriorityButton.setStrokeWidth(4);
-                break;
-        }
-    }
-
-    private List<String> getMonthYearList() {
-        return List.of(
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-        );
-    }
-    private Task.RepeatOption getRepeatOptionFromString(String repeatOptionString) {
-        switch (repeatOptionString) {
-            case "Repeat every Monday":
-                return Task.RepeatOption.REPEAT_EVERY_MONDAY;
-            case "Repeat every Tuesday":
-                return Task.RepeatOption.REPEAT_EVERY_TUESDAY;
-            case "Repeat every Wednesday":
-                return Task.RepeatOption.REPEAT_EVERY_WEDNESDAY;
-            case "Repeat every Thursday":
-                return Task.RepeatOption.REPEAT_EVERY_THURSDAY;
-            case "Repeat every Friday":
-                return Task.RepeatOption.REPEAT_EVERY_FRIDAY;
-            case "Repeat every Saturday":
-                return Task.RepeatOption.REPEAT_EVERY_SATURDAY;
-            case "Repeat every Sunday":
-                return Task.RepeatOption.REPEAT_EVERY_SUNDAY;
-            default:
-                return Task.RepeatOption.DOES_NOT_REPEAT;
+    private void highlightSelectedPriority(MaterialButton selected, MaterialButton... others) {
+        selected.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.blue)));
+        selected.setStrokeWidth(4);
+        for (MaterialButton other : others) {
+            other.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.transparent)));
+            other.setStrokeWidth(2);
         }
     }
 
@@ -250,68 +159,67 @@ public class EditTasksActivity extends AppCompatActivity {
         String updatedTitle = taskTitleInput.getText().toString().trim();
         String updatedTime = selectTime.getText().toString().trim();
         String updatedDate = selectDate.getText().toString().trim();
-        boolean updatedRemind = remindSwitch.isChecked();
 
-        // Get the selected repeat option from the Spinner
-        Spinner repeatSpinner = findViewById(R.id.repeatSpinner); // Ensure this ID matches your Spinner
-        String repeatOptionString = repeatSpinner.getSelectedItem().toString();
-
+        // Basic validation
         if (updatedTitle.isEmpty() || updatedDate.isEmpty() || updatedTime.isEmpty()) {
             Toast.makeText(this, "All fields must be filled!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Parse the date
+        // Parse the updatedDate "day/month/year"
         String[] dateParts = updatedDate.split("/");
-        int day = Integer.parseInt(dateParts[0]);
-        int month = Integer.parseInt(dateParts[1]);
-        int year = Integer.parseInt(dateParts[2]);
+        if (dateParts.length != 3) {
+            Toast.makeText(this, "Invalid date format!", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // Convert the repeat option string to the RepeatOption enum
-        Task.RepeatOption repeatOption = getRepeatOptionFromString(repeatOptionString);
+        String previousCategory = task.getCategory();   // old category
+        String newCategory = selectedTaskType;          // new category user selected
 
-        // Create the updated task
+        // If category changed, remove from old collection
+        if (!previousCategory.equals(newCategory)) {
+            deleteTaskFromOldCategory(task.getId(), previousCategory);
+        }
+
+        // Build the updated Task object
         Task updatedTask = new Task(
-                task.getId(), // Keep the same task ID
+                task.getId(),
                 updatedTitle,
                 updatedTime,
-                String.valueOf(day),
-                getMonthYearList().get(month - 1),
+                dateParts[0],      // the day
+                getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1), // the month string
                 selectedPriority,
-                selectedTaskType,
-                updatedRemind,
-                year,
-                task.getStability(), // Preserve existing stability
-                System.currentTimeMillis(),  // Update timestamp for last modification
+                newCategory,
+                Integer.parseInt(dateParts[2]),  // year
+                task.getStability(),
+                System.currentTimeMillis(),
                 updatedDate,
                 false,
-                repeatOption // Pass the RepeatOption enum
+                Task.RepeatOption.DOES_NOT_REPEAT // or adapt if you have a repeat spinner
         );
 
-        // Get current user ID safely
+        // Now actually write this updatedTask to Firestore
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
-                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
-                : null;
-
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (userId == null) {
-            Log.e("Firestore", "User not logged in, cannot update task");
             Toast.makeText(this, "User not authenticated!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Determine correct collection based on task type
-        String collectionName = "School".equals(updatedTask.getCategory()) ? "schooltasks" : "housetasks";
+        String collectionName = "School".equals(updatedTask.getCategory())
+                ? "schooltasks"
+                : "housetasks";
 
-        // Update Firestore
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("users")
+        FirebaseFirestore.getInstance().collection("users")
                 .document(userId)
                 .collection(collectionName)
-                .document(task.getId())
+                .document(updatedTask.getId())
                 .set(updatedTask)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d("Firestore", "Task successfully updated!");
-                    Toast.makeText(this, "Task updated!", Toast.LENGTH_SHORT).show();
+                    // Return the updated task to the caller
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("updatedTask", updatedTask);
+                    setResult(RESULT_OK, resultIntent);
                     finish();
                 })
                 .addOnFailureListener(e -> {
@@ -320,4 +228,61 @@ public class EditTasksActivity extends AppCompatActivity {
                 });
     }
 
+
+    /**
+     * Deletes the task from the old category collection.
+     */
+    private void deleteTaskFromOldCategory(String taskId, String oldCategory) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (userId == null) return;
+
+        String collectionName = "Home".equals(oldCategory) ? "housetasks" : "schooltasks";
+
+        FirebaseFirestore.getInstance().collection("users")
+                .document(userId)
+                .collection(collectionName)
+                .document(taskId)
+                .delete()
+                .addOnSuccessListener(aVoid -> Log.d("Firestore", "Old task deleted successfully"))
+                .addOnFailureListener(e -> Log.e("Firestore", "Failed to delete old task", e));
+    }
+
+    /**
+     * Updates task in Firestore without duplicating it.
+     */
+    private void updateTaskInFirestore(Task updatedTask) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (userId == null) {
+            Toast.makeText(this, "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String collectionName = "School".equals(updatedTask.getCategory()) ? "schooltasks" : "housetasks";
+
+        FirebaseFirestore.getInstance().collection("users")
+                .document(userId)
+                .collection(collectionName)
+                .document(updatedTask.getId())
+                .set(updatedTask)
+                .addOnSuccessListener(aVoid -> {
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("updatedTask", updatedTask);
+                    setResult(RESULT_OK, resultIntent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "Error updating task", e);
+                    Toast.makeText(this, "Failed to update task", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
+    private List<String> getMonthYearList() {
+        return Arrays.asList(
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+        );
+    }
 }

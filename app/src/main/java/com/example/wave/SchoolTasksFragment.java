@@ -124,6 +124,21 @@ public class SchoolTasksFragment extends Fragment  {
             Intent intent = new Intent(requireContext(), ProfileActivity.class);
             startActivity(intent);
         });
+        CardView calendarFromTasksButton = view.findViewById(R.id.CalendarFromTasksButton); // ✅ CardView
+        if (calendarFromTasksButton == null) {
+            Log.e("SchoolTasksFragment", "CalendarFromTasksButton CardView NOT found in XML!");
+        } else {
+            Log.d("SchoolTasksFragment", "CalendarFromTasksButton CardView found, setting click listener...");
+
+            calendarFromTasksButton.setOnClickListener(v -> {
+                Log.d("SchoolTasksFragment", "CalendarFromTasksButton clicked, navigating to HomeCalendarFragment...");
+
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.home_school_tasks_container, new SchoolCalendarFragment()) // Ensure correct ID
+                        .addToBackStack(null) // Allows back navigation
+                        .commit();
+            });
+        }
 
         return view;
     }
@@ -144,8 +159,8 @@ public class SchoolTasksFragment extends Fragment  {
         ListView schoolNotesList = dialog.findViewById(R.id.school_notes_list);
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
-        lp.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.85); // 85% of screen width
-        lp.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.65);
+        lp.width  = (int) (getResources().getDisplayMetrics().widthPixels  * 0.95); // 95% of screen width
+        lp.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.80); // 80% of screen height
         dialog.getWindow().setAttributes(lp);
 
         // Set title
@@ -172,21 +187,6 @@ public class SchoolTasksFragment extends Fragment  {
         void onFetchComplete(boolean success);
     }
 
-    private void fetchBlogsFromApi(SharedPreferences prefs, int todayDate, OnFetchCompleteListener listener) {
-        if (!isAdded()) return; // Ensure Fragment is attached
-
-        BlogsApi api = RetrofitClient.getRetrofitInstance(
-                requireContext(),
-                "https://medium2.p.rapidapi.com/",
-                "x-rapidapi-key",
-                getResources().getString(Integer.parseInt("123")) // Make sure to remove
-        ).create(BlogsApi.class);
-
-        // Handle back button
-        backArrow.setOnClickListener(v -> dialog.dismiss());
-
-        dialog.show();
-    }
 
     private void saveSchoolNotes(ArrayList<String> schoolNotes) {
         SharedPreferences prefs = requireContext().getSharedPreferences(SchoolNotesPREFS_NAME, Context.MODE_PRIVATE);

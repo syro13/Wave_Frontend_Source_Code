@@ -3,7 +3,6 @@ package com.example.wave;
 import static android.app.Activity.RESULT_OK;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,7 +18,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -91,8 +89,6 @@ public class CombinedCalendarFragment extends Fragment implements
         schoolToggleButton = view.findViewById(R.id.schoolToggleButton);
         bothToggleButton = view.findViewById(R.id.bothToggleButton);
         houseToggleButton = view.findViewById(R.id.houseToggleButton);
-        ImageView previousMonth = view.findViewById(R.id.previousMonth);
-        ImageView nextMonth = view.findViewById(R.id.nextMonth);
         TextView selectedDateText = view.findViewById(R.id.selectedDateText);
         updateSelectedDateText(selectedDateText, calendar.get(Calendar.DAY_OF_MONTH));
 
@@ -111,19 +107,51 @@ public class CombinedCalendarFragment extends Fragment implements
             }
             updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         });
+// Find Previous and Next Month Arrows
+        ImageView previousMonth = view.findViewById(R.id.previousMonth);
+        ImageView nextMonth = view.findViewById(R.id.nextMonth);
 
-        // Setup month-year spinner
+// Setup month-year spinner
         MonthYearSpinnerAdapter spinnerAdapter = new MonthYearSpinnerAdapter(requireContext(), getMonthYearList());
         spinnerAdapter.setDropDownViewResource(R.layout.month_year_spinner_dropdown_item);
         monthYearDropdown.setAdapter(spinnerAdapter);
-        monthYearDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-                calendar.set(Calendar.MONTH, position);
-                updateCalendar();
-            }
-            @Override public void onNothingSelected(AdapterView<?> parent) { }
+
+// Set the spinner to the current month AFTER setting the adapter
+        int currentMonthIndex = calendar.get(Calendar.MONTH);
+        monthYearDropdown.post(() -> monthYearDropdown.setSelection(currentMonthIndex));
+
+// Handle previous month click
+        previousMonth.setOnClickListener(v -> {
+            calendar.add(Calendar.MONTH, -1); // Move to previous month
+            calendar.set(Calendar.DAY_OF_MONTH, 1); // Reset to first day to prevent out-of-range issues
+            monthYearDropdown.setSelection(calendar.get(Calendar.MONTH)); // Ensure dropdown syncs
+            updateCalendar();  // Refresh calendar UI
         });
-        monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
+
+// Handle next month click
+        nextMonth.setOnClickListener(v -> {
+            calendar.add(Calendar.MONTH, 1); // Move to next month
+            calendar.set(Calendar.DAY_OF_MONTH, 1); // Reset to first day to prevent out-of-range issues
+            monthYearDropdown.setSelection(calendar.get(Calendar.MONTH)); // Ensure dropdown syncs
+            updateCalendar();  // Refresh calendar UI
+        });
+
+// Handle spinner selection changes
+        monthYearDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+                if (calendar.get(Calendar.MONTH) != position) {  // Avoid unnecessary reloads
+                    calendar.set(Calendar.MONTH, position);
+                    calendar.set(Calendar.DAY_OF_MONTH, 1); // Reset to first day for safety
+                    updateCalendar();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) { }
+        });
+
+
 
         // Initialize calendar adapter
         calendarDates = getCalendarDates(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
@@ -298,36 +326,55 @@ public class CombinedCalendarFragment extends Fragment implements
     // --- UPDATED onTaskDeleted() method for SchoolCalendarFragment ---
     @Override
     public void onTaskDeleted(Task task) {
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Delete Task")
+                .setMessage("Are you sure you want to delete \"" + task.getTitle() + "\"?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    deleteTask(task); // Call the method to delete the task
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    // Separate method to handle task deletion after confirmation
+    private void deleteTask(Task task) {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                 : null;
+
         if (userId == null) {
             Log.e("Firestore", "User not logged in, cannot delete task");
             Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Determine if this is a "Home" or "School" task
-        boolean isHomeTask = "Home".equals(task.getCategory());
-        String cancelledCollection = isHomeTask ? "cancelledHomeTasks" : "cancelledSchoolTasks";
-        String originalCollection = isHomeTask ? "housetasks" : "schooltasks";
+        String cat = task.getCategory(); // e.g. "School", "Home", or "Both"
+        String taskCollection;
+        String archiveCollection;
 
-        // 1. Archive the task in the appropriate "cancelled" collection
+        if ("School".equals(cat) || "Both".equals(cat)) {
+            taskCollection = "schooltasks";
+            archiveCollection = "cancelledSchoolTasks";
+        } else { // "Home" or anything else
+            taskCollection = "housetasks";
+            archiveCollection = "cancelledHomeTasks";
+        }
+        // Archive the task before deletion
         db.collection("users")
                 .document(userId)
-                .collection(cancelledCollection)
+                .collection(archiveCollection)
                 .document(task.getId())
                 .set(task)
                 .addOnSuccessListener(aVoid -> {
-                    // 2. After archiving, delete the task from its original collection
+                    // After archiving, delete the task from the original collection
                     db.collection("users")
                             .document(userId)
-                            .collection(originalCollection)
+                            .collection(taskCollection)
                             .document(task.getId())
                             .delete()
                             .addOnSuccessListener(aVoid2 -> {
                                 Log.d("Firestore", "Task archived and deleted: " + task.getTitle());
-                                // 3. Update your UI as needed
+                                // Update UI after deletion
                                 updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
                                 updateWeeklyTasks();
                                 updateCalendar();
@@ -337,6 +384,7 @@ public class CombinedCalendarFragment extends Fragment implements
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error archiving task", e));
     }
+
     private List<String> getRepeatedDates(String startDate, Task.RepeatOption repeatOption) {
         List<String> repeatedDates = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
@@ -394,7 +442,12 @@ public class CombinedCalendarFragment extends Fragment implements
     @Override
     public void onTaskEdited(Task updatedTask, int position) {
         updateExistingTask(updatedTask);
+        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));  // Ensure UI refresh
+        updateWeeklyTasks();
+        updateCalendar();
     }
+
+
     private Task.RepeatOption getRepeatOptionFromString(String repeatOptionString) {
         switch (repeatOptionString) {
             case "Repeat every Monday":
@@ -416,7 +469,7 @@ public class CombinedCalendarFragment extends Fragment implements
         }
     }
     public void addTaskToCalendar(String taskTitle, String taskPriority, String taskDate, String taskTime,
-                                  boolean remind, String taskType, String repeatOptionString) {
+                                  String taskType, String repeatOptionString) {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (userId == null) {
@@ -463,7 +516,6 @@ public class CombinedCalendarFragment extends Fragment implements
                     getMonthYearList().get(Integer.parseInt(repeatedDateParts[1]) - 1), // Month string (e.g., "March")
                     taskPriority,
                     taskType,
-                    remind,
                     repeatedYear,
                     0, // Default stability value
                     System.currentTimeMillis(),
@@ -490,13 +542,12 @@ public class CombinedCalendarFragment extends Fragment implements
     }
 
 
-
-    // Update an existing task in Firestore.
     private void updateExistingTask(Task updatedTask) {
         if (updatedTask.getId() == null) {
             Log.e("updateExistingTask", "Updated task ID is null. Cannot update.");
             return;
         }
+
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (userId == null) {
@@ -504,29 +555,76 @@ public class CombinedCalendarFragment extends Fragment implements
             Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        // Determine the Firestore collection based on task category
         String taskCollection = "Home".equals(updatedTask.getCategory()) ? "housetasks" : "schooltasks";
+
         db.collection("users")
                 .document(userId)
                 .collection(taskCollection)
                 .document(updatedTask.getId())
-                .set(updatedTask)
+                .update(
+                        "title", updatedTask.getTitle(),
+                        "time", updatedTask.getTime(),
+                        "date", updatedTask.getDate(),
+                        "month", updatedTask.getMonth(),
+                        "priority", updatedTask.getPriority(),
+                        "category", updatedTask.getCategory(),
+                        "year", updatedTask.getYear(),
+                        "fullDate", updatedTask.getFullDate(),
+                        "completed", updatedTask.isCompleted(),
+                        "repeatOption", updatedTask.getRepeatOption().name()
+                )
                 .addOnSuccessListener(aVoid -> {
                     Log.d("Firestore", "Task successfully updated: " + updatedTask.getTitle());
-                    // Snapshot listeners will update the UI.
+
+                    // ✅ Update the local task lists manually so UI refreshes immediately
+                    updateLocalTaskLists(updatedTask);
+
+                    // ✅ Refresh the UI
+                    updateCalendar();
+                    updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
+                    updateWeeklyTasks();
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error updating task", e));
     }
 
-    // Snapshot-based edit task launcher.
-    private final ActivityResultLauncher<Intent> editTaskLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Task updatedTask = result.getData().getParcelableExtra("updatedTask");
-                    if (updatedTask != null) {
-                        updateExistingTask(updatedTask);
-                    }
+    /**
+     * ✅ Updates the task lists in memory to ensure instant UI refresh
+     */
+    private void updateLocalTaskLists(Task updatedTask) {
+        String taskId = updatedTask.getId();
+        boolean found = false;
+
+        // ✅ Update schoolTaskList
+        for (int i = 0; i < schoolTaskList.size(); i++) {
+            if (schoolTaskList.get(i).getId().equals(taskId)) {
+                schoolTaskList.set(i, updatedTask);
+                found = true;
+                break;
+            }
+        }
+
+        // ✅ Update homeTaskList if not found in schoolTaskList
+        if (!found) {
+            for (int i = 0; i < homeTaskList.size(); i++) {
+                if (homeTaskList.get(i).getId().equals(taskId)) {
+                    homeTaskList.set(i, updatedTask);
+                    found = true;
+                    break;
                 }
-            });
+            }
+        }
+
+        // ✅ Update combinedTaskList
+        for (int i = 0; i < combinedTaskList.size(); i++) {
+            if (combinedTaskList.get(i).getId().equals(taskId)) {
+                combinedTaskList.set(i, updatedTask);
+                break;
+            }
+        }
+    }
+
 
     // Mark a task as completed.
     // ----- UPDATED onTaskCompleted() -----
@@ -557,13 +655,20 @@ public class CombinedCalendarFragment extends Fragment implements
                 .addOnFailureListener(e -> Log.e("Firestore", "Error updating task completion", e));
     }
 
+    private final ActivityResultLauncher<Intent> editTaskLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Task updatedTask = result.getData().getParcelableExtra("updatedTask");
+                    if (updatedTask != null) {
+                        updateExistingTask(updatedTask);
+                        taskAdapter.updateTaskInList(updatedTask);  // ✅ Ensure UI updates instantly
+                    }
+                }
+            });
 
 
     // --- UI UPDATE METHODS ---
-
-    // Update today's tasks based on the current category.
     public void updateTasksForToday(int day) {
-        // Get the current category: "School", "Home", or "Both"
         String currentCategory = getCurrentSelectedCategory();
         List<Task> tasksToFilter = new ArrayList<>();
 
@@ -572,41 +677,45 @@ public class CombinedCalendarFragment extends Fragment implements
         } else if ("Home".equals(currentCategory)) {
             tasksToFilter.addAll(homeTaskList);
         } else { // "Both"
-            // Merge the two lists (deduplication is handled in combinedTaskList if needed)
             tasksToFilter.addAll(schoolTaskList);
             tasksToFilter.addAll(homeTaskList);
         }
 
-        // Prepare to filter tasks for today's date
         List<Task> todayTasks = new ArrayList<>();
         String currentMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
         int currentYear = calendar.get(Calendar.YEAR);
 
-        // We assume each task's getDate() holds only the day as a string (e.g., "8")
         for (Task t : tasksToFilter) {
+            String dateStr = t.getDate();
+            int taskDay;
             try {
-                int taskDay = Integer.parseInt(t.getDate());
-                // Only add tasks that match today's day, month, and year, and that are not completed
-                if (taskDay == day &&
-                        t.getMonth().equalsIgnoreCase(currentMonth) &&
-                        t.getYear() == currentYear &&
-                        !t.isCompleted()) {
-                    todayTasks.add(t);
+                // If the date contains a slash, split and use only the first part.
+                if (dateStr.contains("/")) {
+                    String[] parts = dateStr.split("/");
+                    taskDay = Integer.parseInt(parts[0]);
+                } else {
+                    taskDay = Integer.parseInt(dateStr);
                 }
             } catch (NumberFormatException e) {
                 Log.e("CombinedTaskFilter", "Error parsing task day from: " + t.getDate(), e);
+                continue;
+            }
+            if (taskDay == day &&
+                    t.getMonth().equalsIgnoreCase(currentMonth) &&
+                    t.getYear() == currentYear &&
+                    !t.isCompleted()) {
+                todayTasks.add(t);
             }
         }
 
-        // Update the adapter and the UI
         taskAdapter.updateTasks(todayTasks);
         taskAdapter.notifyDataSetChanged();
         updateTasksTitle(todayTasks, day);
 
-        // Show/hide the empty state image
         ImageView emptyTasksImage = getView().findViewById(R.id.emptyTasksImage);
         emptyTasksImage.setVisibility(todayTasks.isEmpty() ? View.VISIBLE : View.GONE);
     }
+
 
 
 
@@ -638,7 +747,13 @@ public class CombinedCalendarFragment extends Fragment implements
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
         for (Task t : filteredTaskList) {
             try {
-                String fullDate = t.getDate() + "/" + (getMonthIndex(t.getMonth()) + 1) + "/" + t.getYear();
+                // If the stored date already contains a slash, assume it's the full date.
+                String fullDate;
+                if (t.getDate().contains("/")) {
+                    fullDate = t.getDate();
+                } else {
+                    fullDate = t.getDate() + "/" + (getMonthIndex(t.getMonth()) + 1) + "/" + t.getYear();
+                }
                 LocalDate taskDate = LocalDate.parse(fullDate, formatter);
                 if (!taskDate.isBefore(startOfWeek) && !taskDate.isAfter(endOfWeek) && !t.isCompleted()) {
                     weeklyTasks.add(t);
@@ -647,6 +762,7 @@ public class CombinedCalendarFragment extends Fragment implements
                 Log.e("updateWeeklyTasks", "Error parsing date: " + e.getMessage());
             }
         }
+
         weeklyTasks.sort((t1, t2) -> getPriorityValue(t1.getPriority()) - getPriorityValue(t2.getPriority()));
         View tasksTitle = getView().findViewById(R.id.tasksDueThisWeekTitle);
         View weeklyRecyclerView = getView().findViewById(R.id.weeklyTaskRecyclerView);
@@ -674,17 +790,14 @@ public class CombinedCalendarFragment extends Fragment implements
             calendarAdapter.updateCategory(getCurrentSelectedCategory());
         }
 
-        int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
-        // You can unselect if there are no tasks (optional):
-        // if(filterTasksByDateBasedOnCategory(todayDay, getCurrentSelectedCategory()).isEmpty()){
-        //     calendarAdapter.setSelectedDate(null);
-        // } else {
-        //     calendarAdapter.setSelectedDate(String.valueOf(todayDay));
-        // }
-        calendarAdapter.setSelectedDate(String.valueOf(todayDay));
-        updateTasksForToday(todayDay);
+        // Ensure the selected month in Spinner matches the actual calendar month
+        monthYearDropdown.setSelection(calendar.get(Calendar.MONTH));
+
+        // Refresh task lists and UI
+        updateTasksForToday(calendar.get(Calendar.DAY_OF_MONTH));
         updateWeeklyTasks();
     }
+
 
     // ----- UPDATED getSchoolTaskDates() -----
     private Set<String> getSchoolTaskDates() {
@@ -803,23 +916,32 @@ public class CombinedCalendarFragment extends Fragment implements
         } else if ("Home".equals(category)) {
             results = filterTasksByDate(day, currentMonth, homeTaskList);
         } else { // "Both"
-            // Use a set to deduplicate by task ID.
             Set<String> seenIds = new HashSet<>();
             for (Task t : combinedTaskList) {
+                String dateStr = t.getDate();
+                int taskDay;
                 try {
-                    if (Integer.parseInt(t.getDate()) == day && t.getMonth().equalsIgnoreCase(currentMonth)) {
-                        if (!seenIds.contains(t.getId())) {
-                            results.add(t);
-                            seenIds.add(t.getId());
-                        }
+                    if (dateStr.contains("/")) {
+                        String[] parts = dateStr.split("/");
+                        taskDay = Integer.parseInt(parts[0]);
+                    } else {
+                        taskDay = Integer.parseInt(dateStr);
                     }
                 } catch (NumberFormatException e) {
-                    Log.e("filterTasksByCategory", "Error parsing date: " + e.getMessage());
+                    Log.e("filterTasksByCategory", "Error parsing date: " + t.getDate(), e);
+                    continue;
+                }
+                if (taskDay == day && t.getMonth().equalsIgnoreCase(currentMonth)) {
+                    if (!seenIds.contains(t.getId())) {
+                        results.add(t);
+                        seenIds.add(t.getId());
+                    }
                 }
             }
         }
         return results;
     }
+
 
 
     // Get priority value for sorting.
