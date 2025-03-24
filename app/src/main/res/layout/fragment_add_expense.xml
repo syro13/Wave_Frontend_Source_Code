@@ -37,9 +37,12 @@
     <!-- Expense Category Dropdown -->
     <RelativeLayout
         android:id="@+id/dropdownContainer"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/dropdown_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/addExpenseTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -55,9 +58,7 @@
             android:paddingStart="16dp"
             android:gravity="center_vertical"
             android:drawableStart="@drawable/ic_expense"
-            android:drawablePadding="12dp"
-            android:clickable="true"
-            android:focusable="true" />
+            android:drawablePadding="12dp" />
 
         <!-- Dropdown Arrow -->
         <ImageView
