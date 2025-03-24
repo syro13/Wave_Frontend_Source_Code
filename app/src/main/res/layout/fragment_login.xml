@@ -21,7 +21,7 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/whiteCard"
         android:layout_width="314dp"
-        android:layout_height="547dp"
+        android:layout_height="550dp"
         android:background="#CCFFFFFF"
         app:cardCornerRadius="30dp"
         app:cardElevation="5dp"
