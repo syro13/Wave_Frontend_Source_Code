@@ -49,4 +49,7 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+    <style name="CustomRatingBar" parent="@android:style/Widget.Material.RatingBar">
+        <item name="android:progressDrawable">@drawable/star_rating_selector</item>
+    </style>
 </resources>
