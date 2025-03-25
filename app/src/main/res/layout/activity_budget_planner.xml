@@ -292,6 +292,39 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- AI Suggestions Card -->
+            <LinearLayout
+                android:id="@+id/aiSuggestionCard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_background"
+                android:elevation="4dp"
+                app:layout_constraintTop_toBottomOf="@id/budgetForTheWeekSection"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_margin="16dp"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/aiSuggestionTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💡 Personalized Budget Suggestions"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/archivo_medium"/>
+
+                <TextView
+                    android:id="@+id/aiSuggestionContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Fetching tips..."
+                    android:textSize="16sp"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="@font/inter_light"/>
+            </LinearLayout>
+
+
             <!-- Expenses Section -->
             <TextView
                 android:id="@+id/expensesTitle"
@@ -302,7 +335,7 @@
                 android:textStyle="normal"
                 android:textSize="20sp"
                 android:textColor="@android:color/black"
-                app:layout_constraintTop_toBottomOf="@id/budgetForTheWeekSection"
+                app:layout_constraintTop_toBottomOf="@id/aiSuggestionCard"
                 app:layout_constraintStart_toStartOf="parent"
                 android:layout_marginTop="16dp"
                 android:layout_marginStart="16dp" />
