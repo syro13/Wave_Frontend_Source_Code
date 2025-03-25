@@ -840,14 +840,31 @@ public class CombinedCalendarFragment extends Fragment implements
     // Update the "Tasks for Today" title.
     private void updateTasksTitle(List<Task> selectedDateTasks, int selectedDay) {
         TextView tasksDueTodayTitle = getView().findViewById(R.id.tasksDueTodayTitle);
+
+        // Check which tab is active:
+        String currentCategory = getCurrentSelectedCategory();
+        // e.g. "School", "Home", "Both"
+
+        // Map it to a label:
+        String categoryLabel;
+        if ("School".equals(currentCategory)) {
+            categoryLabel = "School";
+        } else if ("Home".equals(currentCategory)) {
+            categoryLabel = "Home";
+        } else {
+            // i.e. "Both"
+            categoryLabel = "All";
+        }
+
         if (selectedDateTasks.isEmpty()) {
-            tasksDueTodayTitle.setText("No school tasks for selected date");
+            tasksDueTodayTitle.setText("No " + categoryLabel + " tasks for selected date");
         } else {
             String monthYear = getMonthYearList().get(calendar.get(Calendar.MONTH)) + " " + calendar.get(Calendar.YEAR);
             String formattedDate = selectedDay + getOrdinalSuffix(selectedDay) + " " + monthYear;
-            tasksDueTodayTitle.setText("School Tasks for " + formattedDate);
+            tasksDueTodayTitle.setText(categoryLabel + " tasks for " + formattedDate);
         }
     }
+
 
     // --- HELPER METHODS ---
 
