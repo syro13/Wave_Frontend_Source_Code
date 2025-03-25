@@ -67,6 +67,8 @@ public class ProfileActivity extends BaseActivity {
         LinearLayout aboutUs = findViewById(R.id.aboutUs);
         LinearLayout logoutButton = findViewById(R.id.logout);
         LinearLayout faq= findViewById(R.id.faq);
+        LinearLayout feedback= findViewById(R.id.feedback);
+        LinearLayout privacyPolicy= findViewById(R.id.privacyPolicy);
 
         // Load Current Profile Image
         loadUserProfile();
@@ -91,6 +93,14 @@ public class ProfileActivity extends BaseActivity {
         });
         faq.setOnClickListener(v -> {
             Intent intent = new Intent(ProfileActivity.this, FAQsActivity.class);
+            startActivity(intent);
+        });
+        feedback.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, FeedbackActivity.class);
+            startActivity(intent);
+        });
+        privacyPolicy.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, PrivacyPolicyActivity.class);
             startActivity(intent);
         });
         // Set up bottom navigation
