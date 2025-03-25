@@ -36,8 +36,8 @@
             android:fontFamily="@font/lato_bold"
             android:textColor="@android:color/black"
             android:layout_marginTop="10dp"
-            android:layout_marginStart="25dp"
-            android:layout_marginEnd="25dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             tools:ignore="HardcodedText" />
 
         <!-- Quote -->
@@ -49,8 +49,8 @@
             android:fontFamily="@font/archivo_semibold"
             android:textColor="@color/blue"
             android:layout_marginTop="10dp"
-            android:layout_marginStart="25dp"
-            android:layout_marginEnd="25dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             android:lineSpacingExtra="4dp" />
 
         <!-- Description -->
@@ -62,8 +62,8 @@
             android:fontFamily="@font/archivo_light"
             android:textColor="@android:color/black"
             android:layout_marginTop="12dp"
-            android:layout_marginStart="25dp"
-            android:layout_marginEnd="25dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             android:lineSpacingExtra="10dp" />
 
         <!-- Meet the Team Title -->
@@ -75,8 +75,8 @@
             android:fontFamily="@font/lato_bold"
             android:textColor="@android:color/black"
             android:layout_marginTop="20dp"
-            android:layout_marginStart="25dp"
-            android:layout_marginEnd="25dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             tools:ignore="HardcodedText"
             android:layout_gravity="center"/>
 
@@ -225,8 +225,8 @@
             android:fontFamily="@font/lato_bold"
             android:textColor="@android:color/black"
             android:layout_marginTop="20dp"
-            android:layout_marginStart="25dp"
-            android:layout_marginEnd="25dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             tools:ignore="HardcodedText"
             android:layout_gravity="center"/>
 
@@ -235,8 +235,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_marginTop="18dp"
-            android:layout_marginStart="25dp"
-            android:layout_marginEnd="25dp">
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp">
 
             <!-- Empowerment -->
             <TextView
@@ -375,8 +375,8 @@
             android:fontFamily="@font/lato_bold"
             android:textColor="@android:color/black"
             android:layout_marginTop="20dp"
-            android:layout_marginStart="25dp"
-            android:layout_marginEnd="25dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             tools:ignore="HardcodedText"
             android:layout_gravity="center"/>
         <TextView
@@ -386,8 +386,8 @@
             android:textSize="18sp"
             android:textColor="@color/blue"
             android:layout_marginTop="8dp"
-            android:layout_marginStart="25dp"
-            android:layout_marginEnd="25dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             android:lineSpacingExtra="4dp"
             android:textAlignment="center"
             android:fontFamily="@font/archivo_medium"/>
