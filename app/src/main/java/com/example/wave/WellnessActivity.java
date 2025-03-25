@@ -59,12 +59,13 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
     private List<String> displayPromptsList;
     private List<String> actualPromptsList;
 
+    private String wellness_api_key;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wellness);
 
-
+        wellness_api_key = getString(R.string.wellness_api_key);
 
 
         // Set up bottom navigation
@@ -238,7 +239,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
     }
     private void fetchPodcastsFromApi() {
         loadingTasksRemaining++;
-        Call<List<PodcastsResponse>> podcastsCall = apiService.getPodcastsData();
+        Call<List<PodcastsResponse>> podcastsCall = apiService.getPodcastsData(wellness_api_key);
         podcastsCall.enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<List<PodcastsResponse>> call, Response<List<PodcastsResponse>> response) {
@@ -276,7 +277,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
     }
     private void fetchBlogsFromApi(){
         loadingTasksRemaining++;
-        Call<List<Blogs_Response>> blogsCall = apiService.getBlogsData();
+        Call<List<Blogs_Response>> blogsCall = apiService.getBlogsData(wellness_api_key);
         blogsCall.enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<List<Blogs_Response>> call, Response<List<Blogs_Response>> response) {
