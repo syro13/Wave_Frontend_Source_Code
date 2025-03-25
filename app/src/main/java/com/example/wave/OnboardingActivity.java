@@ -78,10 +78,6 @@ public class OnboardingActivity extends AppCompatActivity {
             }
         });
 
-        // Action for Skip button
-        skipButton.setOnClickListener(v -> {
-            finishOnboarding(); // Immediately skip to main activity
-        });
     }
 
     private void setupAutoSlide() {

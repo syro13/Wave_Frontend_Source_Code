@@ -16,11 +16,4 @@
         android:maxWidth="120dp"
         android:paddingEnd="8dp" />
 
-    <ImageView
-        android:id="@+id/spinner_icon"
-        android:layout_width="16dp"
-        android:layout_height="16dp"
-        android:src="@drawable/ic_arrow_down"
-        android:layout_marginStart="4dp"
-        app:tint="@color/black"/>
 </LinearLayout>

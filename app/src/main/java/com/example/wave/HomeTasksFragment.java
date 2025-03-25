@@ -123,6 +123,21 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
         });
         setupNotesCard(view);
         listenForCompletedTaskUpdates();
+        CardView calendarFromTasksButton = view.findViewById(R.id.CalendarFromTasksButton); // ✅ CardView
+        if (calendarFromTasksButton == null) {
+            Log.e("HomeTasksFragment", "CalendarFromTasksButton CardView NOT found in XML!");
+        } else {
+            Log.d("HomeTasksFragment", "CalendarFromTasksButton CardView found, setting click listener...");
+
+            calendarFromTasksButton.setOnClickListener(v -> {
+                Log.d("HomeTasksFragment", "CalendarFromTasksButton clicked, navigating to HomeCalendarFragment...");
+
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.home_school_tasks_container, new HomeCalendarFragment()) // Ensure correct ID
+                        .addToBackStack(null) // Allows back navigation
+                        .commit();
+            });
+        }
         return view;
     }
 
@@ -216,6 +231,7 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
             requireContext().unregisterReceiver(networkReceiver);
         }
     }
+
 
     private void showPopup(String displayPrompt, String actualPrompt) {
         Retrofit retrofit = new Retrofit.Builder()

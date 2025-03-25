@@ -28,10 +28,9 @@ public class MonthYearSpinnerAdapter extends ArrayAdapter<String> {
         }
 
         TextView textView = convertView.findViewById(R.id.spinner_text);
-        ImageView icon = convertView.findViewById(R.id.spinner_icon);
 
         textView.setText(months.get(position));
-        icon.setVisibility(View.VISIBLE); // Ensures icon is visible in the selected view
+       // Ensures icon is visible in the selected view
 
         return convertView;
     }
