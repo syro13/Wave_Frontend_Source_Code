@@ -362,7 +362,36 @@
                         android:layout_height="25dp"
                         android:src="@drawable/ic_arrow_right"/>
                 </LinearLayout>
+                <!-- Privacy Policy -->
+                <LinearLayout
+                    android:id="@+id/privacyPolicy"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:padding="3dp"
+                    android:layout_margin="10dp"
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground">
 
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_privacypolicy"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Privacy Policy"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/ic_arrow_right"/>
+                </LinearLayout>
                 <!-- Log Out -->
                 <LinearLayout
                     android:id="@+id/logout"
