@@ -64,8 +64,9 @@ public class ProfileActivity extends BaseActivity {
         LinearLayout changeAccountImage = findViewById(R.id.changeAccountImage);
         LinearLayout changeAccountName = findViewById(R.id.changeAccountName);
         LinearLayout changeAccountPassword = findViewById(R.id.changePassword);
+        LinearLayout aboutUs = findViewById(R.id.aboutUs);
         LinearLayout logoutButton = findViewById(R.id.logout);
-
+        LinearLayout faq= findViewById(R.id.faq);
 
         // Load Current Profile Image
         loadUserProfile();
@@ -84,6 +85,14 @@ public class ProfileActivity extends BaseActivity {
             startActivity(intent);
         });
 
+        aboutUs.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, AboutUsActivity.class);
+            startActivity(intent);
+        });
+        faq.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, FAQsActivity.class);
+            startActivity(intent);
+        });
         // Set up bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         setupBottomNavigation(bottomNavigationView);
