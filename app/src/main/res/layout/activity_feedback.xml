@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <!-- Entire screen is scrollable -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Header Section -->
+            <FrameLayout
+                android:id="@+id/headerSection"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <!-- Wave Background -->
+                <ImageView
+                    android:id="@+id/headerBackground"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/header_profile"
+                    android:contentDescription="@null" />
+
+                <!-- Back Button -->
+                <ImageView
+                    android:id="@+id/backButton"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/arrow_back"
+                    android:contentDescription="back_button"
+                    android:layout_gravity="start"
+                    android:layout_marginTop="120dp"
+                    android:layout_marginStart="20dp"/>
+
+                <!-- Title -->
+                <TextView
+                    android:id="@+id/feedbackTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Feedback"
+                    android:textSize="30sp"
+                    android:fontFamily="@font/lato_bold"
+                    android:textColor="@android:color/black"
+                    android:layout_marginTop="160dp"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="20dp"
+                    tools:ignore="HardcodedText" />
+            </FrameLayout>
+
+            <!-- FAQs Illustration -->
+            <ImageView
+                android:id="@+id/feedback"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginTop="20dp"
+                android:contentDescription="Feedback Illustartion"
+                android:src="@drawable/feedback"
+                app:layout_constraintTop_toBottomOf="@id/headerSection"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintDimensionRatio="H,1:1" />
+            <TextView
+                android:id="@+id/ratingDescriptionTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Rate your experience"
+                android:textSize="24sp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/archivo_semibold"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:paddingBottom="5dp"
+                android:gravity="start"
+                app:layout_constraintTop_toBottomOf="@id/feedback"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+            <!-- Description -->
+            <TextView
+                android:id="@+id/ratingDescription"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text=" How happy are you with our product?"
+                android:textSize="20sp"
+                android:fontFamily="@font/archivo_light"
+                android:textColor="@android:color/black"
+                android:layout_marginTop="5dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:lineSpacingExtra="10dp"
+                android:gravity="start"
+                app:layout_constraintTop_toBottomOf="@id/ratingDescriptionTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+            <!-- Stars -->
+            <LinearLayout
+                android:id="@+id/starContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="8dp"
+                android:layout_gravity="center_horizontal"
+                app:layout_constraintTop_toBottomOf="@id/ratingDescription"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <ImageView android:id="@+id/star1"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_marginEnd="6dp"
+                    android:src="@drawable/ic_star_gray"
+                    android:clickable="true" />
+
+                <ImageView android:id="@+id/star2"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_marginEnd="6dp"
+                    android:src="@drawable/ic_star_gray"
+                    android:clickable="true" />
+
+                <ImageView android:id="@+id/star3"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_marginEnd="6dp"
+                    android:src="@drawable/ic_star_gray"
+                    android:clickable="true" />
+
+                <ImageView android:id="@+id/star4"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_marginEnd="6dp"
+                    android:src="@drawable/ic_star_gray"
+                    android:clickable="true" />
+
+                <ImageView android:id="@+id/star5"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:src="@drawable/ic_star_gray"
+                    android:clickable="true" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/feedbackDescriptionTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="What could we do better?"
+                android:textSize="24sp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/archivo_semibold"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:paddingBottom="5dp"
+                android:gravity="start"
+                app:layout_constraintTop_toBottomOf="@id/starContainer"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+            <!-- Description -->
+            <TextView
+                android:id="@+id/feedbackDescription"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Let us know your thoughts. Please share what we can do to improve."
+                android:textSize="20sp"
+                android:fontFamily="@font/archivo_light"
+                android:textColor="@android:color/black"
+                android:layout_marginTop="5dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:lineSpacingExtra="10dp"
+                android:gravity="start"
+                app:layout_constraintTop_toBottomOf="@id/feedbackDescriptionTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+            <!-- Feedback Box -->
+            <EditText
+                android:id="@+id/feedbackInput"
+                android:layout_width="0dp"
+                android:layout_height="140dp"
+                android:hint="Add your feedback"
+                android:gravity="start|top"
+                android:padding="16dp"
+                android:background="@drawable/edittext_outline"
+                android:textSize="16sp"
+                android:fontFamily="@font/archivo_medium"
+                android:layout_marginTop="12dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:inputType="textMultiLine"
+                android:maxLines="5"
+                app:layout_constraintTop_toBottomOf="@id/feedbackDescription"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+            <!-- Submit Button -->
+            <Button
+                android:id="@+id/submitButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/rounded_button"
+                android:fontFamily="@font/archivo_medium"
+                android:text="Submit"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/feedbackInput" />
+            <View
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                app:layout_constraintTop_toBottomOf="@id/submitButton"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
