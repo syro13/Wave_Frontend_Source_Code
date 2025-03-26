@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.widget.ImageView;
 
-public class AboutUsActivity extends AppCompatActivity {
+public class AboutUsActivity extends BaseActivity {
 
     private ImageView backButton;
     private ImageView facebookIcon, instagramIcon, twitterIcon, linkedinIcon;
@@ -16,11 +16,14 @@ public class AboutUsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about_us); // Make sure your XML is named this
 
-        // 🔙 Back Button
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
+
+        // Back Button
         backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(v -> onBackPressed());
 
-        // 📱 Social Media Links (optional - open browser or activity)
+        // Social Media Links (optional - open browser or activity)
         facebookIcon = findViewById(R.id.facebookIcon);
         instagramIcon = findViewById(R.id.instagramIcon);
         twitterIcon = findViewById(R.id.twitterIcon);
@@ -31,7 +34,10 @@ public class AboutUsActivity extends AppCompatActivity {
         twitterIcon.setOnClickListener(v -> openLink("https://twitter.com"));
         linkedinIcon.setOnClickListener(v -> openLink("https://linkedin.com"));
     }
-
+    @Override
+    protected int getCurrentMenuItemId() {
+        return -1; // No selection
+    }
     private void openLink(String url) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(android.net.Uri.parse(url));
