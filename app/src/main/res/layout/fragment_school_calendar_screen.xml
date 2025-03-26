@@ -220,11 +220,21 @@
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:text="M"
+                        android:text="S"
                         android:textStyle="bold"
                         android:textColor="@color/black"
                         android:textSize="14sp"
                         />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="M"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
 
                     <TextView
                         android:layout_width="0dp"
@@ -275,18 +285,7 @@
                         android:textStyle="bold"
                         android:textColor="@color/black"
                         android:textSize="14sp"/>
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:text="S"
-                        android:textStyle="bold"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"/>
                 </LinearLayout>
-                <!-- Calendar Grid -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/calendarRecyclerView"
                     android:layout_width="match_parent"
