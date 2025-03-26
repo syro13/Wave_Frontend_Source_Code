@@ -223,11 +223,17 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
         MaterialButton mediumPriorityButton = dialogView.findViewById(R.id.mediumPriorityButton);
         MaterialButton lowPriorityButton = dialogView.findViewById(R.id.lowPriorityButton);
         EditText selectDateInput = dialogView.findViewById(R.id.selectDate);
+        ImageView calendarIcon = dialogView.findViewById(R.id.calendarIcon);
         EditText selectTimeInput = dialogView.findViewById(R.id.selectTime);
+        ImageView timeIcon = dialogView.findViewById(R.id.timeIcon);
         View createTaskButton = dialogView.findViewById(R.id.createTaskButton);
 
         // Initialize the Spinner from the dialog layout
         Spinner repeatSpinner = dialogView.findViewById(R.id.repeatSpinner); // Use dialogView
+        calendarIcon.setOnClickListener(v -> showDatePicker(selectDateInput));
+        selectDateInput.setOnClickListener(v -> showDatePicker(selectDateInput));
+        timeIcon.setOnClickListener(v -> showTimePicker(selectTimeInput));
+        selectTimeInput.setOnClickListener(v -> showTimePicker(selectTimeInput));
 
         // Populate the Spinner with repeat options
         ArrayAdapter<CharSequence> repeatAdapter = ArrayAdapter.createFromResource(
@@ -318,13 +324,12 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
         });
 
 
-
-
         // Handle task creation
         createTaskButton.setOnClickListener(v -> {
             String taskTitle = taskTitleInput.getText().toString();
             String taskDate = selectDateInput.getText().toString();
             String taskTime = selectTimeInput.getText().toString();
+
 
             // Get the selected repeat option from the Spinner
             String repeatOptionString = repeatSpinner.getSelectedItem().toString();
