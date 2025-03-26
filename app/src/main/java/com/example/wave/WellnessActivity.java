@@ -15,6 +15,9 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Button;
+import androidx.cardview.widget.CardView;
+
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -39,29 +42,35 @@ public class WellnessActivity extends BaseActivity{
     private static final String PREFS_NAME = "WellnessPrefs";
     private static final String KEY_QUOTE = "quoteText";
     private static final String KEY_AUTHOR = "quoteAuthor";
+    private static final String KEY_LAST_FETCH = "lastFetchDate";
+    private static final String KEY_PLAN_TEXT = "planText";
+    private static final String KEY_PLAN_DATE = "planDate";
     private static final String PREFS_BLOGS = "PrefsBlogs";
     private static final String PREFS_PODCASTS = "PrefsPodcasts";
-    private static final String KEY_LAST_FETCH = "lastFetchDate";
     private static final int MAX_BLOGS = 4;
     private static final int MAX_PODCASTS = 4;
+    private static final String TAG = "API_RESPONSE";
 
     private ImageView quoteImage;
-    private TextView quoteText, quoteAuthor,noPodcastsText,noBlogsText;
+    private TextView quoteText, quoteAuthor, noPodcastsText, noBlogsText;
     private RecyclerView blogRecyclerView, podcastRecyclerView, promptsRecyclerView;
     private BlogAdapter blogAdapter;
     private PodcastAdapter podcastAdapter;
     private ImageView noBlogsImage, noPodcastsImage;
     private ProgressBar loadingIndicator;
     private View loadingOverlay;
+    private Button generatePlanButton;
+    private CardView planCard;
+    private TextView planContent;
 
     private List<Blogs_Response> blogs = new ArrayList<>();
     private List<PodcastsResponse> podcasts = new ArrayList<>();
     private int loadingTasksRemaining = 0;
-    private static final String TAG = "API_RESPONSE";
     private final WellnessAPI apiService = RetrofitClient.getClient().create(WellnessAPI.class);
     private AIPromptsAdapter promptsAdapter;
     private List<String> displayPromptsList;
     private List<String> actualPromptsList;
+    private NetworkReceiver networkReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +97,10 @@ public class WellnessActivity extends BaseActivity{
         loadingIndicator = findViewById(R.id.loadingIndicator);
         loadingOverlay = findViewById(R.id.loadingOverlay);
         promptsRecyclerView = findViewById(R.id.promptsRecyclerView);
+        generatePlanButton = findViewById(R.id.generatePlanButton);
+        planCard           = findViewById(R.id.planCard);
+        planContent        = findViewById(R.id.planContent);
+        planCard.setVisibility(View.GONE);
 
         promptsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         setupPrompts();
@@ -99,6 +112,12 @@ public class WellnessActivity extends BaseActivity{
         updateQuoteImage();
 
         loadData();
+      
+        generatePlanButton.setOnClickListener(v -> {
+            PlanOptionsBottomSheet sheet = new PlanOptionsBottomSheet();
+            sheet.setListener((mood, time, thoughts) -> generateDailyPlan(mood, time, thoughts));
+            sheet.show(getSupportFragmentManager(), "PlanOptions");
+        });
     }
     @Override
     public void onNetworkConnected() {
@@ -134,7 +153,84 @@ public class WellnessActivity extends BaseActivity{
                 Log.d(TAG, "Cached podcasts empty, fetching new ones...");
                 fetchPodcastsFromApi();
             }
+            loadCachedPlan();
+
         }
+    }
+    private void loadCachedPlan() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int savedDate = prefs.getInt(KEY_PLAN_DATE, -1);
+        String cachedPlan = prefs.getString(KEY_PLAN_TEXT, null);
+        if (savedDate == Calendar.getInstance().get(Calendar.DAY_OF_YEAR) && cachedPlan != null) {
+            planContent.setText(cachedPlan);
+            planCard.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void generateDailyPlan(String mood, String time, String thoughts) {
+        showLoading();
+
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("You're a helpful and creative wellbeing coach. ");
+        promptBuilder.append("Create a unique, personalized wellness plan for a student feeling '")
+                .append(mood)
+                .append("' who has ")
+                .append(time)
+                .append(" available today.\n\n");
+
+        if (!thoughts.isEmpty()) {
+            promptBuilder.append("The student shared the following thoughts to guide you: \"")
+                    .append(thoughts)
+                    .append("\".\n\n");
+        }
+
+        promptBuilder.append("Avoid generic suggestions. Offer specific, refreshing and practical ideas. ");
+        promptBuilder.append("Include a mix of mental, physical, and emotional wellbeing tips. ");
+        promptBuilder.append("Make the plan realistic and engaging. Use an encouraging tone. ");
+        promptBuilder.append("Make it different each time — think creatively.\n");
+
+        AIPromptRequest request = new AIPromptRequest(promptBuilder.toString());
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://updatedservice-621971573276.us-central1.run.app/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        AIService service = retrofit.create(AIService.class);
+        service.getAIResponse(request).enqueue(new Callback<AIResponse>() {
+            @Override
+            public void onResponse(Call<AIResponse> call, Response<AIResponse> response) {
+                hideLoading();
+                if (response.isSuccessful() && response.body() != null) {
+                    String plan = response.body().getResponse();
+                    planContent.setText(plan);
+                    planCard.setVisibility(View.VISIBLE);
+                    savePlanToCache(plan);
+                } else {
+                    Toast.makeText(WellnessActivity.this, "Failed to generate plan", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AIResponse> call, Throwable t) {
+                hideLoading();
+                Toast.makeText(WellnessActivity.this, "Error generating plan", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+    private void savePlanToCache(String plan) {
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .edit()
+                .putString(KEY_PLAN_TEXT, plan)
+                .putInt(KEY_PLAN_DATE, Calendar.getInstance().get(Calendar.DAY_OF_YEAR))
+                .apply();
+    }
+
+    private void hideLoading() {
+        loadingIndicator.setVisibility(View.GONE);
+        loadingOverlay.setVisibility(View.GONE);
     }
 
     private void loadData() {

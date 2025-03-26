@@ -131,8 +131,8 @@
                         android:id="@+id/todayLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="TODAY"
-                        android:textColor="@android:color/darker_gray"
+                        android:text="@string/today"
+                        android:textColor="@color/dark_gray"
                         android:textStyle="bold"
                         android:textSize="12sp"
                         android:layout_alignParentStart="true" />
@@ -150,22 +150,13 @@
                         android:layout_alignParentStart="true"
                         android:layout_marginTop="4dp" />
 
-                    <!-- Expansion Icon -->
-                    <ImageView
-                        android:id="@+id/expandCollapseIcon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_expand_more"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:contentDescription="Expand or Collapse" />
                 </RelativeLayout>
 
                 <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="@android:color/darker_gray"
+                    android:background="@color/dark_gray"
                     android:alpha="0.2" />
 
                 <!-- Month and Navigation Section -->
@@ -174,37 +165,125 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginTop="8dp">
+                    android:paddingVertical="8dp">
 
-                    <!-- Previous Arrow -->
-                    <ImageView
-                        android:id="@+id/previousMonth"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/ic_arrowleft"
-                        android:contentDescription="Previous Month"
-                        android:layout_marginEnd="16dp" />
+                    <!-- Month and Year Dropdown (Styled to Look Like Text) -->
+                    <!-- Month and Navigation Section -->
 
-                    <!-- Month and Year Dropdown -->
-                    <Spinner
-                        android:id="@+id/monthYearDropdown"
-                        android:layout_width="0dp"
-                        android:textColor="@color/black"
+                    <!-- Month and Navigation Section -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:entries="@array/month_year_array"
-                        android:spinnerMode="dropdown" />
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                    <!-- Next Arrow -->
-                    <ImageView
-                        android:id="@+id/nextMonth"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/ic_arrowright"
-                        android:contentDescription="Next Month"
-                        android:layout_marginStart="16dp" />
+                        <!-- Previous Arrow -->
+                        <ImageView
+                            android:id="@+id/previousMonth"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="16dp"
+                            android:contentDescription="Previous Month"
+                            android:src="@drawable/ic_arrowleft" />
+
+                        <Spinner
+                            android:id="@+id/monthYearDropdown"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textColor="@color/black"
+                            android:spinnerMode="dropdown" /> <!-- Removes Default Arrow -->
+                        <!-- Next Arrow -->
+                        <ImageView
+                            android:id="@+id/nextMonth"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="16dp"
+                            android:contentDescription="Next Month"
+                            android:src="@drawable/ic_arrowright" />
+                    </LinearLayout>
+                    <!-- Days of the Week Header -->
                 </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/daysOfWeekHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:paddingBottom="4dp">
 
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="S"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="M"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="T"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="W"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="T"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="F"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="S"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+                </LinearLayout>
                 <!-- Calendar Grid -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/calendarRecyclerView"
@@ -213,6 +292,7 @@
                     android:layout_marginTop="16dp"
                     app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                     app:spanCount="7" />
+
             </LinearLayout>
 
 
@@ -232,6 +312,16 @@
                     android:text="Today"
                     android:textColor="@color/black"
                     android:textSize="20sp" />
+
+                <ImageView
+                    android:id="@+id/emptyTasksImage"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:scaleType="fitCenter"
+                    android:visibility="gone"
+                    android:src="@drawable/empty_tasks_state"
+                    android:layout_gravity="center" />
+
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/taskRecyclerView"

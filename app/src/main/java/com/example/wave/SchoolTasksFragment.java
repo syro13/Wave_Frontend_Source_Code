@@ -2,6 +2,8 @@ package com.example.wave;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -11,7 +13,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,16 +28,25 @@ import android.text.method.ScrollingMovementMethod;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -39,24 +56,16 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
 
-public class SchoolTasksFragment extends Fragment implements NetworkReceiver.NetworkChangeListener {
-    private NetworkReceiver networkReceiver;
-    private static final String PREFS_BLOGS = "PrefsBlogs";
-    private static final String KEY_LAST_FETCH = "lastFetchDate";
-    private static final int MAX_BLOGS = 4;
-    private static final String PREFS_NAME = "SchoolTasksPrefs";
-    private RecyclerView articleRecyclerView, promptsRecyclerView;
-    private TextView noBlogsText;
-    private SchoolTasksBlogAdapter blogAdapter;
-    private ImageView noBlogsImage;
-    private ProgressBar loadingIndicator;
-
+public class SchoolTasksFragment extends Fragment  {
+    private RecyclerView  promptsRecyclerView;
     private PromptsAdapter promptsAdapter;
     private List<String> displayPromptsList;
     private List<String> actualPromptsList;
+    private static final String SchoolNotesPREFS_NAME = "SchoolNotesPrefs";
+    private static final String SCHOOL_NOTES_KEY = "school_notes";
+    private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private ListenerRegistration schoolTasksListener; // For real-time updates
 
-    private final List<BlogResponse> blogs = new ArrayList<>();
-    private int loadingTasksRemaining = 0;
 
     @Nullable
     @Override
@@ -66,22 +75,7 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
 
         TextView schoolTasksButton = view.findViewById(R.id.SchoolTasksButton);
         TextView homeTasksButton = view.findViewById(R.id.homeTasksButton);
-
-        // RecyclerView setup for articles
-        articleRecyclerView = view.findViewById(R.id.articlesRecyclerView);
-        noBlogsImage = view.findViewById(R.id.noBlogsImage);
-        noBlogsText = view.findViewById(R.id.noBlogsText);
-        loadingIndicator = view.findViewById(R.id.loadingIndicator);
-        loadingIndicator.setVisibility(View.VISIBLE);
-
-        setupBlogsRecyclerView();
-
-        // Fetch fresh blogs first; fallback to cached blogs if needed
-        fetchBlogsWithFallback();
-
-        networkReceiver = new NetworkReceiver(this);
-        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        requireContext().registerReceiver(networkReceiver, filter);
+        setupSchoolNotesCard(view);
 
         // RecyclerView setup for AI prompts
         promptsRecyclerView = view.findViewById(R.id.promptsRecyclerView);
@@ -130,92 +124,61 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
             Intent intent = new Intent(requireContext(), ProfileActivity.class);
             startActivity(intent);
         });
+        CardView calendarFromTasksButton = view.findViewById(R.id.CalendarFromTasksButton); // ✅ CardView
+        if (calendarFromTasksButton == null) {
+            Log.e("SchoolTasksFragment", "CalendarFromTasksButton CardView NOT found in XML!");
+        } else {
+            Log.d("SchoolTasksFragment", "CalendarFromTasksButton CardView found, setting click listener...");
+
+            calendarFromTasksButton.setOnClickListener(v -> {
+                Log.d("SchoolTasksFragment", "CalendarFromTasksButton clicked, navigating to HomeCalendarFragment...");
+
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.home_school_tasks_container, new SchoolCalendarFragment()) // Ensure correct ID
+                        .addToBackStack(null) // Allows back navigation
+                        .commit();
+            });
+        }
 
         return view;
     }
 
-    @Override
-    public void onNetworkRestored() {
-        Log.d("SchoolTasksActivity", "Network restored. Checking data...");
-        reloadDataIfNeeded();  // Reload only if data is not already cached
+    private void setupSchoolNotesCard(View view) {
+        CardView schoolNotesCard = view.findViewById(R.id.schoolNotesCard); // Ensure this ID exists in XML
+        schoolNotesCard.setOnClickListener(v -> showSchoolNotesPopup());
     }
 
-    private void reloadDataIfNeeded() {
-        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
-        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+    private void showSchoolNotesPopup() {
+        Dialog dialog = new Dialog(requireContext());
+        dialog.setContentView(R.layout.school_notes_popup); // Ensure this XML file exists
 
-        boolean needsReload = false;
+        ImageView backArrow = dialog.findViewById(R.id.back_arrow);
+        TextView title = dialog.findViewById(R.id.popup_title);
+        EditText schoolNoteInput = dialog.findViewById(R.id.school_note_input);
+        Button addSchoolNote = dialog.findViewById(R.id.add_school_note);
+        ListView schoolNotesList = dialog.findViewById(R.id.school_notes_list);
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width  = (int) (getResources().getDisplayMetrics().widthPixels  * 0.95); // 95% of screen width
+        lp.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.80); // 80% of screen height
+        dialog.getWindow().setAttributes(lp);
 
-        // Show the loading indicator while reloading data
-        loadingIndicator.setVisibility(View.VISIBLE);
+        // Set title
+        title.setText("Notes");
 
-        // Check if blog data needs to be reloaded
-        String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
-        if (cachedBlogsJson == null || lastFetchDate != todayDate) {
-            Log.d("SchoolTasksFragment", "Reloading Blogs...");
-            loadCachedBlogs();
-            needsReload = true;
-        } else {
-            Log.d("SchoolTasksFragment", "Blogs are already cached.");
-        }
+        // Load saved notes
+        ArrayList<String> schoolNotes = getSchoolNotes();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, schoolNotes);
+        schoolNotesList.setAdapter(adapter);
 
-        // Hide placeholders if reload is required
-        if (needsReload) {
-            Toast.makeText(requireContext(), "Internet restored. Reloading data...", Toast.LENGTH_SHORT).show();
-            noBlogsImage.setVisibility(View.GONE);
-            noBlogsText.setVisibility(View.GONE);
-        } else {
-            Log.d("SchoolTasksFragment", "No reload required. Data is up-to-date.");
-            loadingIndicator.setVisibility(View.GONE); // Hide the loading indicator
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        requireContext().unregisterReceiver(networkReceiver);
-    }
-
-    private void loadCachedBlogs() {
-        if (!isAdded()) return; // Ensure Fragment is attached
-
-        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
-        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
-        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
-
-        if (cachedBlogsJson != null && lastFetchDate == todayDate) {
-            blogs.clear();
-            blogs.addAll(BlogResponse.fromJsonList(cachedBlogsJson));
-            if (blogs.size() > MAX_BLOGS) {
-                blogs.subList(MAX_BLOGS, blogs.size()).clear(); // Limit the list to MAX_BLOGS
-            }
-            blogAdapter.notifyDataSetChanged();
-            noBlogsImage.setVisibility(View.GONE);
-            noBlogsText.setVisibility(View.GONE);
-        } else {
-            blogs.clear();
-            prefs.edit().remove(PREFS_BLOGS).apply();
-            fetchBlogsFromApi(prefs, todayDate, success -> {
-                if (!success && isAdded()) { // Ensure Fragment is attached
-                    Log.d("Blog Fetch", "Falling back to cached blogs.");
-                    loadCachedBlogs();
-                }
-            });
-        }
-    }
-
-    private void fetchBlogsWithFallback() {
-        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
-
-        // Fetch blogs from the API
-        fetchBlogsFromApi(prefs, todayDate, success -> {
-            if (!success) {
-                // Fallback to cached blogs if API fails
-                Log.d("Blog Fetch", "Falling back to cached blogs.");
-                loadCachedBlogs();
+        // Handle adding a note
+        addSchoolNote.setOnClickListener(v -> {
+            String newNote = schoolNoteInput.getText().toString().trim();
+            if (!newNote.isEmpty()) {
+                schoolNotes.add("• " + newNote); // Add bullet point
+                adapter.notifyDataSetChanged();
+                schoolNoteInput.setText("");
+                saveSchoolNotes(schoolNotes);
             }
         });
     }
@@ -224,174 +187,20 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
         void onFetchComplete(boolean success);
     }
 
-    private void fetchBlogsFromApi(SharedPreferences prefs, int todayDate, OnFetchCompleteListener listener) {
-        if (!isAdded()) return; // Ensure Fragment is attached
 
-        BlogsApi api = RetrofitClient.getRetrofitInstance(
-                requireContext(),
-                "https://medium2.p.rapidapi.com/",
-                "x-rapidapi-key",
-                getResources().getString(Integer.parseInt("123")) // Make sure to remove
-        ).create(BlogsApi.class);
-
-        String[] tags = {"education", "study tips", "studying for exams"}; // Example tags
-        blogs.clear(); // Clear old data to avoid duplicates
-        prefs.edit().remove(PREFS_BLOGS).apply(); // Clear cache
-
-        for (String tag : tags) {
-            if (blogs.size() >= MAX_BLOGS) break;
-
-            loadingTasksRemaining++; // Increment for each tag
-
-            api.getRecommendedFeed(tag, 1).enqueue(new Callback<RecommendedFeedResponse>() {
-                @Override
-                public void onResponse(Call<RecommendedFeedResponse> call, Response<RecommendedFeedResponse> response) {
-                    if (!isAdded()) return; // Ensure Fragment is attached
-
-                    if (response.isSuccessful() && response.body() != null) {
-                        List<String> recommendedFeed = response.body().getRecommendedFeed();
-                        for (String articleId : recommendedFeed) {
-                            if (blogs.size() >= MAX_BLOGS) break;
-                            fetchArticleDetails(api, articleId, prefs, todayDate);
-                        }
-                    }
-                    taskCompleted();
-                    listener.onFetchComplete(true);
-                }
-
-                @Override
-                public void onFailure(Call<RecommendedFeedResponse> call, Throwable t) {
-                    if (!isAdded()) return; // Ensure Fragment is attached
-
-                    Log.e("API Error", "Failed to fetch blogs", t);
-                    taskCompleted();
-                    listener.onFetchComplete(false);
-                }
-            });
-        }
-    }
-
-    private void fetchArticleDetails(BlogsApi api, String articleId, SharedPreferences prefs, int todayDate) {
-        if (blogs.size() >= MAX_BLOGS) {
-            taskCompleted(); // Ensure task is marked complete if we exceed MAX_BLOGS
-            return;
-        }
-
-        api.getArticleInfo(articleId).enqueue(new Callback<ArticleDetails>() {
-            @Override
-            public void onResponse(Call<ArticleDetails> call, Response<ArticleDetails> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    ArticleDetails article = response.body();
-
-                    synchronized (blogs) { // Synchronize access to blogs
-                        if (blogs.size() < MAX_BLOGS && !isDuplicateArticle(article)) {
-                            BlogResponse blog = new BlogResponse(
-                                    article.getTitle(),
-                                    article.getAuthor(),
-                                    "school-tasks",
-                                    article.getUrl(),
-                                    article.getImageUrl()
-                            );
-                            blogs.add(blog);
-                            blogAdapter.notifyDataSetChanged();
-                            saveBlogsToCache(prefs, blogs, todayDate);
-                        }
-                    }
-                }
-                taskCompleted(); // Mark task as complete after fetch
-            }
-
-            @Override
-            public void onFailure(Call<ArticleDetails> call, Throwable t) {
-                Log.e("Article Fetch", "Failed to fetch article details", t);
-                taskCompleted(); // Mark task as complete even on failure
-            }
-        });
-    }
-
-    private boolean isDuplicateArticle(ArticleDetails article) {
-        for (BlogResponse existingBlog : blogs) {
-            if (existingBlog.getTitle().equals(article.getTitle()) &&
-                    existingBlog.getAuthor().equals(article.getAuthor())) {
-                return true; // Found duplicate
-            }
-        }
-        return false;
-    }
-
-    private void fetchUserInfo(BlogsApi api, String userId, OnUserFullNameFetched callback) {
-        api.getUserInfo(userId).enqueue(new Callback<UserInfo>() {
-            @Override
-            public void onResponse(Call<UserInfo> call, Response<UserInfo> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String fullName = response.body().getFullName();
-                    callback.onFetched(fullName != null ? fullName : "Unknown Author");
-                } else {
-                    callback.onFetched("Unknown Author");
-                }
-                taskCompleted();
-            }
-            @Override
-            public void onFailure(Call<UserInfo> call, Throwable t) {
-                callback.onFetched("Unknown Author");
-                taskCompleted();
-            }
-        });
-    }
-
-    private void setupBlogsRecyclerView() {
-        articleRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
-        blogAdapter = new SchoolTasksBlogAdapter(requireContext(), blogs);
-        articleRecyclerView.setAdapter(blogAdapter);
-
-        // Limit the adapter size to MAX_BLOGS
-        blogAdapter.notifyDataSetChanged();
-    }
-
-    private void addArticleToRecyclerView(ArticleDetails article, String tag, String authorFullName) {
-        if (blogs.size() >= MAX_BLOGS) return;
-        // Check if the blog already exists in the list
-        for (BlogResponse existingBlog : blogs) {
-            if (existingBlog.getTitle().equals(article.getTitle()) &&
-                    existingBlog.getAuthor().equals(authorFullName)) {
-                return; // Don't add duplicates
-            }
-        }
-        BlogResponse blog = new BlogResponse(
-                article.getTitle(),
-                authorFullName,
-                tag,
-                article.getUrl(),
-                article.getImageUrl()
-        );
-
-        blogs.add(blog);
-        blogAdapter.notifyDataSetChanged();
-        noBlogsImage.setVisibility(View.GONE);
-    }
-
-    private void saveBlogsToCache(SharedPreferences prefs, List<BlogResponse> blogs, int todayDate) {
+    private void saveSchoolNotes(ArrayList<String> schoolNotes) {
+        SharedPreferences prefs = requireContext().getSharedPreferences(SchoolNotesPREFS_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PREFS_BLOGS, BlogResponse.toJsonList(blogs));
-        editor.putInt(KEY_LAST_FETCH, todayDate);
+        Set<String> set = new HashSet<>(schoolNotes);
+        editor.putStringSet(SCHOOL_NOTES_KEY, set);
         editor.apply();
     }
 
-    private void showNoBlogsAvailable() {
-        if (blogs.isEmpty()) {
-            noBlogsImage.setVisibility(View.VISIBLE);
-            noBlogsText.setVisibility(View.VISIBLE);
-            taskCompleted();
-        }
+    private ArrayList<String> getSchoolNotes() {
+        SharedPreferences prefs = requireContext().getSharedPreferences(SchoolNotesPREFS_NAME, Context.MODE_PRIVATE);
+        Set<String> set = prefs.getStringSet(SCHOOL_NOTES_KEY, new HashSet<>());
+        return new ArrayList<>(set);
     }
-
-    private synchronized void taskCompleted() {
-        loadingTasksRemaining--;
-        if (loadingTasksRemaining <= 0) {
-            loadingIndicator.setVisibility(View.GONE);
-        }
-    }
-
 
     private void showPopup(String displayPrompt, String actualPrompt) {
         Retrofit retrofit = new Retrofit.Builder()
@@ -467,6 +276,188 @@ public class SchoolTasksFragment extends Fragment implements NetworkReceiver.Net
         public interface OnPromptClickListener {
             void onClick(String displayPrompt, String actualPrompt);
         }
+    }
+    private void updateCancelledTasksCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (userId == null) return;
+
+        db.collection("users")
+                .document(userId)
+                .collection("cancelledSchoolTasks")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int cancelledCount = queryDocumentSnapshots.size();
+                    // Assuming the TextView for cancelled school tasks count has the ID "tasks_cancelled_school_count"
+                    TextView cancelledTasksCountTextView = getView().findViewById(R.id.tasks_cancelled_count);
+                    if (cancelledTasksCountTextView != null) {
+                        cancelledTasksCountTextView.setText(String.valueOf(cancelledCount));
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("SchoolTasksFragment", "Error fetching cancelled school tasks", e));
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        startSchoolTasksListener();  // Begin listening for changes in "schooltasks"
+        updatePendingTasksCount();
+        updateCancelledTasksCount();
+        updateOverdueTasksCount();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (schoolTasksListener != null) {
+            schoolTasksListener.remove();
+            schoolTasksListener = null;
+        }
+    }
+    private void updatePendingTasksCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (userId == null) {
+            Log.e("SchoolTasksFragment", "User not logged in, cannot fetch pending tasks");
+            return;
+        }
+
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks") // or "housetasks" in HomeTasksFragment
+                .whereEqualTo("completed", false)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int pendingCount = queryDocumentSnapshots.size();
+                    Log.d("SchoolTasksFragment", "Pending tasks count: " + pendingCount);
+
+                    // Find the TextView in your layout
+                    TextView tasksPendingTextView = getView().findViewById(R.id.tasks_pending_count);
+                    if (tasksPendingTextView != null) {
+                        // Update the text with the number of pending tasks
+                        tasksPendingTextView.setText(String.valueOf(pendingCount));
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("SchoolTasksFragment", "Error fetching pending tasks", e));
+    }
+
+    private void updateOverdueTasksCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (userId == null) return;
+
+        // Query all uncompleted school tasks.
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .whereEqualTo("completed", false)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int overdueCount = 0;
+                    // We'll assume the time is stored in 24-hour format (e.g., "12:16")
+                    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+                    // Iterate over each task document.
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Task task = doc.toObject(Task.class);
+                        try {
+                            int day = Integer.parseInt(task.getDate());
+                            int month = getMonthIndex(task.getMonth());
+                            int year = task.getYear();
+
+                            java.time.LocalTime dueTime = java.time.LocalTime.parse(task.getTime(), timeFormatter);
+                            java.time.LocalDate dueDate = java.time.LocalDate.of(year, month, day);
+                            java.time.LocalDateTime dueDateTime = java.time.LocalDateTime.of(dueDate, dueTime);
+
+                            // If the task's due datetime is before now, it's overdue.
+                            if (dueDateTime.isBefore(java.time.LocalDateTime.now())) {
+                                overdueCount++;
+                            }
+                        } catch (Exception e) {
+                            Log.e("OverdueCount", "Error parsing task for overdue count: " + task.getTitle(), e);
+                        }
+                    }
+
+                    // Update the overdue count TextView.
+                    View view = getView();
+                    if (view != null) {
+                        TextView overdueCountTextView = view.findViewById(R.id.tasks_overdue_count);
+                        if (overdueCountTextView != null) {
+                            overdueCountTextView.setText(String.valueOf(overdueCount));
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("SchoolTasksFragment", "Error fetching tasks for overdue count", e));
+    }
+
+    // Helper method to convert a month name to its corresponding index (1-12)
+    private int getMonthIndex(String month) {
+        switch (month.toLowerCase()) {
+            case "january":   return 1;
+            case "february":  return 2;
+            case "march":     return 3;
+            case "april":     return 4;
+            case "may":       return 5;
+            case "june":      return 6;
+            case "july":      return 7;
+            case "august":    return 8;
+            case "september": return 9;
+            case "october":   return 10;
+            case "november":  return 11;
+            case "december":  return 12;
+            default:          return 0;
+        }
+    }
+
+
+    private void startSchoolTasksListener() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Log.e("SchoolTasksFragment", "User not logged in, skipping school tasks listener.");
+            return;
+        }
+
+        schoolTasksListener = db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .addSnapshotListener((querySnapshot, e) -> {
+                    if (e != null) {
+                        Log.e("SchoolTasksFragment", "Error listening for school tasks", e);
+                        return;
+                    }
+
+                    // Whenever tasks change, re-count completed tasks
+                    updateCompletedTasksCount();
+                });
+    }
+
+
+    // New method: updateCompletedTasksCount()
+// This queries Firestore for completed school tasks and updates the tasks_count TextView in the School Tasks page.
+    private void updateCompletedTasksCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (userId == null) return;
+
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .whereEqualTo("completed", true)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int completedCount = queryDocumentSnapshots.size();
+                    // Assuming the completed tasks card's TextView has the ID "tasks_count"
+                    TextView tasksCountTextView = getView().findViewById(R.id.tasks_count);
+                    if (tasksCountTextView != null) {
+                        tasksCountTextView.setText(String.valueOf(completedCount));
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("SchoolTasksFragment", "Error fetching completed tasks", e));
     }
 
     // AIContentDialog Fragment

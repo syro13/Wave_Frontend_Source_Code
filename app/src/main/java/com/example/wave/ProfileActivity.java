@@ -168,7 +168,7 @@ public class ProfileActivity extends BaseActivity {
     }
     @Override
     protected int getCurrentMenuItemId() {
-        return R.id.nav_profile; // Return the ID of the currently selected item    ;
+        return R.id.nav_profile;
     }
     private void openGallery() {
         Intent intent = new Intent();

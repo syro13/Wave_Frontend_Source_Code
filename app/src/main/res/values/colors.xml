@@ -15,6 +15,8 @@
     <color name="light_blue">#E3F2FD</color>
     <color name="gray">#747474</color>
     <color name="light_gray">#F5FAFD</color>
+    <color name="border_gray">#CACACA</color>
+    <color name="dark_gray">#4A454F</color>
     <color name="keypad_button_gray">#F5F6FA</color>
     <color name="red">#FAA0A0</color>"
     <color name="green">#D5F2DD</color>"
@@ -26,5 +28,7 @@
     <color name="light_yellow">#FFFAA0</color>
     <color name="yellow">#F3F209</color>
     <color name="light_purple">#E6E6FA</color>
-    <color name="dark_purple">#9448F6</color>"
+    <color name="transparent">#00000000</color>
+    <color name="default_stroke">#E4EAF0</color>
+    <color name="dark_purple">#9448F6</color>
 </resources>
