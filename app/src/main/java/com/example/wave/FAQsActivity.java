@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class FAQsActivity extends AppCompatActivity {
+public class FAQsActivity extends BaseActivity {
 
     private LinearLayout faqContainer;
     private ImageView backButton;
@@ -33,6 +33,9 @@ public class FAQsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_faqs);
 
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
+
         faqContainer = findViewById(R.id.faqContainer);
         backButton = findViewById(R.id.backButton);
 
@@ -42,7 +45,10 @@ public class FAQsActivity extends AppCompatActivity {
             addFaqItem(pair[0], pair[1]);
         }
     }
-
+    @Override
+    protected int getCurrentMenuItemId() {
+        return -1; // No selection
+    }
     private void addFaqItem(String question, String answer) {
         View faqItem = LayoutInflater.from(this).inflate(R.layout.faq_item, faqContainer, false);
         TextView questionText = faqItem.findViewById(R.id.faqQuestion);
