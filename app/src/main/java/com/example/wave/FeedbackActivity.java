@@ -15,7 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.wave.utils.GMailSender;
 
-public class FeedbackActivity extends AppCompatActivity {
+public class FeedbackActivity extends BaseActivity {
 
 
     private EditText feedbackInput;
@@ -46,10 +46,16 @@ public class FeedbackActivity extends AppCompatActivity {
             });
         }
 
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
 
         backButton.setOnClickListener(v -> finish());
 
         submitButton.setOnClickListener(v -> handleFeedbackSubmission());
+    }
+    @Override
+    protected int getCurrentMenuItemId() {
+        return -1; // No selection
     }
     private void updateStarUI(int rating) {
         for (int i = 0; i < stars.length; i++) {
