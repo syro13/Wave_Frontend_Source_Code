@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -27,13 +28,16 @@ public class EditTasksActivity extends AppCompatActivity {
     private EditText taskTitleInput, selectDate, selectTime;
     private MaterialButton schoolTaskButton, homeTaskButton;
     private MaterialButton highPriorityButton, mediumPriorityButton, lowPriorityButton;
+    private SwitchMaterial remindSwitch;
     private Button editTaskButton;
     private Spinner repeatSpinner;
 
     private String selectedTaskType = "School";
     private String selectedPriority = "Medium";
 
+    // The Task being edited
     private Task task;
+    private Task previousTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +54,8 @@ public class EditTasksActivity extends AppCompatActivity {
         highPriorityButton = findViewById(R.id.highPriorityButton);
         mediumPriorityButton = findViewById(R.id.mediumPriorityButton);
         lowPriorityButton = findViewById(R.id.lowPriorityButton);
+        ImageView calendarIcon = findViewById(R.id.calendarIcon);
+        ImageView timeIcon = findViewById(R.id.timeIcon);
 
         task = getIntent().getParcelableExtra("task");
         if (task == null) {
@@ -62,6 +68,8 @@ public class EditTasksActivity extends AppCompatActivity {
 
         selectDate.setOnClickListener(v -> showDatePicker());
         selectTime.setOnClickListener(v -> showTimePicker());
+        calendarIcon.setOnClickListener(v -> showDatePicker());
+        timeIcon.setOnClickListener(v -> showTimePicker());
 
         setupTaskTypeSelection();
         setupPrioritySelection();
@@ -75,6 +83,7 @@ public class EditTasksActivity extends AppCompatActivity {
         selectTime.setText(task.getTime());
         selectedTaskType = task.getCategory();
         selectedPriority = task.getPriority();
+
 
         if ("School".equals(task.getCategory())) {
             schoolTaskButton.performClick();

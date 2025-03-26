@@ -37,18 +37,19 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     android:layout_margin="16dp" />
-                <com.google.android.material.imageview.ShapeableImageView
+
+                <ImageView
                     android:id="@+id/profileIcon"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:src="@drawable/profile_image"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_profile_placeholder"
                     android:contentDescription="Profile Icon"
                     android:layout_marginEnd="16dp"
                     android:layout_marginTop="16dp"
                     app:shapeAppearanceOverlay="@style/CircularImageView"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_margin="16dp" />
 
                 <TextView
                     android:id="@+id/budgetPlannerTitle"

@@ -8,7 +8,6 @@
     tools:context=".SchoolHomeCalendarActivity">
 
     <!-- Fragment Container -->
-
     <FrameLayout
         android:id="@+id/home_school_calendar_container"
         android:layout_width="0dp"

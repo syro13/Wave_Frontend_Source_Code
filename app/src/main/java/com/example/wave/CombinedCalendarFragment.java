@@ -799,23 +799,30 @@ public class CombinedCalendarFragment extends Fragment implements
     }
 
 
-    // ----- UPDATED getSchoolTaskDates() -----
     private Set<String> getSchoolTaskDates() {
         Set<String> schoolTaskDates = new HashSet<>();
         String currentMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
         int currentYear = calendar.get(Calendar.YEAR);
+
         for (Task task : schoolTaskList) {
-            // Only include tasks that are not completed and that actually belong to School (or Both if intended)
             if (!task.isCompleted() &&
-                    ( "School".equals(task.getCategory()) || "Both".equals(task.getCategory()) ) &&
+                    ("School".equals(task.getCategory()) || "Both".equals(task.getCategory())) &&
                     task.getMonth().equalsIgnoreCase(currentMonth) &&
                     task.getYear() == currentYear) {
-                schoolTaskDates.add(task.getDate());
+
+                String date = task.getDate();
+                // 💡 If the date has a "/", it's likely full format like "25/3/2025"
+                if (date.contains("/")) {
+                    date = date.split("/")[0];  // Take only the day part
+                }
+                schoolTaskDates.add(date.trim()); // Always trim to be safe
             }
         }
+
         Log.d("getSchoolTaskDates", "School Task Dates Highlighted: " + schoolTaskDates);
         return schoolTaskDates;
     }
+
 
 
     // ----- UPDATED getHomeTaskDates() -----
@@ -823,34 +830,41 @@ public class CombinedCalendarFragment extends Fragment implements
         Set<String> homeTaskDates = new HashSet<>();
         String currentMonth = getMonthYearList().get(calendar.get(Calendar.MONTH));
         int currentYear = calendar.get(Calendar.YEAR);
+
         for (Task task : homeTaskList) {
-            // Only include tasks that are not completed and that belong to Home (or Both if intended)
             if (!task.isCompleted() &&
-                    ( "Home".equals(task.getCategory()) || "Both".equals(task.getCategory()) ) &&
+                    ("Home".equals(task.getCategory()) || "Both".equals(task.getCategory())) &&
                     task.getMonth().equalsIgnoreCase(currentMonth) &&
                     task.getYear() == currentYear) {
-                homeTaskDates.add(task.getDate());
+
+                String date = task.getDate();
+                // 💡 If the date has a "/", it's likely full format like "25/3/2025"
+                if (date.contains("/")) {
+                    date = date.split("/")[0];  // Take only the day part
+                }
+                homeTaskDates.add(date.trim()); // Always trim to be safe
             }
         }
+
         Log.d("getHomeTaskDates", "Home Task Dates Highlighted: " + homeTaskDates);
         return homeTaskDates;
     }
+
 
 
     // Update the "Tasks for Today" title.
     private void updateTasksTitle(List<Task> selectedDateTasks, int selectedDay) {
         TextView tasksDueTodayTitle = getView().findViewById(R.id.tasksDueTodayTitle);
         if (selectedDateTasks.isEmpty()) {
-            tasksDueTodayTitle.setText("No school tasks for selected date");
+            tasksDueTodayTitle.setText("No tasks for selected date");
         } else {
             String monthYear = getMonthYearList().get(calendar.get(Calendar.MONTH)) + " " + calendar.get(Calendar.YEAR);
             String formattedDate = selectedDay + getOrdinalSuffix(selectedDay) + " " + monthYear;
-            tasksDueTodayTitle.setText("School Tasks for " + formattedDate);
+            tasksDueTodayTitle.setText("All tasks for " + formattedDate);
         }
     }
 
     // --- HELPER METHODS ---
-
     // Get the calendar dates for a given month.
     private List<String> getCalendarDates(int year, int month) {
         List<String> dates = new ArrayList<>();
