@@ -235,4 +235,5 @@
                 app:layout_constraintBottom_toBottomOf="parent"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
+    <include layout="@layout/no_internet_overlay" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
