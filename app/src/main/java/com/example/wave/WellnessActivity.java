@@ -70,7 +70,6 @@ public class WellnessActivity extends BaseActivity{
     private AIPromptsAdapter promptsAdapter;
     private List<String> displayPromptsList;
     private List<String> actualPromptsList;
-    private NetworkReceiver networkReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
