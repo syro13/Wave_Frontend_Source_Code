@@ -11,9 +11,9 @@ import androidx.core.text.HtmlCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class PrivacyPolicyActivity extends AppCompatActivity {
+public class PrivacyPolicyActivity extends BaseActivity {
     private ImageView backButton;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,6 +28,9 @@ public class PrivacyPolicyActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
 
         // Load the formatted privacy policy
         TextView content = findViewById(R.id.privacyContent);
@@ -112,5 +115,8 @@ public class PrivacyPolicyActivity extends AppCompatActivity {
 
         content.setText(HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY));
     }
-
+    @Override
+    protected int getCurrentMenuItemId() {
+        return -1; // No selection
+    }
 }
