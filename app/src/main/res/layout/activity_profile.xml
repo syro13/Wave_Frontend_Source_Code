@@ -301,9 +301,9 @@
                         android:src="@drawable/ic_arrow_right"/>
                 </LinearLayout>
 
-                <!-- Help & Feedback -->
+                <!-- Feedback -->
                 <LinearLayout
-                    android:id="@+id/helpAndFeedback"
+                    android:id="@+id/feedback"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:orientation="horizontal"
@@ -321,7 +321,7 @@
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Help and Feedback"
+                        android:text="Feedback"
                         android:textSize="16sp"
                         android:textColor="@color/black"
                         android:layout_weight="1"/>
@@ -331,10 +331,9 @@
                         android:layout_height="25dp"
                         android:src="@drawable/ic_arrow_right"/>
                 </LinearLayout>
-
-                <!-- Support Us -->
+                <!-- Privacy Policy -->
                 <LinearLayout
-                    android:id="@+id/supportUs"
+                    android:id="@+id/privacyPolicy"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:orientation="horizontal"
@@ -346,13 +345,13 @@
                     <ImageView
                         android:layout_width="25dp"
                         android:layout_height="25dp"
-                        android:src="@drawable/ic_like"
+                        android:src="@drawable/ic_privacypolicy"
                         android:layout_marginEnd="12dp"/>
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Support Us"
+                        android:text="Privacy Policy"
                         android:textSize="16sp"
                         android:textColor="@color/black"
                         android:layout_weight="1"/>
@@ -362,7 +361,6 @@
                         android:layout_height="25dp"
                         android:src="@drawable/ic_arrow_right"/>
                 </LinearLayout>
-
                 <!-- Log Out -->
                 <LinearLayout
                     android:id="@+id/logout"
@@ -410,4 +408,5 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:visibility="gone"/>
+    <include layout="@layout/no_internet_overlay" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

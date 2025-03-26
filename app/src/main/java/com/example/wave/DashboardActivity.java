@@ -64,6 +64,9 @@ public class DashboardActivity extends BaseActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
+
         // Retrieve the current user once.
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {

@@ -24,7 +24,7 @@ import com.google.firebase.auth.UserInfo;
 
 import java.util.List;
 
-public class ChangePasswordActivity extends AppCompatActivity {
+public class ChangePasswordActivity extends BaseActivity {
 
     private EditText currentPasswordInput, newPasswordInput;
     private Button updatePasswordButton, sendResetEmailButton;
@@ -39,6 +39,9 @@ public class ChangePasswordActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_password);
+
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
@@ -141,6 +144,10 @@ public class ChangePasswordActivity extends AppCompatActivity {
                 newPasswordInput.setSelection(newPasswordInput.length());
             }
         });
+    }
+    @Override
+    protected int getCurrentMenuItemId() {
+        return -1; // No selection
     }
     /**
      * Check if user has a password or is an OAuth user without one.

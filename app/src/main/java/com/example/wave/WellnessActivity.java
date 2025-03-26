@@ -7,6 +7,8 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -20,6 +22,8 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
@@ -33,7 +37,8 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class WellnessActivity extends BaseActivity implements NetworkReceiver.NetworkChangeListener{
+public class WellnessActivity extends BaseActivity{
+    private NetworkReceiver networkReceiver;
     private static final String PREFS_NAME = "WellnessPrefs";
     private static final String KEY_QUOTE = "quoteText";
     private static final String KEY_AUTHOR = "quoteAuthor";
@@ -65,12 +70,14 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
     private AIPromptsAdapter promptsAdapter;
     private List<String> displayPromptsList;
     private List<String> actualPromptsList;
-    private NetworkReceiver networkReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wellness);
+
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
 
         // Set up bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
@@ -102,14 +109,9 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
 
         // Start loading tasks
         updateQuoteImage();
-        // Register the network receiver
-        networkReceiver = new NetworkReceiver(this);
-        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(networkReceiver, filter);
-        loadCachedPlan();
 
         loadData();
-
+      
         generatePlanButton.setOnClickListener(v -> {
             PlanOptionsBottomSheet sheet = new PlanOptionsBottomSheet();
             sheet.setListener((mood, time, thoughts) -> generateDailyPlan(mood, time, thoughts));
@@ -117,7 +119,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         });
     }
     @Override
-    public void onNetworkRestored() {
+    public void onNetworkConnected() {
         Log.d("WellnessActivity", "Internet restored! Reloading data...");
         runOnUiThread(() -> {
             showLoading();
@@ -126,15 +128,9 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(networkReceiver);
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(networkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        //registerReceiver(networkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
         int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
@@ -147,7 +143,17 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             loadCachedBlogs();
             loadCachedPodcasts();
             fetchTodaysQuoteWithCache();
+            // If cache is empty, fetch new data
+            if (blogs.isEmpty()) {
+                Log.d(TAG, "Cached blogs empty, fetching new ones...");
+                fetchBlogsFromApi();
+            }
+            if (podcasts.isEmpty()) {
+                Log.d(TAG, "Cached podcasts empty, fetching new ones...");
+                fetchPodcastsFromApi();
+            }
             loadCachedPlan();
+
         }
     }
     private void loadCachedPlan() {
@@ -238,10 +244,12 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
 
         // Load cached or fetch new
         if (useCache) {
+            loadingTasksRemaining += 3;
             loadCachedBlogs();
             loadCachedPodcasts();
             fetchTodaysQuoteWithCache();
         } else {
+            loadingTasksRemaining += 3;
             fetchBlogsFromApi();
             fetchPodcastsFromApi();
             fetchTodaysQuoteFromApi(prefs, todayDate);
@@ -290,7 +298,6 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
     }
 
     private void fetchTodaysQuoteFromApi(SharedPreferences prefs, int todayDate) {
-        loadingTasksRemaining++;
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://zenquotes.io/api/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -328,7 +335,6 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         });
     }
     private void fetchPodcastsFromApi() {
-        loadingTasksRemaining++;
         Call<List<PodcastsResponse>> podcastsCall = apiService.getPodcastsData();
         podcastsCall.enqueue(new Callback<>() {
             @Override
@@ -366,7 +372,6 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         noBlogsText.setVisibility(View.GONE);
     }
     private void fetchBlogsFromApi(){
-        loadingTasksRemaining++;
         Call<List<Blogs_Response>> blogsCall = apiService.getBlogsData();
         blogsCall.enqueue(new Callback<>() {
             @Override
@@ -378,6 +383,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
                     }
                     Log.d(TAG, "Blogs: " + blogs);
                     saveBlogsToCache(blogs);
+                    preloadBlogImages(blogs);
                     setupBlogsRecyclerView(blogs);
                     hideNoBlogsAvailable();
                 } else {
@@ -476,6 +482,7 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             Log.d(TAG, "Loaded Blogs from Cache: " + cachedBlogs);
             if (!cachedBlogs.isEmpty()) {
                 if (blogAdapter == null) {
+                    preloadBlogImages(cachedBlogs);
                     setupBlogsRecyclerView(cachedBlogs);
                 } else {
                     blogAdapter.updateData(cachedBlogs);
@@ -488,6 +495,14 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             showNoBlogsAvailable();
         }
         taskCompleted();
+    }
+    private void preloadBlogImages(List<Blogs_Response> blogList) {
+        for (Blogs_Response blog : blogList) {
+            Glide.with(this)
+                    .load(blog.getImage())
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .preload();
+        }
     }
 
     private void savePodcastsToCache(List<PodcastsResponse> podcasts) {
@@ -518,15 +533,12 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         if (loadingTasksRemaining <= 0) {
             loadingIndicator.setVisibility(View.GONE);
             loadingOverlay.setVisibility(View.GONE);
-            // Ensure placeholders are shown if no data was loaded
-            if (blogs.isEmpty()) {
-                showNoBlogsAvailable();
-            }
-            if (podcasts.isEmpty()) {
-                showNoPodcastsAvailable();
-            }
+
+            if (blogs.isEmpty()) showNoBlogsAvailable(); else hideNoBlogsAvailable();
+            if (podcasts.isEmpty()) showNoPodcastsAvailable(); else hideNoPodcastsAvailable();
         }
     }
+
     private void setupPrompts() {
         displayPromptsList = Arrays.asList(
                 "How can I manage stress effectively?",

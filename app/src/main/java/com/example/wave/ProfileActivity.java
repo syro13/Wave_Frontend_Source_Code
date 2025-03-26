@@ -49,6 +49,10 @@ public class ProfileActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
+
         // Firebase
         user = FirebaseAuth.getInstance().getCurrentUser();
         storageReference = FirebaseStorage.getInstance().getReference("profile_images");
@@ -60,8 +64,11 @@ public class ProfileActivity extends BaseActivity {
         LinearLayout changeAccountImage = findViewById(R.id.changeAccountImage);
         LinearLayout changeAccountName = findViewById(R.id.changeAccountName);
         LinearLayout changeAccountPassword = findViewById(R.id.changePassword);
+        LinearLayout aboutUs = findViewById(R.id.aboutUs);
         LinearLayout logoutButton = findViewById(R.id.logout);
-
+        LinearLayout faq= findViewById(R.id.faq);
+        LinearLayout feedback= findViewById(R.id.feedback);
+        LinearLayout privacyPolicy= findViewById(R.id.privacyPolicy);
 
         // Load Current Profile Image
         loadUserProfile();
@@ -80,6 +87,22 @@ public class ProfileActivity extends BaseActivity {
             startActivity(intent);
         });
 
+        aboutUs.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, AboutUsActivity.class);
+            startActivity(intent);
+        });
+        faq.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, FAQsActivity.class);
+            startActivity(intent);
+        });
+        feedback.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, FeedbackActivity.class);
+            startActivity(intent);
+        });
+        privacyPolicy.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, PrivacyPolicyActivity.class);
+            startActivity(intent);
+        });
         // Set up bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         setupBottomNavigation(bottomNavigationView);
@@ -114,7 +137,7 @@ public class ProfileActivity extends BaseActivity {
         auth.signOut();
 
         // Clear shared preferences (user data)
-        getSharedPreferences("USER_DATA", MODE_PRIVATE).edit().clear().apply();
+        getSharedPreferences("user_prefs", MODE_PRIVATE).edit().clear().apply();
 
         // Clear Glide image cache
         Glide.get(this).clearMemory();
