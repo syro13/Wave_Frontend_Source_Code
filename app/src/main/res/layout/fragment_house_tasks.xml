@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/white"
     tools:context=".HomeTasksFragment">
 
     <!-- Scrollable Content -->
@@ -204,11 +205,11 @@
 
                                 <TextView
                                     android:id="@+id/tasks_count"
-                                    android:layout_width="wrap_content"
+                                    android:layout_width="9dp"
                                     android:layout_height="wrap_content"
                                     android:fontFamily="@font/archivo_medium"
                                     android:gravity="center"
-                                    android:text="5"
+                                    android:text="0"
                                     android:textColor="@color/dark_blue"
                                     android:textSize="20sp" />
 
@@ -454,6 +455,7 @@
 
                     <!-- My Calendar Card -->
                     <androidx.cardview.widget.CardView
+                        android:id="@+id/CalendarFromTasksButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_columnWeight="1"

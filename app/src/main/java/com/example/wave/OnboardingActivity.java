@@ -1,6 +1,7 @@
 package com.example.wave;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.animation.Animation;
@@ -18,6 +19,8 @@ import java.util.List;
 import android.view.View;
 
 import com.example.wave.databinding.ActivityOnboardingBinding;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class OnboardingActivity extends AppCompatActivity {
 
@@ -133,6 +136,12 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     private void finishOnboarding() {
+        // Save onboarding completion status
+        SharedPreferences preferences = getSharedPreferences("app_prefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("onboarding_completed", true);
+        editor.apply();
+
         // Navigate to LoginSignUpActivity
         Intent intent = new Intent(OnboardingActivity.this, LoginSignUpActivity.class);
         startActivity(intent);

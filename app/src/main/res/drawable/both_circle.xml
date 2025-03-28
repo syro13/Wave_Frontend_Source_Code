@@ -1,0 +1,16 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <!-- Light purple color -->
+    <solid android:color="@color/light_purple" />
+
+    <!-- Purple border -->
+    <stroke
+        android:width="0.5dp"
+        android:color="@color/dark_purple"/>
+
+    <!-- Size of the circle -->
+    <size
+        android:width="18dp"
+        android:height="18dp" />
+</shape>
