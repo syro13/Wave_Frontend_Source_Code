@@ -128,6 +128,16 @@ Wave connects to a custom-built Wellbeing API that offers blogs and podcasts to 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## 🧩 Modules Overview
+
+- `app/` - Contains the main Android app codebase
+- `images/` - Screenshots and logos for documentation
+- `gradle/` - Project build configuration
+- Firebase - Authentication, Firestore, and storage
+- OpenAI - Handles AI requests (for task and wellbeing suggestions)
+
+  <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 <!-- ROADMAP -->
 ## 🛣️ Roadmap
 
@@ -149,6 +159,9 @@ Wave connects to a custom-built Wellbeing API that offers blogs and podcasts to 
     - [x] Dark/Light mode Toggling
     - [x] Up to date calendar 
     - [x] Privacy Policy
+- [ ] Personalized notifications
+- [ ] Multiple language offers
+- [ ] More AI features
 
 See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known bugs).
 
@@ -158,14 +171,28 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
 ## 📸 Screenshots
 
 <div align="center">
-  <img src="images/splash_screen.png" alt="Splash Screen" width="200"/> &nbsp;
-  <img src="images/onboarding.png" alt="Onboarding" width="200"/> &nbsp;
-  <img src="images/dashboard.png" alt="Dashboard" width="200"/> &nbsp;
-  <img src="images/calendar.png" alt="Calendar View" width="200"/>
+  <img src="images/dashboard.png" alt="Splash Screen" width="200"/> &nbsp;
+  <img src="images/budget.png" alt="Onboarding" width="200"/> &nbsp;
+  <img src="images/calendar.png" alt="Dashboard" width="200"/> &nbsp;
+  <img src="images/profile.png" alt="Calendar View" width="200"/>
 </div>
 
 > _More screenshots available in the `/images` folder._
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## 🧪 Testing
+
+Wave uses basic instrumentation tests for critical flows.
+
+To run tests:
+
+```bash
+./gradlew test
+```
+## 🌍 Localization
+
+Wave is currently available in English. Future support for additional languages is in the roadmap!
 
 <!-- LICENSE -->
 ## License
@@ -189,3 +216,8 @@ Project Link: [https://github.com/syro13/Wave_Frontend_Source_Code](https://gith
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## 📢 Feedback & Suggestions
+
+We’re always looking to improve. Feel free to open an [issue](https://github.com/syro13/Wave_Frontend_Source_Code/issues) or submit a [pull request](https://github.com/syro13/Wave_Frontend_Source_Code/pulls)!
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
