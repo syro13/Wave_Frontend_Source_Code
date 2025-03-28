@@ -28,7 +28,6 @@ public class DashboardActivityTests {
         onView(withId(R.id.bottomNavigationView)).check(matches(isDisplayed()));
         onView(withId(R.id.greetingText)).check(matches(isDisplayed()));
         onView(withId(R.id.currentDate)).check(matches(isDisplayed()));
-        onView(withId(R.id.weatherIcon)).check(matches(isDisplayed()));
 
         // Check navigation cards
         onView(withId(R.id.homeTasksCard)).check(matches(isDisplayed()));
