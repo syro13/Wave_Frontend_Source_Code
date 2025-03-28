@@ -120,14 +120,14 @@ Use the grocery list popup to quickly jot down and check off daily household ite
 View all your tasks in a calendar view to plan your week visually.
 
 ### 🌿 Wellbeing API
-Wave connects to a custom-built Wellbeing API that offers blogs and podcasts to help you relax. Perfect for when you're feeling stressed, tired, or unmotivated.
+Wave connects to a custom-built Wellbeing API that offers blogs and podcasts to help you relax. Perfect for when you're feeling stressed, tired, or unmotivated. 
 
 ✅ Supports:
 
-* Mindfulness
-* Sleep routine
+* Mindfulness 
+* Sleep routine 
 * Study/life balance plans
-* Encouraging wellness
+* Encouraging wellness 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -144,23 +144,23 @@ Wave connects to a custom-built Wellbeing API that offers blogs and podcasts to 
 <!-- ROADMAP -->
 ## 🛣️ Roadmap
 
-- [x] Splash Screen + Launch Flow
-- [x] Onboarding Screens
-- [x] Firebase Authentication (Login & Signup)
-- [x] Dashboard with Navigation Bar
-    - [x] Home Tasks Page
-    - [x] School Tasks Page
-    - [x] Budgeting Interface
-    - [x] Wellness (AI-Powered Advice & Prompts)
-- [x] Calendar View
-    - [x] Combined Home + School Tasks Calendar
-    - [x] Filtered Fragments for Each Task Type
+- [x] Splash Screen + Launch Flow  
+- [x] Onboarding Screens  
+- [x] Firebase Authentication (Login & Signup)  
+- [x] Dashboard with Navigation Bar  
+    - [x] Home Tasks Page  
+    - [x] School Tasks Page  
+    - [x] Budgeting Interface  
+    - [x] Wellness (AI-Powered Advice & Prompts)  
+- [x] Calendar View  
+    - [x] Combined Home + School Tasks Calendar  
+    - [x] Filtered Fragments for Each Task Type  
 - [x] Profile Page with User Info & Picture
     - [x]  Ability to change account name and profile picture
-- [x] Settings Screen
-    - [x] Offline Task Access
+- [x] Settings Screen  
+    - [x] Offline Task Access  
     - [x] Dark/Light mode Toggling
-    - [x] Up to date calendar
+    - [x] Up to date calendar 
     - [x] Privacy Policy
 - [ ] Personalized notifications
 - [ ] Multiple language offers
