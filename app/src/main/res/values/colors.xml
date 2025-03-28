@@ -18,8 +18,8 @@
     <color name="border_gray">#CACACA</color>
     <color name="dark_gray">#4A454F</color>
     <color name="keypad_button_gray">#F5F6FA</color>
-    <color name="red">#FAA0A0</color>"
-    <color name="green">#D5F2DD</color>"
+    <color name="red">#FAA0A0</color>
+    <color name="green">#D5F2DD</color>
     <color name="spinner_icon_gray">#6B6B6B</color>
     <color name="spinner_selected">#0130F8</color>
     <color name="semi_transparent_blue">#66339CFF</color>
@@ -31,4 +31,18 @@
     <color name="transparent">#00000000</color>
     <color name="default_stroke">#E4EAF0</color>
     <color name="dark_purple">#9448F6</color>
+    <color name="gray_900">#212121</color>  <!-- window background -->
+    <color name="gray_800">#2E2E2E</color>  <!-- cards, surfaces -->
+    <color name="gray_100">#F5F5F5</color>  <!-- text, icons -->
+    <color name="bottom_nav_static">#C8F9FF</color>
+    <color name="login_signup_card">#FFFFFF</color>
+    <color name="tagline">#0086FF</color>
+    <color name="about_us_quote">@color/blue</color>
+    <color name="star_color">#BFBFBF</color>
+    <color name="privacy_heading_light">#007BFF</color>
+    <color name="privacy_text_light">#000000</color>
+    <color name="fragment_card">#ffffff</color>
+    <color name="fragment_text">#2743FD</color>
+    <color name="fragment_amount">#A9B7FF</color>
+    <color name="no_internet_text">@color/gray</color>
 </resources>

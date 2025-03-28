@@ -5,7 +5,7 @@ xmlns:app="http://schemas.android.com/apk/res-auto"
 xmlns:tools="http://schemas.android.com/tools"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
-android:background="@color/white">
+    android:background="?android:windowBackground">
 
 <!-- Entire screen is scrollable -->
 <ScrollView
@@ -44,7 +44,8 @@ android:background="@color/white">
                 android:contentDescription="back_button"
                 android:layout_gravity="start"
                 android:layout_marginTop="120dp"
-                android:layout_marginStart="20dp"/>
+                android:layout_marginStart="20dp"
+                app:tint="?attr/colorOnSurface"/>
 
             <!-- Title -->
             <TextView
@@ -54,7 +55,7 @@ android:background="@color/white">
                 android:text="FAQs"
                 android:textSize="30sp"
                 android:fontFamily="@font/lato_bold"
-                android:textColor="@android:color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:layout_marginTop="160dp"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
@@ -81,7 +82,7 @@ android:background="@color/white">
             android:layout_height="wrap_content"
             android:text="Welcome to the Wave FAQs!"
             android:textSize="24sp"
-            android:textColor="@color/black"
+            android:textColor="?attr/colorOnSurface"
             android:fontFamily="@font/archivo_semibold"
             android:layout_marginStart="20dp"
             android:layout_marginEnd="20dp"
@@ -98,7 +99,7 @@ android:background="@color/white">
             android:text="Here you'll find answers to some of the most common questions about how to use Wave. This section is designed to help you quickly resolve any queries you might have and enhance your experience with our app. If you need more assistance, don't hesitate to contact our support team."
             android:textSize="20sp"
             android:fontFamily="@font/archivo_light"
-            android:textColor="@android:color/black"
+            android:textColor="?attr/colorOnSurface"
             android:layout_marginTop="12dp"
             android:layout_marginStart="20dp"
             android:layout_marginEnd="20dp"

@@ -25,7 +25,7 @@
         android:background="#CCFFFFFF"
         app:cardCornerRadius="30dp"
         app:cardElevation="5dp"
-        app:cardBackgroundColor="@android:color/white"
+        app:cardBackgroundColor="@color/login_signup_card"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent="0.6"

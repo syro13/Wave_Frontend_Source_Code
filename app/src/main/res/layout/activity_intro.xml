@@ -47,7 +47,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/archivo_medium"
             android:text="@string/welcome_to_wave"
-            android:textColor="#0086FF"
+            android:textColor="@color/tagline"
             android:textSize="27sp"
             android:gravity="center" />
 
@@ -59,7 +59,7 @@
             android:layout_marginTop="15dp"
             android:fontFamily="@font/inter_light"
             android:text="@string/tagline"
-            android:textColor="#0086FF"
+            android:textColor="@color/tagline"
             android:textSize="17sp"
             android:gravity="center" />
 

@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?android:windowBackground">
 
     <!-- Main Content ScrollView -->
     <ScrollView
         android:id="@+id/mainContent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/white"
         android:fillViewport="true">
 
         <LinearLayout
@@ -34,7 +34,8 @@
                 android:layout_height="24dp"
                 android:src="@drawable/arrow_back"
                 android:layout_marginTop="15dp"
-                android:layout_marginStart="20dp"/>
+                android:layout_marginStart="20dp"
+                app:tint="?attr/colorOnSurface"/>
 
             <!-- Title -->
             <TextView
@@ -43,7 +44,7 @@
                 android:text="About Us"
                 android:textSize="30sp"
                 android:fontFamily="@font/lato_bold"
-                android:textColor="@android:color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:layout_marginTop="10dp"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
@@ -56,7 +57,7 @@
                 android:text="“Empowering every student to ride the wave of success.”"
                 android:textSize="28sp"
                 android:fontFamily="@font/archivo_semibold"
-                android:textColor="@color/blue"
+                android:textColor="@color/about_us_quote"
                 android:layout_marginTop="10dp"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
@@ -69,7 +70,7 @@
                 android:text="Wave is more than just an app; it's your steadfast companion on the journey through academia and beyond. Designed with the student in mind, Wave offers a seamless integration of lifestyle management and educational tools, all tailored to fit the unique needs of today's scholars. From budgeting and task management to wellness and school work, Wave understands the waves of challenges you face. It's here to ensure that every student not only survives but thrives in the bustling currents of student life, helping you keep your head above water and your goals within reach."
                 android:textSize="20sp"
                 android:fontFamily="@font/archivo_light"
-                android:textColor="@android:color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:layout_marginTop="12dp"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
@@ -82,7 +83,7 @@
                 android:text="Meet the Team"
                 android:textSize="30sp"
                 android:fontFamily="@font/lato_bold"
-                android:textColor="@android:color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:layout_marginTop="20dp"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
@@ -116,13 +117,15 @@
                         android:layout_height="wrap_content"
                         android:text="Jakub"
                         android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurface"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Project Manager,\nAPI Dev"
                         android:textSize="12sp"
-                        android:gravity="center" />
+                        android:gravity="center"
+                        android:textColor="?attr/colorOnSurface"/>
                 </LinearLayout>
 
                 <!-- Team Member 2 -->
@@ -143,13 +146,15 @@
                         android:layout_height="wrap_content"
                         android:text="Nojus"
                         android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurface"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Database Manager,\nQA Analyst"
                         android:textSize="12sp"
-                        android:gravity="center" />
+                        android:gravity="center"
+                        android:textColor="?attr/colorOnSurface"/>
                 </LinearLayout>
 
                 <!-- Team Member 3 -->
@@ -170,13 +175,15 @@
                         android:layout_height="wrap_content"
                         android:text="Nebi"
                         android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurface"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="AI Dev,\nQA Analyst"
                         android:textSize="12sp"
-                        android:gravity="center" />
+                        android:gravity="center"
+                        android:textColor="?attr/colorOnSurface"/>
                 </LinearLayout>
             </LinearLayout>
 
@@ -204,13 +211,15 @@
                         android:layout_height="wrap_content"
                         android:text="Raveena"
                         android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurface"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="UI/UX,\nFrontend Dev"
                         android:textSize="12sp"
-                        android:gravity="center" />
+                        android:gravity="center"
+                        android:textColor="?attr/colorOnSurface"/>
                 </LinearLayout>
 
                 <!-- Team Member 5 -->
@@ -231,13 +240,15 @@
                         android:layout_height="wrap_content"
                         android:text="Hannah"
                         android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurface"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Frontend Dev,\nUI/UX"
                         android:textSize="12sp"
-                        android:gravity="center" />
+                        android:gravity="center"
+                        android:textColor="?attr/colorOnSurface"/>
                 </LinearLayout>
             </LinearLayout>
 
@@ -248,7 +259,7 @@
                 android:text="Core Values"
                 android:textSize="30sp"
                 android:fontFamily="@font/lato_bold"
-                android:textColor="@android:color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:layout_marginTop="20dp"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
@@ -268,7 +279,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Empowerment"
-                    android:textColor="@color/blue"
+                    android:textColor="@color/about_us_quote"
                     android:textStyle="bold"
                     android:textSize="20sp"
                     android:fontFamily="@font/archivo_semibold"/>
@@ -279,14 +290,15 @@
                     android:text="Enabling student success through powerful tools."
                     android:textSize="18sp"
                     android:layout_marginBottom="5dp"
-                    android:fontFamily="@font/archivo_medium"/>
+                    android:fontFamily="@font/archivo_medium"
+                    android:textColor="?attr/colorOnSurface"/>
 
                 <!-- Innovation -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Innovation"
-                    android:textColor="@color/blue"
+                    android:textColor="@color/about_us_quote"
                     android:textStyle="bold"
                     android:textSize="20sp"
                     android:fontFamily="@font/archivo_semibold" />
@@ -297,14 +309,15 @@
                     android:text="Continuously innovating for better learning experiences."
                     android:textSize="18sp"
                     android:layout_marginBottom="5dp"
-                    android:fontFamily="@font/archivo_medium"/>
+                    android:fontFamily="@font/archivo_medium"
+                    android:textColor="?attr/colorOnSurface"/>
 
                 <!-- Integrity -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Integrity"
-                    android:textColor="@color/blue"
+                    android:textColor="@color/about_us_quote"
                     android:textStyle="bold"
                     android:textSize="20sp"
                     android:fontFamily="@font/archivo_semibold"/>
@@ -315,14 +328,15 @@
                     android:text="Committing to reliability and ethical practices."
                     android:textSize="18sp"
                     android:layout_marginBottom="5dp"
-                    android:fontFamily="@font/archivo_medium" />
+                    android:fontFamily="@font/archivo_medium"
+                    android:textColor="?attr/colorOnSurface"/>
 
                 <!-- Collaboration -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Collaboration"
-                    android:textColor="@color/blue"
+                    android:textColor="@color/about_us_quote"
                     android:textStyle="bold"
                     android:textSize="20sp"
                     android:fontFamily="@font/archivo_semibold" />
@@ -333,14 +347,15 @@
                     android:text="Fostering teamwork within and beyond the app."
                     android:textSize="18sp"
                     android:layout_marginBottom="5dp"
-                    android:fontFamily="@font/archivo_medium"/>
+                    android:fontFamily="@font/archivo_medium"
+                    android:textColor="?attr/colorOnSurface"/>
 
                 <!-- Resilience -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Resilience"
-                    android:textColor="@color/blue"
+                    android:textColor="@color/about_us_quote"
                     android:textStyle="bold"
                     android:textSize="20sp"
                     android:fontFamily="@font/archivo_semibold" />
@@ -351,14 +366,15 @@
                     android:text="Supporting students to overcome academic challenges."
                     android:textSize="18sp"
                     android:layout_marginBottom="5dp"
-                    android:fontFamily="@font/archivo_medium" />
+                    android:fontFamily="@font/archivo_medium"
+                    android:textColor="?attr/colorOnSurface"/>
 
                 <!-- User-Centric -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="User-Centric"
-                    android:textColor="@color/blue"
+                    android:textColor="@color/about_us_quote"
                     android:textStyle="bold"
                     android:textSize="20sp"
                     android:fontFamily="@font/archivo_semibold" />
@@ -369,14 +385,15 @@
                     android:text="Prioritizing user feedback in our design."
                     android:textSize="18sp"
                     android:layout_marginBottom="5dp"
-                    android:fontFamily="@font/archivo_medium"/>
+                    android:fontFamily="@font/archivo_medium"
+                    android:textColor="?attr/colorOnSurface"/>
 
                 <!-- Accessibility -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Accessibility"
-                    android:textColor="@color/blue"
+                    android:textColor="@color/about_us_quote"
                     android:textStyle="bold"
                     android:textSize="20sp"
                     android:fontFamily="@font/archivo_semibold" />
@@ -387,7 +404,8 @@
                     android:text="Ensuring every student can access our resources easily."
                     android:textSize="18sp"
                     android:layout_marginBottom="5dp"
-                    android:fontFamily="@font/archivo_medium" />
+                    android:fontFamily="@font/archivo_medium"
+                    android:textColor="?attr/colorOnSurface"/>
             </LinearLayout>
 
 
@@ -398,7 +416,7 @@
                 android:text="Contact Us"
                 android:textSize="30sp"
                 android:fontFamily="@font/lato_bold"
-                android:textColor="@android:color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:layout_marginTop="20dp"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
@@ -409,7 +427,7 @@
                 android:layout_height="wrap_content"
                 android:text="Email: support@waveapp.com\nPhone: +1 (800) 555-0123\nAddress: 123 Wave Blvd, Innovation City, 94016"
                 android:textSize="18sp"
-                android:textColor="@color/blue"
+                android:textColor="@color/about_us_quote"
                 android:layout_marginTop="8dp"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"

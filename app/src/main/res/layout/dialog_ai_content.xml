@@ -8,8 +8,7 @@
         android:layout_height="wrap_content"
         android:minWidth="300dp"
         android:orientation="vertical"
-        android:padding="16dp"
-        android:background="#FFFFFF">
+        android:padding="16dp">
 
     <!-- Title (centered) -->
     <TextView
@@ -18,7 +17,7 @@
         android:layout_height="wrap_content"
         android:textStyle="bold"
         android:textSize="18sp"
-        android:textColor="@color/black"
+        android:textColor="?attr/colorOnSurface"
         android:gravity="center"
         android:text="Sample Title" />
 
@@ -28,7 +27,7 @@
         android:layout_height="1dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        android:background="@color/black" />
+        android:background="?attr/colorOnSurface"/>
 
     <!-- Content -->
     <TextView
@@ -36,7 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:textColor="@color/black"
+        android:textColor="?attr/colorOnSurface"
         android:text="Sample content goes here"
         android:scrollbars="vertical" />
 

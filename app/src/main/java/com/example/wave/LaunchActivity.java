@@ -2,6 +2,7 @@ package com.example.wave;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,6 +14,7 @@ import android.animation.ValueAnimator;
 import android.media.MediaPlayer;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.ImageView;
 
 public class LaunchActivity extends AppCompatActivity {
 
@@ -24,17 +26,24 @@ public class LaunchActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch);
 
+        LottieAnimationView lottie = findViewById(R.id.lottieAnimation);
+        ImageView logo = findViewById(R.id.logoImage);
+
+        // Load dark/light versions based on theme
+        int nightModeFlags = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+            lottie.setAnimation(R.raw.launch_animation_dark);
+            logo.setImageResource(R.drawable.wave_logo_dark);
+        } else {
+            lottie.setAnimation(R.raw.launch_animation);
+            logo.setImageResource(R.drawable.wave_logo);
+        }
+
+        lottie.setRepeatCount(ValueAnimator.INFINITE);
+        lottie.playAnimation();
 
         mediaPlayer = MediaPlayer.create(this, R.raw.wave_sound);
         mediaPlayer.start();
-
-
-        LottieAnimationView lottieAnimationView = findViewById(R.id.lottieAnimation);
-
-
-        lottieAnimationView.setRepeatCount(ValueAnimator.INFINITE);
-        lottieAnimationView.playAnimation();
-
 
         // Delay before checking session and transitioning
         new Handler(Looper.getMainLooper()).postDelayed(this::checkAppFlow, LAUNCH_DELAY);
