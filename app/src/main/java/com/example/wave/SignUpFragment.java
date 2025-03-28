@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.example.wave.utils.UserUtils;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -53,7 +54,15 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_sign_up, container, false);
+// Inject dynamic Lottie animation for theme
+        LottieAnimationView lottieView = view.findViewById(R.id.lottieAnimation);
+        int nightModeFlags = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
 
+        if (nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
+            lottieView.setAnimation(R.raw.login_signup_animation_dark); // dark theme animation
+        } else {
+            lottieView.setAnimation(R.raw.login_signup_animation); // default light theme animation
+        }
         // Initialize Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
 
