@@ -11,23 +11,21 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/github_username/repo_name">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+  <a href="https://github.com/syro13/Wave_Frontend_Source_Code">
+    <img src="images/logo.png" alt="Logo" width="90" height="90">
   </a>
 
-<h3 align="center">project_title</h3>
+<h3 align="center">Wave</h3>
 
   <p align="center">
-    project_description
+    Wave is a wellbeing application designed specifically to support college students who want help in managing various aspects of their overwhelming and busy lives. Not only recognising this, but experiencing it, is what helped us to come up with this idea. Wave aims to help in a wide range of tasks from financial budgeting advice to task management down to general wellbeing, all in the aim of creating a better college experience and minimising the possibility of burning out.
     <br />
-    <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/syro13/Wave_Frontend_Source_Code"><strong>Explore our repo »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/github_username/repo_name">View Demo</a>
+    <a href="https://github.com/syro13/Wave_Frontend_Source_Code">View Demo</a>
     &middot;
-    <a href="https://github.com/github_username/repo_name/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
-    &middot;
-    <a href="https://github.com/github_username/repo_name/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
+    <a href="https://github.com/syro13/Wave_Frontend_Source_Code/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
   </p>
 </div>
 
@@ -63,24 +61,23 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+![WAVE Home Screen](images/logo.png)
 
-Here's a blank template to get started. To avoid retyping too much info, do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`, `project_license`
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
-### Built With
+## 🛠️ Built With
 
-* [![Next][Next.js]][Next-url]
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
+* [![Android Studio](https://img.shields.io/badge/IDE-Android%20Studio-3DDC84?logo=androidstudio&logoColor=white)](https://developer.android.com/studio)
+* [![Java](https://img.shields.io/badge/Language-Java-007396?logo=java&logoColor=white)](https://www.oracle.com/java/)
+* [![XML](https://img.shields.io/badge/Markup-XML-E44D26?logo=xml&logoColor=white)](https://developer.android.com/guide/topics/resources/layout-resource)
+* [![Firebase](https://img.shields.io/badge/Backend-Firebase-FFCA28?logo=firebase&logoColor=white)](https://firebase.google.com/)
+* [![OpenAI](https://img.shields.io/badge/AI%20Powered%20By-OpenAI-412991?logo=openai&logoColor=white)](https://openai.com/)
+* [![Lottie](https://img.shields.io/badge/Animations-Lottie-FF4088?logo=lottie&logoColor=white)](https://airbnb.io/lottie/#/)
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
