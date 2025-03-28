@@ -1,6 +1,8 @@
 package com.example.wave;
 
 import android.app.Application;
+import android.content.SharedPreferences;
+
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.bumptech.glide.Glide;
@@ -21,8 +23,13 @@ public class AppController extends Application {
         super.onCreate();
         instance = this;
 
-        // Force Light Mode globally
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+        boolean isDark = prefs.getBoolean("dark_mode", false);
+
+        AppCompatDelegate.setDefaultNightMode(
+                isDark ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO
+        );
+
 
         // Load profile image on app launch
         loadUserProfile();
