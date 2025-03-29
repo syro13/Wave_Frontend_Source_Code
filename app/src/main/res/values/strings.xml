@@ -93,5 +93,16 @@
         <item>Repeat every Saturday</item>
         <item>Repeat every Sunday</item>
     </string-array>
+    <string-array name="time_options">
+        <item>1 hour</item>
+        <item>2 hours</item>
+        <item>3 hours</item>
+        <item>4 hours</item>
+        <item>5 hours</item>
+        <item>6 hours</item>
+        <item>8 hours</item>
+        <item>10 hours</item>
+        <item>12 hours</item>
+    </string-array>
     </resources>
 

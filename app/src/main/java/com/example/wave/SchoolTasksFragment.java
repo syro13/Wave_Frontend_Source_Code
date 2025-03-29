@@ -83,6 +83,23 @@ public class SchoolTasksFragment extends Fragment  {
         TextView schoolTasksButton = view.findViewById(R.id.SchoolTasksButton);
         TextView homeTasksButton = view.findViewById(R.id.homeTasksButton);
         setupSchoolNotesCard(view);
+        Button openBreakdown = view.findViewById(R.id.btnOpenSmartBreakdown);
+        openBreakdown.setOnClickListener(v -> {
+            SmartBreakdownBottomSheet sheet = new SmartBreakdownBottomSheet();
+            sheet.setListener(result -> {
+                TextView tv = getView().findViewById(R.id.textBreakdownResult);
+                tv.setText(result);
+
+                 CardView cardBreakdown = getView().findViewById(R.id.cardBreakdownResult);
+                cardBreakdown.setVisibility(View.VISIBLE);
+
+                requireContext().getSharedPreferences("SmartBreakdownPrefs", MODE_PRIVATE)
+                        .edit().putString("breakdownText", result).apply();
+            });
+            sheet.show(getParentFragmentManager(), "SmartBreakdown");
+        });
+
+
 
         BaseActivity baseActivity = (BaseActivity) requireActivity();
         baseActivity.setNoInternetOverlay(view.findViewById(R.id.noInternetOverlay));

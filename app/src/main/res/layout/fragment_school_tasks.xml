@@ -484,6 +484,112 @@
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
                 </GridLayout>
+                <LinearLayout
+                    xmlns:android="http://schemas.android.com/apk/res/android"
+                    xmlns:app="http://schemas.android.com/apk/res-auto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:background="@color/background_color">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Analysis"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_text_color"
+                        android:layout_marginBottom="16dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenSmartBreakdown"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Smart Breakdown"
+                        android:textStyle="bold"
+                        app:icon="@drawable/ic_analytics"
+                        app:iconGravity="textStart"
+                        app:iconPadding="12dp"
+                        android:layout_marginBottom="20dp"
+                        app:cornerRadius="8dp"
+                        app:strokeColor="@color/primary_color"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/cardBreakdownResult"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:visibility="gone"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
+                        app:cardUseCompatPadding="true"
+                        app:cardBackgroundColor="@color/card_background_color">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="20dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Breakdown Results"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary_text_color"
+                                android:layout_marginBottom="12dp" />
+
+                            <ScrollView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fillViewport="true"
+                                android:layout_marginBottom="12dp">
+
+                                <TextView
+                                    android:id="@+id/textBreakdownResult"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="15sp"
+                                    android:textColor="@color/secondary_text_color"
+                                    android:lineSpacingExtra="8dp"
+                                    android:paddingTop="4dp" />
+                            </ScrollView>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="end">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnShareResults"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Share"
+                                    app:icon="@drawable/ic_share"
+                                    android:textSize="14sp"
+                                    app:cornerRadius="8dp"
+                                    style="@style/Widget.MaterialComponents.Button.TextButton" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnSaveResults"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Save"
+                                    app:icon="@drawable/ic_save"
+                                    android:textSize="14sp"
+                                    app:cornerRadius="8dp"
+                                    style="@style/Widget.MaterialComponents.Button.TextButton" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+                </LinearLayout>
+
+
+
 
                 <!-- AI Prompts Section -->
                 <LinearLayout
