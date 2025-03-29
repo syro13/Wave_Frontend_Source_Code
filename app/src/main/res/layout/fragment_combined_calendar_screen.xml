@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="?android:windowBackground">
 
     <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
@@ -24,7 +24,7 @@
                 android:id="@+id/schoolHeaderBackground"
                 android:layout_width="match_parent"
                 android:layout_height="180dp"
-                android:background="@drawable/header_dashboard">
+                android:background="@drawable/header_pages">
 
                 <!-- Header Content -->
                 <ImageView
@@ -67,7 +67,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#FFFFFF"
+                android:background="?android:windowBackground"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="16dp">
@@ -344,7 +344,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#FFFFFF"
+                android:background="?android:windowBackground"
                 android:orientation="vertical"
                 android:padding="16dp">
 
@@ -353,7 +353,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Today"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="20sp" />
 
                 <ImageView
@@ -380,7 +380,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#FFFFFF"
+                android:background="?android:windowBackground"
                 android:orientation="vertical"
                 android:padding="16dp">
 
@@ -389,7 +389,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="This Week"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="20sp" />
 
                 <androidx.recyclerview.widget.RecyclerView

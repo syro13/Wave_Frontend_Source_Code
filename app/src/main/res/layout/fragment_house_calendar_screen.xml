@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".HomeCalendarFragment"
-    android:background="@color/white">
+    android:background="?android:windowBackground">
 
     <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
@@ -25,7 +25,7 @@
                 android:id="@+id/schoolHeaderBackground"
                 android:layout_width="match_parent"
                 android:layout_height="180dp"
-                android:background="@drawable/header_dashboard">
+                android:background="@drawable/header_pages">
 
                 <!-- Header Content -->
                 <ImageView
@@ -71,7 +71,7 @@
                 android:orientation="vertical"
                 android:padding="16dp"
                 android:gravity="center"
-                android:background="#FFFFFF">
+                android:background="?android:windowBackground">
 
                 <LinearLayout
                     android:id="@+id/tasksToggleContainer"
@@ -301,7 +301,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#FFFFFF"
+                android:background="?android:windowBackground"
                 android:orientation="vertical"
                 android:padding="16dp">
 
@@ -310,7 +310,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Today"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="20sp" />
 
                 <ImageView
@@ -340,7 +340,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp"
-                android:background="#FFFFFF">
+                android:background="?android:windowBackground">
 
                 <TextView
                     android:id="@+id/tasksDueThisWeekTitle"
@@ -348,7 +348,7 @@
                     android:layout_height="wrap_content"
                     android:text="This Week"
                     android:textSize="20sp"
-                    android:textColor="@color/black" />
+                    android:textColor="?attr/colorOnSurface" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/weeklyTaskRecyclerView"

@@ -104,7 +104,6 @@ public class WellnessActivity extends BaseActivity{
         promptsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         setupPrompts();
 
-
         showLoading();
 
         // Start loading tasks
