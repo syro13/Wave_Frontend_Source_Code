@@ -16,7 +16,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
 
-public class ForgotPasswordActivity extends AppCompatActivity {
+public class ForgotPasswordActivity extends BaseActivity {
 
     private EditText emailInput;
     private Button submitButton;
@@ -39,10 +39,16 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         // Handle Reset Password Button Click
         submitButton.setOnClickListener(v -> resetPassword());
 
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
+
         // Handle Back Button Click
         backButton.setOnClickListener(v -> finish()); // Go back to Login screen
     }
-
+    @Override
+    protected int getCurrentMenuItemId() {
+        return -1; // No selection
+    }
     private void resetPassword() {
         String email = emailInput.getText().toString().trim();
 

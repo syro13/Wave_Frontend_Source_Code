@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="?android:windowBackground">
 
     <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
@@ -24,7 +24,7 @@
                 android:id="@+id/schoolHeaderBackground"
                 android:layout_width="match_parent"
                 android:layout_height="180dp"
-                android:background="@drawable/header_dashboard">
+                android:background="@drawable/header_pages">
 
                 <!-- Header Content -->
                 <ImageView
@@ -67,7 +67,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#FFFFFF"
+                android:background="?android:windowBackground"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="16dp">
@@ -189,7 +189,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentStart="true"
                         android:text="TODAY"
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="@color/dark_gray"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -206,15 +206,6 @@
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
-                    <!-- Expansion Icon -->
-                    <ImageView
-                        android:id="@+id/expandCollapseIcon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:contentDescription="Expand or Collapse"
-                        android:src="@drawable/ic_expand_more" />
                 </RelativeLayout>
 
                 <!-- Divider -->
@@ -241,15 +232,14 @@
                         android:contentDescription="Previous Month"
                         android:src="@drawable/ic_arrowleft" />
 
-                    <!-- Month and Year Dropdown -->
                     <Spinner
                         android:id="@+id/monthYearDropdown"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:textColor="@color/black"
-                        android:entries="@array/month_year_array"
-                        android:spinnerMode="dropdown" />
+                        android:spinnerMode="dropdown" /> <!-- Removes Default Arrow -->
+
 
                     <!-- Next Arrow -->
                     <ImageView
@@ -260,7 +250,85 @@
                         android:contentDescription="Next Month"
                         android:src="@drawable/ic_arrowright" />
                 </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/daysOfWeekHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:paddingBottom="4dp">
 
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="S"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="M"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="T"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="W"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="T"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="F"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="S"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+                </LinearLayout>
                 <!-- Calendar Grid -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/calendarRecyclerView"
@@ -268,14 +336,15 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                    app:spanCount="7" />
+                    app:spanCount="7" /> <!-- Default 7 columns (Full Month) -->
+
             </LinearLayout>
 
             <!-- Tasks Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#FFFFFF"
+                android:background="?android:windowBackground"
                 android:orientation="vertical"
                 android:padding="16dp">
 
@@ -284,8 +353,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Today"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="20sp" />
+
+                <ImageView
+                    android:id="@+id/emptyTasksImage"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:scaleType="fitCenter"
+                    android:visibility="gone"
+                    android:src="@drawable/empty_tasks_state"
+                    android:layout_gravity="center" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/taskRecyclerView"
@@ -302,7 +380,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#FFFFFF"
+                android:background="?android:windowBackground"
                 android:orientation="vertical"
                 android:padding="16dp">
 
@@ -311,7 +389,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="This Week"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="20sp" />
 
                 <androidx.recyclerview.widget.RecyclerView

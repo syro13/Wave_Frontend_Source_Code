@@ -1,115 +1,147 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mainConstraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Lottie Animation as Background -->
+    <!-- 0) Horizontal Guideline at 20% of screen height -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/topGuide"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.20" />
+
+    <!-- 1) Full-screen Lottie background -->
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/onboardingAnimation"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
         app:lottie_autoPlay="true"
         app:lottie_loop="true"
         app:lottie_rawRes="@raw/onboarding_animation"
-        android:scaleType="centerCrop" />
 
-    <!-- Skip Button -->
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 2) Skip button: anchor it BELOW the guideline to place it lower -->
     <TextView
         android:id="@+id/skipButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="SKIP"
-        android:layout_alignTop="@id/viewPager"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="30dp"
         android:textColor="@android:color/black"
         android:textStyle="bold"
         android:textSize="16sp"
-        android:fontFamily="@font/lato"
-        android:elevation="10dp"/>
+        android:elevation="10dp"
 
-    <!-- ViewPager2 for Slides -->
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
+
+        app:layout_constraintTop_toBottomOf="@+id/topGuide"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- 3) ViewPager2: Constrained below the Skip button. Uses 0dp height
+         so it can grow/shrink with the layout. -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="190dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_centerHorizontal="true" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
 
-    <!-- Indicators (Dots) below ViewPager and above the buttons -->
+        app:layout_constraintTop_toBottomOf="@+id/skipButton"
+        app:layout_constraintBottom_toTopOf="@+id/indicatorLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 4) Indicators (dots), below ViewPager, above bottom buttons -->
     <LinearLayout
         android:id="@+id/indicatorLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_below="@id/viewPager"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="46dp"
-        android:elevation="10dp">
+        android:elevation="10dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+
+        app:layout_constraintTop_toBottomOf="@+id/viewPager"
+        app:layout_constraintBottom_toTopOf="@+id/backButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Dot 1 -->
         <View
             android:id="@+id/dot1"
             android:layout_width="12dp"
             android:layout_height="12dp"
-            android:backgroundTint="#D3E3FD"
             android:layout_margin="4dp"
-            android:background="@drawable/indicator_dot" />
+            android:background="@drawable/indicator_dot"
+            android:backgroundTint="#D3E3FD" />
 
         <!-- Dot 2 -->
         <View
             android:id="@+id/dot2"
             android:layout_width="12dp"
             android:layout_height="12dp"
-            android:backgroundTint="#D3E3FD"
             android:layout_margin="4dp"
-            android:background="@drawable/indicator_dot" />
+            android:background="@drawable/indicator_dot"
+            android:backgroundTint="#D3E3FD" />
 
         <!-- Dot 3 -->
         <View
             android:id="@+id/dot3"
             android:layout_width="12dp"
             android:layout_height="12dp"
-            android:backgroundTint="#D3E3FD"
             android:layout_margin="4dp"
-            android:background="@drawable/indicator_dot" />
+            android:background="@drawable/indicator_dot"
+            android:backgroundTint="#D3E3FD" />
     </LinearLayout>
 
-    <!-- Back Button aligned to the far left -->
+    <!-- 5) Back Button, bottom-left -->
     <Button
         android:id="@+id/backButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="BACK"
-        android:background="@android:color/transparent"
         android:textColor="@android:color/black"
         android:textStyle="bold"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
         android:textSize="15sp"
+        android:background="@android:color/transparent"
+        android:gravity="center"
+        android:elevation="10dp"
         android:layout_marginStart="16dp"
         android:layout_marginBottom="20dp"
-        android:gravity="center" />
 
-    <!-- Next Button aligned to the far right with rounded background -->
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- 6) Next Button, bottom-right -->
     <Button
         android:id="@+id/nextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="NEXT"
-        android:background="@drawable/rounded_button_background"
         android:textColor="@android:color/white"
         android:textStyle="bold"
-        android:layout_alignParentEnd="true"
+        android:textSize="15sp"
+        android:gravity="center"
         android:padding="10dp"
-        android:layout_alignParentBottom="true"
+        android:background="@drawable/rounded_button_background"
+        app:backgroundTint="@null"
+        android:elevation="10dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="20dp"
-        android:gravity="center"
-        android:textSize="15sp"
-        app:backgroundTint="@null" />
-</RelativeLayout>
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

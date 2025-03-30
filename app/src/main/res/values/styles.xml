@@ -49,4 +49,12 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+    <style name="CustomRatingBar" parent="@android:style/Widget.Material.RatingBar">
+        <item name="android:progressDrawable">@drawable/star_rating_selector</item>
+    </style>
+    <style name="FixedBottomNav" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="android:background">@color/bottom_nav_static</item>
+        <item name="itemIconTint">@color/nav_icon_selector</item>
+        <item name="itemTextColor">@color/nav_text_selector</item>
+    </style>
 </resources>

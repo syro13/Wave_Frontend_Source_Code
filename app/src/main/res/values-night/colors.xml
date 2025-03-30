@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+        <color name="gray_900">#4A4A4A</color> <!-- new dark background -->
+        <color name="gray_800">#2E2E2E</color> <!-- surface (cards, etc) -->
+        <color name="gray_100">#F5F5F5</color> <!-- on background/surface -->
+        <color name="login_signup_card">#F5FAFD</color>
+        <color name="tagline">#FFFFFF</color>
+        <color name="about_us_quote">#C6F9FF</color>
+        <color name="star_color">#FFFFFF</color>
+        <color name="privacy_heading_light">#C6F9FF</color>
+        <color name="privacy_text_light">#FFFFFF</color>
+        <color name="fragment_card">#4A4A4A</color>
+        <color name="fragment_text">#A6C1FF</color>
+        <color name="fragment_amount">#E3F2FD</color>
+        <color name="no_internet_text">#ffffff</color>
+</resources>

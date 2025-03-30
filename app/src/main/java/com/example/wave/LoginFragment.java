@@ -3,7 +3,10 @@ package com.example.wave;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputType;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +23,7 @@ import androidx.fragment.app.Fragment;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.example.wave.utils.UserUtils;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -48,12 +52,21 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
 
     private CallbackManager callbackManager;
     private TwitterAuthManager twitterAuthManager;
+    private ImageView passwordToggle;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
+// Inject dynamic Lottie animation for theme
+        LottieAnimationView lottieView = view.findViewById(R.id.lottieAnimation);
+        int nightModeFlags = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
 
+        if (nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
+            lottieView.setAnimation(R.raw.login_signup_animation_dark); // dark theme animation
+        } else {
+            lottieView.setAnimation(R.raw.login_signup_animation); // default light theme animation
+        }
         // Initialize Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
 
@@ -73,6 +86,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
         // Bind inputs and buttons
         emailInput = view.findViewById(R.id.emailInput);
         passwordInput = view.findViewById(R.id.passwordInput);
+        passwordToggle = view.findViewById(R.id.passwordToggle);
         Button loginSubmitButton = view.findViewById(R.id.loginSubmitButton);
         TextView loginButton = view.findViewById(R.id.loginButton);
         TextView signupButton = view.findViewById(R.id.signupButton);
@@ -81,6 +95,47 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
         ImageView twitterIcon = view.findViewById(R.id.twitterIcon);
         TextView forgotPasswordText = view.findViewById(R.id.forgotPassword);
 
+        passwordToggle.setClickable(false);
+        passwordToggle.setFocusable(false);
+        passwordToggle.setEnabled(false);
+
+        ImageView passwordToggle = view.findViewById(R.id.passwordToggle);
+        passwordToggle.setOnClickListener(v -> {
+            int inputType = passwordInput.getInputType();
+            boolean isPasswordVisible = (inputType & InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
+
+            if (isPasswordVisible) {
+                passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                passwordToggle.setImageResource(R.drawable.ic_eye_closed);
+            } else {
+                passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                passwordToggle.setImageResource(R.drawable.ic_eye_opened);
+            }
+            passwordInput.setSelection(passwordInput.getText().length());
+        });
+
+        passwordInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 0) {
+                    passwordToggle.setClickable(true);
+                    passwordToggle.setFocusable(true);
+                    passwordToggle.setEnabled(true);
+                    passwordToggle.setAlpha(1.0f); // Full opacity when enabled
+                } else {
+                    passwordToggle.setClickable(false);
+                    passwordToggle.setFocusable(false);
+                    passwordToggle.setEnabled(false);
+                    passwordToggle.setAlpha(0.5f);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
         // Set initial active state
         setActiveButton(loginButton, signupButton);
 

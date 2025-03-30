@@ -41,6 +41,19 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    packaging {
+        resources {
+            excludes.addAll(
+                listOf(
+                    "META-INF/NOTICE.md",
+                    "META-INF/LICENSE.md",
+                    "META-INF/LICENSE",
+                    "META-INF/NOTICE",
+                    "META-INF/DEPENDENCIES"
+                )
+            )
+        }
+    }
 }
 
 dependencies {
@@ -59,6 +72,8 @@ dependencies {
     implementation(libs.firebase.firestore) {
         exclude(group = "com.google.protobuf", module = "protobuf-lite")
     }
+    implementation ("com.github.bumptech.glide:okhttp3-integration:4.15.1")
+
     testImplementation(libs.junit)
     testImplementation(libs.ext.junit)
     testImplementation(libs.junit.jupiter)
@@ -78,10 +93,20 @@ dependencies {
     implementation (libs.converter.gson)
     implementation (libs.logging.interceptor)
     implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation ("com.github.bumptech.glide:glide:4.15.1")
-    annotationProcessor ("com.github.bumptech.glide:compiler:4.15.1")
-    implementation(libs.facebook.login)
+    annotationProcessor (libs.compiler)
     implementation ("com.facebook.android:facebook-android-sdk:16.3.0")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.play.services.auth.v2070)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+    implementation("com.google.android.material:material:1.9.0")
+    implementation(libs.recyclerview)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
     testImplementation("org.mockito:mockito-core:5.0.0")
     androidTestImplementation("org.mockito:mockito-android:5.0.0")
     implementation (libs.logging.interceptor.v493)
@@ -90,12 +115,14 @@ dependencies {
     implementation (libs.material.v1120)
     implementation("com.google.protobuf:protobuf-javalite:3.25.1")
     implementation ("com.google.firebase:firebase-storage:20.3.0")
+    implementation ("com.sun.mail:android-mail:1.6.7")
+    implementation ("com.sun.mail:android-activation:1.6.7")
 }
 
 configurations.all {
     resolutionStrategy.eachDependency {
         if (requested.group == "com.google.protobuf" && requested.name == "protobuf-lite") {
-            useTarget("com.google.protobuf:protobuf-javalite:3.25.1") // ✅ Correct syntax
+            useTarget("com.google.protobuf:protobuf-javalite:3.25.1") // Correct syntax
         }
     }
 }

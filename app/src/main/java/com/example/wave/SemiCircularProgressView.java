@@ -1,6 +1,7 @@
 package com.example.wave;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -24,13 +25,17 @@ public class SemiCircularProgressView extends View {
 
     public SemiCircularProgressView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(context);
     }
 
-    private void init() {
+    private void init(Context context) {
+        boolean isDarkMode = (context.getResources().getConfiguration().uiMode &
+                Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+
+        String blue = isDarkMode ? "#708BFF" : "#395EFD";
         // Background arc paint
         backgroundPaint = new Paint();
-        backgroundPaint.setColor(Color.parseColor("#395EFD")); // Blue background arc
+        backgroundPaint.setColor(Color.parseColor(blue)); // Blue background arc
         backgroundPaint.setStyle(Paint.Style.STROKE);
         backgroundPaint.setStrokeWidth(60f);
         backgroundPaint.setStrokeCap(Paint.Cap.ROUND); // Rounded edges
@@ -45,7 +50,7 @@ public class SemiCircularProgressView extends View {
 
         // Percentage text paint
         percentageTextPaint = new Paint();
-        percentageTextPaint.setColor(Color.parseColor("#395EFD")); // Blue text
+        percentageTextPaint.setColor(Color.parseColor(blue)); // Blue text
         percentageTextPaint.setTextSize(90f);
         percentageTextPaint.setTextAlign(Paint.Align.CENTER);
         percentageTextPaint.setFakeBoldText(true);
@@ -53,7 +58,7 @@ public class SemiCircularProgressView extends View {
 
         // Label text paint
         labelTextPaint = new Paint();
-        labelTextPaint.setColor(Color.parseColor("#395EFD")); // Blue text
+        labelTextPaint.setColor(Color.parseColor(blue)); // Blue text
         labelTextPaint.setTextSize(70f);
         labelTextPaint.setTextAlign(Paint.Align.CENTER);
         labelTextPaint.setAntiAlias(true);

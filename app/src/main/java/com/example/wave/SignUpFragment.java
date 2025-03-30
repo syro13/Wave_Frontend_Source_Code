@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.example.wave.utils.UserUtils;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -53,7 +54,15 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_sign_up, container, false);
+// Inject dynamic Lottie animation for theme
+        LottieAnimationView lottieView = view.findViewById(R.id.lottieAnimation);
+        int nightModeFlags = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
 
+        if (nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
+            lottieView.setAnimation(R.raw.login_signup_animation_dark); // dark theme animation
+        } else {
+            lottieView.setAnimation(R.raw.login_signup_animation); // default light theme animation
+        }
         // Initialize Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
 
@@ -237,7 +246,6 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                             authenticateWithGoogle(account, false); // Sign-in flow
                         } else {
                             // User doesn't exist, treat it as a sign-up
-                            Toast.makeText(getContext(), "Creating new account...", Toast.LENGTH_SHORT).show();
                             authenticateWithGoogle(account, true); // Sign-up flow
                         }
                     } else {
@@ -267,6 +275,11 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                         Toast.makeText(getContext(), "Google Sign-In Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+    private boolean isValidPassword(String password) {
+        // Minimum 12 characters, at least 1 uppercase, 1 lowercase, 1 digit, 1 special char
+        String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{12,100}$";
+        return password.matches(passwordRegex);
     }
 
     /**
@@ -303,7 +316,10 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
             confirmPasswordInput.setError("Passwords do not match");
             return;
         }
-
+        if (!isValidPassword(password)) {
+            passwordInput.setError("Password must be at least 12 characters, include uppercase, lowercase, number and special character");
+            return;
+        }
          mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
