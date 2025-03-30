@@ -3,6 +3,7 @@ package com.example.wave;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.LinearLayout;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -50,6 +51,22 @@ public class SettingsActivity extends BaseActivity {
             editor.apply();
         });
 
+        LinearLayout shareAppLayout = findViewById(R.id.shareAppLayout);
+        shareAppLayout.setOnClickListener(v -> {
+            shareAppLink();
+        });
+
+
+    }
+    private void shareAppLink() {
+        String shareText = "🌊 Check out Wave – an app to help students manage tasks, budgets & wellness!\n\nDownload here: https://wave-website-tqmo.onrender.com/";
+
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Wave App");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
+
+        startActivity(Intent.createChooser(shareIntent, "Share Wave via"));
     }
 
     @Override
