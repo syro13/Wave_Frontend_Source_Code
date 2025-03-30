@@ -8,7 +8,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
-    private static final String BASE_URL = "https://wave-wellness-api-source-code.onrender.com";
+    private static final String BASE_URL = "https://wave-wellness-api-source-code-test.onrender.com"; //Temporarily set to a test api deployment to not break the app
     private static Retrofit retrofit;
 
     public static Retrofit getRetrofitInstance(Context context, String baseUrl, String apiKeyHeader, String apiKey) {
