@@ -569,7 +569,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Share"
-                                    app:icon="@drawable/ic_share"
+                                    app:icon="@drawable/ic_share_settings"
                                     android:textSize="14sp"
                                     app:cornerRadius="8dp"
                                     style="@style/Widget.MaterialComponents.Button.TextButton" />

@@ -118,7 +118,8 @@
                     <ImageView
                         android:layout_width="25dp"
                         android:layout_height="25dp"
-                        android:src="@drawable/ic_arrow_right" />
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="?attr/colorOnSurface" />
                 </LinearLayout>
 
 
@@ -151,7 +152,8 @@
                     <ImageView
                         android:layout_width="25dp"
                         android:layout_height="25dp"
-                        android:src="@drawable/ic_arrow_right"/>
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="?attr/colorOnSurface" />
                 </LinearLayout>
 
                 <!-- Change Account Image -->
@@ -184,7 +186,8 @@
                     <ImageView
                         android:layout_width="25dp"
                         android:layout_height="25dp"
-                        android:src="@drawable/ic_arrow_right"/>
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="?attr/colorOnSurface" />
                 </LinearLayout>
 
                 <!-- Uptodo Title -->
@@ -227,7 +230,8 @@
                     <ImageView
                         android:layout_width="25dp"
                         android:layout_height="25dp"
-                        android:src="@drawable/ic_arrow_right"/>
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="?attr/colorOnSurface" />
                 </LinearLayout>
 
                 <!-- FAQ -->
@@ -259,7 +263,8 @@
                     <ImageView
                         android:layout_width="25dp"
                         android:layout_height="25dp"
-                        android:src="@drawable/ic_arrow_right"/>
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="?attr/colorOnSurface" />
                 </LinearLayout>
 
                 <!-- Feedback -->
@@ -291,7 +296,8 @@
                     <ImageView
                         android:layout_width="25dp"
                         android:layout_height="25dp"
-                        android:src="@drawable/ic_arrow_right"/>
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="?attr/colorOnSurface" />
                 </LinearLayout>
                 <!-- Privacy Policy -->
                 <LinearLayout
@@ -322,7 +328,8 @@
                     <ImageView
                         android:layout_width="25dp"
                         android:layout_height="25dp"
-                        android:src="@drawable/ic_arrow_right"/>
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="?attr/colorOnSurface" />
                 </LinearLayout>
                 <!-- Log Out -->
                 <LinearLayout
