@@ -16,19 +16,6 @@ import java.util.Locale;
 @RunWith(AndroidJUnit4.class)
 public class DashboardActivityTests {
 
-    // Tests that the greeting text is displayed
-//    @Test
-//    public void testGreetingText() {
-//        ActivityScenario<DashboardActivity> scenario = ActivityScenario.launch(DashboardActivity.class);
-//
-//        scenario.onActivity(activity -> {
-//            TextView greetingText = activity.findViewById(R.id.greetingText);
-//
-//            // If no one is logged should display hello user
-//            assertEquals("Hello User!", greetingText.getText().toString());
-//        });
-//    }
-
     // Tests that the current date is displayed
     @Test
     public void testCurrentDateDisplayed() {
