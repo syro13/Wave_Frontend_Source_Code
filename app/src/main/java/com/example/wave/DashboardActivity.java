@@ -67,11 +67,11 @@ public class DashboardActivity extends BaseActivity implements
         setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
         configureNoInternetOverlay();
 
-        // Retrieve the current user once.
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             refreshAuthToken(user);
         }
+
         auth = FirebaseAuth.getInstance();
         authListener = firebaseAuth -> {
             FirebaseUser currentUser = firebaseAuth.getCurrentUser();
@@ -83,11 +83,13 @@ public class DashboardActivity extends BaseActivity implements
                 finish();
             }
         };
+
         try {
             ProviderInstaller.installIfNeeded(getApplicationContext());
         } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
             Log.e("SSL", "Provider installation failed", e);
         }
+
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .connectionSpecs(Collections.singletonList(
                         new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
@@ -98,24 +100,22 @@ public class DashboardActivity extends BaseActivity implements
 
         Glide.get(this).getRegistry().replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory((okhttp3.Call.Factory) okHttpClient));
 
-        // Set up bottom navigation.
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         setupBottomNavigation(bottomNavigationView);
 
-        // Set up greeting and card click.
         TextView greetingTextView = findViewById(R.id.greetingText);
         CardView schoolTasksCard = findViewById(R.id.schoolTasksCard);
         schoolTasksCard.setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, SchoolTasksFragment.class);
             startActivity(intent);
         });
+
         if (user != null) {
             String displayName = user.getDisplayName();
             greetingTextView.setText(displayName != null && !displayName.isEmpty()
                     ? "Hello " + displayName + "!" : "Hello User!");
         }
 
-        // Initialize task list, adapter, and RecyclerView.
         taskList = new ArrayList<>();
         taskAdapter = new TaskAdapter(taskList, this, this, this, this, editTaskLauncher);
         taskRecyclerView = findViewById(R.id.taskRecyclerView);
@@ -124,16 +124,14 @@ public class DashboardActivity extends BaseActivity implements
         SnapHelper snapHelper = new LinearSnapHelper();
         snapHelper.attachToRecyclerView(taskRecyclerView);
 
-
-        // Load dashboard UI components.
         loadCurrentDate();
 
-        // Set up click listeners for other dashboard cards.
         findViewById(R.id.homeTasksCard).setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class);
-            intent.putExtra("showHomeTasks", true); // Flag to indicate home tasks should load
+            intent.putExtra("showHomeTasks", true);
             startActivity(intent);
         });
+
         findViewById(R.id.schoolTasksCard).setOnClickListener(v ->
                 startActivity(new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class)));
         findViewById(R.id.wellnessTasksCard).setOnClickListener(v ->
@@ -142,8 +140,10 @@ public class DashboardActivity extends BaseActivity implements
                 startActivity(new Intent(DashboardActivity.this, BudgetPlannerActivity.class)));
         findViewById(R.id.profileIcon).setOnClickListener(v ->
                 startActivity(new Intent(DashboardActivity.this, ProfileActivity.class)));
+
         loadDashboardTasks();
     }
+
     @Override
     protected int getCurrentMenuItemId() {
         return R.id.nav_index;
@@ -159,21 +159,14 @@ public class DashboardActivity extends BaseActivity implements
 
     @Override
     public void onTaskDeleted(Task task) {
-        // Show a confirmation dialog before actually deleting
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Delete Task")
                 .setMessage("Are you sure you want to delete \"" + task.getTitle() + "\"?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    // If user confirms, call the actual delete method
-                    deleteTask(task);
-                })
+                .setPositiveButton("Yes", (dialog, which) -> deleteTask(task))
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
-    /**
-     * Deletes the given task from Firestore after archiving it in the 'cancelled' collection.
-     */
     private void deleteTask(Task task) {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
@@ -184,9 +177,6 @@ public class DashboardActivity extends BaseActivity implements
             return;
         }
 
-        // Map the task's category to the Firestore collection
-        // "School" or "Both" -> "schooltasks"
-        // "Home" -> "housetasks"
         String category = task.getCategory();
         String taskCollection;
         String archiveCollection;
@@ -195,19 +185,16 @@ public class DashboardActivity extends BaseActivity implements
             taskCollection = "schooltasks";
             archiveCollection = "cancelledSchoolTasks";
         } else {
-            // e.g. "Home"
             taskCollection = "housetasks";
             archiveCollection = "cancelledHomeTasks";
         }
 
-        // First, archive the task by copying it to the cancelled collection
         db.collection("users")
                 .document(userId)
                 .collection(archiveCollection)
                 .document(task.getId())
                 .set(task)
                 .addOnSuccessListener(aVoid -> {
-                    // Then delete from the active collection
                     db.collection("users")
                             .document(userId)
                             .collection(taskCollection)
@@ -215,8 +202,6 @@ public class DashboardActivity extends BaseActivity implements
                             .delete()
                             .addOnSuccessListener(aVoid2 -> {
                                 Log.d("Firestore", "Task archived and deleted: " + task.getTitle());
-
-                                // If you want to refresh the UI after deletion:
                                 loadDashboardTasks();
                             })
                             .addOnFailureListener(e -> {
@@ -230,7 +215,6 @@ public class DashboardActivity extends BaseActivity implements
                 });
     }
 
-
     @Override
     public void onTaskCompleted(Task task) {
         loadDashboardTasks();
@@ -239,17 +223,13 @@ public class DashboardActivity extends BaseActivity implements
     private final ActivityResultLauncher<Intent> editTaskLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    // Optionally, retrieve the updated Task
                     Task updatedTask = result.getData().getParcelableExtra("updatedTask");
                     if (updatedTask != null) {
                         Log.d("DashboardActivity", "Received updatedTask: " + updatedTask.getTitle());
                     }
-
-                    // Then refresh your list from Firestore
                     loadDashboardTasks();
                 }
             });
-
 
     private void updateTaskInFirestore(Task updatedTask, int position) {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
@@ -270,14 +250,11 @@ public class DashboardActivity extends BaseActivity implements
                 .set(updatedTask)
                 .addOnSuccessListener(aVoid -> {
                     Log.d("Firestore", "Task successfully updated: " + updatedTask.getTitle());
-                    loadDashboardTasks(); // Refresh task list
+                    loadDashboardTasks();
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error updating task", e));
     }
 
-    /**
-     * Refreshes the Firebase Auth Token.
-     */
     private void refreshAuthToken(FirebaseUser user) {
         user.getIdToken(true).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -294,7 +271,6 @@ public class DashboardActivity extends BaseActivity implements
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEE dd MMM", Locale.getDefault());
         currentDate.setText(dateFormat.format(new Date()));
     }
-
 
     private void loadDashboardTasks() {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
@@ -328,12 +304,10 @@ public class DashboardActivity extends BaseActivity implements
                                         dashboardTasks.add(task);
                                     }
                                 }
-                                // Update adapter and refresh UI
                                 taskList.clear();
                                 taskList.addAll(dashboardTasks);
                                 taskAdapter.notifyDataSetChanged();
 
-                                // Handle empty UI state
                                 TextView tasksDueTodayTitle = findViewById(R.id.tasksDueTodayTitle);
                                 tasksDueTodayTitle.setText(dashboardTasks.isEmpty() ? "No Tasks for Today" : "Tasks for Today");
 
@@ -346,7 +320,6 @@ public class DashboardActivity extends BaseActivity implements
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error fetching School tasks", e));
     }
-
 
     private boolean isTaskForToday(Task task) {
         Calendar today = Calendar.getInstance();
