@@ -102,6 +102,22 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
 
         setActiveButton(homeTasksButton, schoolTasksButton);
 
+        Button openHouseBreakdown = view.findViewById(R.id.btnOpenSmartBreakdown);
+        openHouseBreakdown.setOnClickListener(v -> {
+            HouseBreakdownBottomSheet sheet = new HouseBreakdownBottomSheet();
+            sheet.setListener(result -> {
+                TextView tv = getView().findViewById(R.id.textBreakdownResult);
+                tv.setText(result);
+                CardView cardHouseBreakdown = getView().findViewById(R.id.cardBreakdownResult);
+                cardHouseBreakdown.setVisibility(View.VISIBLE);
+
+                requireContext().getSharedPreferences("HouseBreakdownPrefs", MODE_PRIVATE)
+                        .edit().putString("houseBreakdownText", result).apply();
+            });
+            sheet.show(getParentFragmentManager(), "HouseBreakdown");
+        });
+
+
         schoolTasksButton.setOnClickListener(v -> {
             setActiveButton(schoolTasksButton, homeTasksButton);
             if (getActivity() instanceof SchoolHomeTasksActivity) {
