@@ -1,23 +1,32 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
     <style name="Theme.Wave" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color. -->
-        <!-- TO-DO Change Colour names accordingly
-        <item name="colorPrimary">@color/medium_blue</item>
-        <item name="colorPrimaryVariant">@color/medium_blue</item>
-        <item name="colorOnPrimary">@color/black</item>
-       -->
+        <!-- Primary brand color -->
         <item name="colorPrimary">@color/blue</item>
         <item name="colorPrimaryVariant">@color/blue_variant</item>
         <item name="colorOnPrimary">@color/white</item>
-        <!-- Secondary brand color. -->
+
+        <!-- Secondary brand color -->
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_200</item>
-        <item name="colorOnSecondary">@color/black</item>
-        <!-- Button default color. -->
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Backgrounds -->
+        <item name="android:windowBackground">@color/gray_900</item>
+        <item name="colorSurface">@color/gray_800</item>
+        <item name="colorOnBackground">@color/gray_100</item>
+        <item name="colorOnSurface">@color/gray_100</item>
+
+        <!-- Button -->
         <item name="colorButtonNormal">@color/medium_blue</item>
-        <!-- Status bar color. -->
+
+        <!-- Status bar -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
+        <item name="android:windowLightStatusBar">false</item>
+        <!-- Typography -->
+        <item name="android:fontFamily">@font/archivo_medium</item>
+
+        <!-- Bottom NavigationView Style (same across light/dark) -->
+        <item name="bottomNavigationStyle">@style/FixedBottomNav</item>
     </style>
 </resources>

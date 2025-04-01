@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -58,14 +59,20 @@ import retrofit2.http.POST;
 
 public class SchoolTasksFragment extends Fragment  {
     private RecyclerView  promptsRecyclerView;
-    private PromptsAdapter promptsAdapter;
     private List<String> displayPromptsList;
     private List<String> actualPromptsList;
     private static final String SchoolNotesPREFS_NAME = "SchoolNotesPrefs";
     private static final String SCHOOL_NOTES_KEY = "school_notes";
     private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private ListenerRegistration schoolTasksListener; // For real-time updates
-
+    private ArrayList<GroceryItem> groceryItems;
+    private GroceryItemAdapter adapter;
+    private List<Task> completedTaskList;
+    private ProgressBar loadingIndicator;
+    private View loadingOverlay;
+    private AIPromptsAdapter promptsAdapter;
+    private View noInternetOverlay;
+    private NetworkReceiver networkReceiver;
 
     @Nullable
     @Override
@@ -76,29 +83,39 @@ public class SchoolTasksFragment extends Fragment  {
         TextView schoolTasksButton = view.findViewById(R.id.SchoolTasksButton);
         TextView homeTasksButton = view.findViewById(R.id.homeTasksButton);
         setupSchoolNotesCard(view);
+        Button openBreakdown = view.findViewById(R.id.btnOpenSmartBreakdown);
+        openBreakdown.setOnClickListener(v -> {
+            SmartBreakdownBottomSheet sheet = new SmartBreakdownBottomSheet();
+            sheet.setListener(result -> {
+                TextView tv = getView().findViewById(R.id.textBreakdownResult);
+                tv.setText(result);
+
+                 CardView cardBreakdown = getView().findViewById(R.id.cardBreakdownResult);
+                cardBreakdown.setVisibility(View.VISIBLE);
+
+                requireContext().getSharedPreferences("SmartBreakdownPrefs", MODE_PRIVATE)
+                        .edit().putString("breakdownText", result).apply();
+            });
+            sheet.show(getParentFragmentManager(), "SmartBreakdown");
+        });
+
+
+
+        BaseActivity baseActivity = (BaseActivity) requireActivity();
+        baseActivity.setNoInternetOverlay(view.findViewById(R.id.noInternetOverlay));
+        baseActivity.configureNoInternetOverlay();
+        loadingIndicator = view.findViewById(R.id.loadingIndicator);
+        loadingOverlay = view.findViewById(R.id.loadingOverlay);
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        requireContext().registerReceiver(networkReceiver, filter);
+
+        checkInitialInternetStatus();
 
         // RecyclerView setup for AI prompts
+
         promptsRecyclerView = view.findViewById(R.id.promptsRecyclerView);
         promptsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-
-        displayPromptsList = Arrays.asList(
-                "Suggest a quick study tip",
-                "How can I stay organized in my studies?",
-                "Give me advice on balancing chores with studying",
-                "How to make studying less stressful?",
-                "Share a tip for keeping my work clean and tidy"
-        );
-        actualPromptsList = Arrays.asList(
-                "As a student counselor, share a quick, research-backed study technique that helps students maximize learning in minimal time. Focus on cognitive science principles of memory and retention.",
-                "Provide a comprehensive yet concise organizational system for a college student struggling with managing multiple courses, assignments, and personal commitments. Include digital and physical organization techniques.",
-                "Develop a realistic approach for a student balancing academic workload with personal responsibilities. Include time-blocking techniques, prioritization methods, and stress reduction strategies.",
-                "Outline practical, immediate stress-reduction techniques specifically tailored to academic environments. Address mental health, study environment optimization, and emotional regulation.",
-                "Create a systematic approach to maintaining a clean, productive study space that enhances focus and reduces mental clutter. Include both physical organization and psychological strategies."
-        );
-
-        promptsAdapter = new PromptsAdapter(displayPromptsList, actualPromptsList, this::showPopup);
-        promptsRecyclerView.setAdapter(promptsAdapter);
+        setupPrompts();
 
         // Set initial active state for buttons
         setActiveButton(schoolTasksButton, homeTasksButton);
@@ -124,8 +141,58 @@ public class SchoolTasksFragment extends Fragment  {
             Intent intent = new Intent(requireContext(), ProfileActivity.class);
             startActivity(intent);
         });
+        CardView calendarFromTasksButton = view.findViewById(R.id.CalendarFromTasksButton); // ✅ CardView
+        if (calendarFromTasksButton == null) {
+            Log.e("SchoolTasksFragment", "CalendarFromTasksButton CardView NOT found in XML!");
+        } else {
+            Log.d("SchoolTasksFragment", "CalendarFromTasksButton CardView found, setting click listener...");
+
+            calendarFromTasksButton.setOnClickListener(v -> {
+                Log.d("SchoolTasksFragment", "CalendarFromTasksButton clicked, navigating to HomeCalendarFragment...");
+
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.home_school_tasks_container, new SchoolCalendarFragment()) // Ensure correct ID
+                        .addToBackStack(null) // Allows back navigation
+                        .commit();
+            });
+        }
 
         return view;
+    }
+
+
+    private void checkInitialInternetStatus() {
+        ConnectivityManager cm = (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+        if (!isConnected) {
+            showNoInternetUI();
+        } else {
+            hideNoInternetUI();
+        }
+    }
+
+
+    private void showNoInternetUI() {
+        if (noInternetOverlay != null) {
+            noInternetOverlay.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideNoInternetUI() {
+        if (noInternetOverlay != null) {
+            noInternetOverlay.setVisibility(View.GONE);
+        }
+    }
+
+    private void showLoading() {
+        if (loadingIndicator != null) loadingIndicator.setVisibility(View.VISIBLE);
+        if (loadingOverlay != null) loadingOverlay.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoading() {
+        if (loadingIndicator != null) loadingIndicator.setVisibility(View.GONE);
+        if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
     }
 
     private void setupSchoolNotesCard(View view) {
@@ -144,8 +211,8 @@ public class SchoolTasksFragment extends Fragment  {
         ListView schoolNotesList = dialog.findViewById(R.id.school_notes_list);
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
-        lp.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.85); // 85% of screen width
-        lp.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.65);
+        lp.width  = (int) (getResources().getDisplayMetrics().widthPixels  * 0.95); // 95% of screen width
+        lp.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.80); // 80% of screen height
         dialog.getWindow().setAttributes(lp);
 
         // Set title
@@ -166,12 +233,12 @@ public class SchoolTasksFragment extends Fragment  {
                 saveSchoolNotes(schoolNotes);
             }
         });
-
-        // Handle back button
-        backArrow.setOnClickListener(v -> dialog.dismiss());
-
-        dialog.show();
     }
+
+    interface OnFetchCompleteListener {
+        void onFetchComplete(boolean success);
+    }
+
 
     private void saveSchoolNotes(ArrayList<String> schoolNotes) {
         SharedPreferences prefs = requireContext().getSharedPreferences(SchoolNotesPREFS_NAME, Context.MODE_PRIVATE);
@@ -187,80 +254,77 @@ public class SchoolTasksFragment extends Fragment  {
         return new ArrayList<>(set);
     }
 
+
+    private void setupPrompts() {
+        displayPromptsList = Arrays.asList(
+                "How to manage stress during study sessions?",
+                "What are some effective study and motivation tips?",
+                "Share a quick mindfulness technique to refocus",
+                "How can I improve my sleep as a student?",
+                "Suggest a balanced daily routine for students"
+        );
+
+        actualPromptsList = Arrays.asList(
+                "Provide simple and effective stress management techniques that students can use daily to stay mentally healthy.",
+                "Give motivation strategies and study techniques that can help students stay consistent and avoid burnout.",
+                "Suggest a short mindfulness or breathing exercise that students can do to relax and refocus their minds.",
+                "Explain practical steps to improve sleep quality, especially for students struggling with irregular sleep patterns.",
+                "Describe an ideal daily routine for students that balances academics, self-care, and physical well-being."
+        );
+
+
+        promptsAdapter = new AIPromptsAdapter(displayPromptsList, actualPromptsList, this::showPopup);
+        promptsRecyclerView.setAdapter(promptsAdapter);
+    }
+
     private void showPopup(String displayPrompt, String actualPrompt) {
+        // Disable prompt clicking to prevent multiple selections
+        promptsRecyclerView.setEnabled(false);
+        loadingOverlay.setVisibility(View.VISIBLE);
+        // Show ProgressBar when fetching AI response
+        loadingIndicator.setVisibility(View.VISIBLE);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://updatedservice-621971573276.us-central1.run.app/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        AIService aiService = retrofit.create(AIService.class);
-        AIPromptRequest request = new AIPromptRequest(actualPrompt);
+        com.example.wave.AIService aiService = retrofit.create(com.example.wave.AIService.class);
+        com.example.wave.AIPromptRequest request = new com.example.wave.AIPromptRequest(actualPrompt);
 
-        aiService.getAIResponse(request).enqueue(new Callback<AIResponse>() {
+        aiService.getAIResponse(request).enqueue(new Callback<com.example.wave.AIResponse>() {
             @Override
-            public void onResponse(Call<AIResponse> call, Response<AIResponse> response) {
+            public void onResponse(Call<com.example.wave.AIResponse> call, Response<com.example.wave.AIResponse> response) {
+
+                // Hide ProgressBar once response is received
+                loadingIndicator.setVisibility(View.GONE);
+                loadingOverlay.setVisibility(View.GONE); // Re-enable interactions
                 if (response.isSuccessful() && response.body() != null) {
                     String aiResponse = response.body().getResponse();
-                    AIContentDialog dialog = AIContentDialog.newInstance(displayPrompt, aiResponse);
+                    com.example.wave.AIContentDialog dialog = com.example.wave.AIContentDialog.newInstance(displayPrompt, aiResponse);
+                    // Show dialog and re-enable clicks only after it's dismissed
                     dialog.show(getParentFragmentManager(), "AIContentDialog");
+                    requireActivity().getSupportFragmentManager().executePendingTransactions();
+
+                    dialog.getDialog().setOnDismissListener(dialogInterface -> {
+                        promptsRecyclerView.setEnabled(true); // Re-enable clicks after dialog closes
+                    });
                 } else {
-                    Toast.makeText(getContext(), "Failed to get AI response", Toast.LENGTH_SHORT).show();
+                    // Hide ProgressBar in case of failure
+                    loadingIndicator.setVisibility(View.GONE);
+                    loadingOverlay.setVisibility(View.GONE);
+                    promptsRecyclerView.setEnabled(true);
+
                 }
             }
 
             @Override
-            public void onFailure(Call<AIResponse> call, Throwable t) {
-                Toast.makeText(getContext(), "Error connecting to AI server", Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<com.example.wave.AIResponse> call, Throwable t) {
+                // Hide ProgressBar in case of failure
+                loadingIndicator.setVisibility(View.GONE);
+                loadingOverlay.setVisibility(View.GONE);
+                promptsRecyclerView.setEnabled(true);
             }
         });
-    }
-
-    // Prompts RecyclerView Adapter
-    public static class PromptsAdapter extends RecyclerView.Adapter<PromptsAdapter.ViewHolder> {
-        private final List<String> displayPrompts;
-        private final List<String> actualPrompts;
-        private final OnPromptClickListener listener;
-
-        public PromptsAdapter(List<String> displayPrompts, List<String> actualPrompts, OnPromptClickListener listener) {
-            if (displayPrompts.size() != actualPrompts.size()) {
-                throw new IllegalArgumentException("Both lists must have the same number of items.");
-            }
-            this.displayPrompts = displayPrompts;
-            this.actualPrompts = actualPrompts;
-            this.listener = listener;
-        }
-
-        @NonNull
-        @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_ai_prompt, parent, false);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            String displayText = displayPrompts.get(position);
-            holder.promptText.setText(displayText);
-            holder.itemView.setOnClickListener(v -> listener.onClick(displayPrompts.get(position), actualPrompts.get(position)));
-        }
-
-        @Override
-        public int getItemCount() {
-            return displayPrompts.size();
-        }
-
-        static class ViewHolder extends RecyclerView.ViewHolder {
-            TextView promptText;
-
-            public ViewHolder(@NonNull View itemView) {
-                super(itemView);
-                promptText = itemView.findViewById(R.id.promptText);
-            }
-        }
-
-        public interface OnPromptClickListener {
-            void onClick(String displayPrompt, String actualPrompt);
-        }
     }
     private void updateCancelledTasksCount() {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null

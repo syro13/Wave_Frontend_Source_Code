@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -124,8 +125,11 @@ public class AddExpenseBottomSheetFragment extends BottomSheetDialogFragment {
             expenseCategoryDropdown.setCompoundDrawables(defaultIcon, null, null, null);
         }
 
-        dropdownContainer.setOnClickListener(v -> showDropdownPopup(expenseCategoryDropdown, dropdownArrow,dropdownContainer, categories));
-        dropdownArrow.setOnClickListener(v -> showDropdownPopup(expenseCategoryDropdown, dropdownArrow,dropdownContainer, categories));
+        dropdownContainer.setOnClickListener(v -> {
+            Log.d("DROPDOWN_TEST", "Container clicked!");
+            showDropdownPopup(expenseCategoryDropdown, dropdownArrow, dropdownContainer, categories);
+        });
+
     }
 
     private int dpToPx(int dp) {
@@ -182,7 +186,6 @@ public class AddExpenseBottomSheetFragment extends BottomSheetDialogFragment {
         });
 
         dropdownArrow.setImageResource(R.drawable.ic_arrow_up);
-        popupWindow.showAsDropDown(expenseCategoryDropdown);
     }
 
     private void handleSubmit() {

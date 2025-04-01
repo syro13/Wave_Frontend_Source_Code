@@ -1,8 +1,12 @@
 package com.example.wave;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputType;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +23,8 @@ import androidx.fragment.app.Fragment;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import com.airbnb.lottie.LottieAnimationView;
+import com.example.wave.utils.UserUtils;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -46,12 +52,21 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
 
     private CallbackManager callbackManager;
     private TwitterAuthManager twitterAuthManager;
+    private ImageView passwordToggle;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
+// Inject dynamic Lottie animation for theme
+        LottieAnimationView lottieView = view.findViewById(R.id.lottieAnimation);
+        int nightModeFlags = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
 
+        if (nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
+            lottieView.setAnimation(R.raw.login_signup_animation_dark); // dark theme animation
+        } else {
+            lottieView.setAnimation(R.raw.login_signup_animation); // default light theme animation
+        }
         // Initialize Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
 
@@ -71,6 +86,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
         // Bind inputs and buttons
         emailInput = view.findViewById(R.id.emailInput);
         passwordInput = view.findViewById(R.id.passwordInput);
+        passwordToggle = view.findViewById(R.id.passwordToggle);
         Button loginSubmitButton = view.findViewById(R.id.loginSubmitButton);
         TextView loginButton = view.findViewById(R.id.loginButton);
         TextView signupButton = view.findViewById(R.id.signupButton);
@@ -79,6 +95,47 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
         ImageView twitterIcon = view.findViewById(R.id.twitterIcon);
         TextView forgotPasswordText = view.findViewById(R.id.forgotPassword);
 
+        passwordToggle.setClickable(false);
+        passwordToggle.setFocusable(false);
+        passwordToggle.setEnabled(false);
+
+        ImageView passwordToggle = view.findViewById(R.id.passwordToggle);
+        passwordToggle.setOnClickListener(v -> {
+            int inputType = passwordInput.getInputType();
+            boolean isPasswordVisible = (inputType & InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
+
+            if (isPasswordVisible) {
+                passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                passwordToggle.setImageResource(R.drawable.ic_eye_closed);
+            } else {
+                passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                passwordToggle.setImageResource(R.drawable.ic_eye_opened);
+            }
+            passwordInput.setSelection(passwordInput.getText().length());
+        });
+
+        passwordInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 0) {
+                    passwordToggle.setClickable(true);
+                    passwordToggle.setFocusable(true);
+                    passwordToggle.setEnabled(true);
+                    passwordToggle.setAlpha(1.0f); // Full opacity when enabled
+                } else {
+                    passwordToggle.setClickable(false);
+                    passwordToggle.setFocusable(false);
+                    passwordToggle.setEnabled(false);
+                    passwordToggle.setAlpha(0.5f);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
         // Set initial active state
         setActiveButton(loginButton, signupButton);
 
@@ -167,32 +224,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            Toast.makeText(getContext(), "Google Login Successful!", Toast.LENGTH_SHORT).show();
-                            String displayName = account.getDisplayName(); // Get name from Google account
-                            if (user.getDisplayName() == null || user.getDisplayName().isEmpty()) {
-                                // Update display name in Firebase Authentication
-                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                        .setDisplayName(displayName)
-                                        .build();
-
-                                user.updateProfile(profileUpdates)
-                                        .addOnCompleteListener(updateTask -> {
-                                            if (updateTask.isSuccessful()) {
-                                                Toast.makeText(getContext(), "Display name updated", Toast.LENGTH_SHORT).show();
-
-                                            } else {
-                                                 Log.e("LoginFragment", "Profile update failed", updateTask.getException());
-                                            Toast.makeText(requireContext(), "Failed to update display name", Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
-                            }
-                            // Proceed to dashboard
-                            if (getActivity() != null) {
-                                Intent intent = new Intent(getActivity(), DashboardActivity.class);
-                                intent.putExtra("USER_NAME", displayName);
-                                startActivity(intent);
-                                getActivity().finish();
-                            }
+                            UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
                         }
                     } else {
                        Log.e("LoginFragment", "Firebase Authentication failed", task.getException());
@@ -209,8 +241,7 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
     @Override
     public void updateUI(FirebaseUser user) {
         if (user != null) {
-            Toast.makeText(getContext(), "Twitter Login Successful: " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
-            navigateToDashboard(user.getDisplayName());
+            UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
         } else {
             Toast.makeText(getContext(), "Twitter Login Failed", Toast.LENGTH_SHORT).show();
         }
@@ -242,8 +273,9 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        Toast.makeText(getContext(), "Facebook Login Successful", Toast.LENGTH_SHORT).show();
-                        navigateToDashboard(user.getDisplayName());
+                        if (user != null) {
+                            UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
+                        }
                     } else {
                         Toast.makeText(getContext(), "Facebook Login Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -252,17 +284,6 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
     /**
      * Navigate to Dashboard after successful login.
      */
-    private void navigateToDashboard(String displayName) {
-        if (getActivity() != null) {
-            Intent intent = new Intent(getActivity(), DashboardActivity.class);
-            intent.putExtra("USER_NAME", displayName);
-            startActivity(intent);
-            getActivity().finish();
-        } else {
-            Toast.makeText(getContext(), "Navigation failed: Context is unavailable.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -298,13 +319,10 @@ public class LoginFragment extends Fragment implements TwitterAuthManager.Callba
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            String displayName = user.getDisplayName();
-                            if (displayName == null || displayName.isEmpty()) {
-                                displayName = "User"; // Fallback if no display name is set
-                            }
-                            navigateToDashboard(displayName);
+                            UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
                         }
-                    } else {
+                    }
+                    else {
                         Log.e("LoginFragment", "Login failed", task.getException());
                         Toast.makeText(requireContext(), "Login failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }

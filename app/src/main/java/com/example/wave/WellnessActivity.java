@@ -1,24 +1,33 @@
 package com.example.wave;
 
+import static androidx.test.InstrumentationRegistry.getContext;
+
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Button;
+import androidx.cardview.widget.CardView;
 
-import androidx.appcompat.app.AppCompatActivity;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -28,40 +37,54 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class WellnessActivity extends BaseActivity implements NetworkReceiver.NetworkChangeListener {
+public class WellnessActivity extends BaseActivity{
     private NetworkReceiver networkReceiver;
     private static final String PREFS_NAME = "WellnessPrefs";
     private static final String KEY_QUOTE = "quoteText";
     private static final String KEY_AUTHOR = "quoteAuthor";
+    private static final String KEY_LAST_FETCH = "lastFetchDate";
+    private static final String KEY_PLAN_TEXT = "planText";
+    private static final String KEY_PLAN_DATE = "planDate";
     private static final String PREFS_BLOGS = "PrefsBlogs";
     private static final String PREFS_PODCASTS = "PrefsPodcasts";
-    private static final String KEY_LAST_FETCH = "lastFetchDate";
-    private static final int MAX_BLOGS = 3;
-    private static final int MAX_PODCASTS = 3;
+    private static final int MAX_BLOGS = 4;
+    private static final int MAX_PODCASTS = 4;
+    private static final String TAG = "API_RESPONSE";
 
     private ImageView quoteImage;
-    private TextView quoteText, quoteAuthor,noPodcastsText,noBlogsText;
-    private RecyclerView blogRecyclerView, podcastRecyclerView;
+    private TextView quoteText, quoteAuthor, noPodcastsText, noBlogsText;
+    private RecyclerView blogRecyclerView, podcastRecyclerView, promptsRecyclerView;
     private BlogAdapter blogAdapter;
     private PodcastAdapter podcastAdapter;
     private ImageView noBlogsImage, noPodcastsImage;
     private ProgressBar loadingIndicator;
+    private View loadingOverlay;
+    private Button generatePlanButton;
+    private CardView planCard;
+    private TextView planContent;
 
-    private final List<BlogResponse> blogs = new ArrayList<>();
-    private final List<Podcast> podcasts = new ArrayList<>();
+    private List<Blogs_Response> blogs = new ArrayList<>();
+    private List<PodcastsResponse> podcasts = new ArrayList<>();
     private int loadingTasksRemaining = 0;
+    private final WellnessAPI apiService = RetrofitClient.getClient().create(WellnessAPI.class);
+    private AIPromptsAdapter promptsAdapter;
+    private List<String> displayPromptsList;
+    private List<String> actualPromptsList;
 
+    private String wellness_api_key;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wellness);
 
+        wellness_api_key = getString(R.string.wellness_api_key);
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
+
         // Set up bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         setupBottomNavigation(bottomNavigationView);
 
-// Clear SharedPreferences for testing
- //       getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().clear().apply();
         // Initialize views
         quoteImage = findViewById(R.id.quoteImage);
         quoteText = findViewById(R.id.quoteText);
@@ -73,104 +96,175 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         noBlogsImage = findViewById(R.id.noBlogsImage);
         noBlogsText = findViewById(R.id.noBlogsText);
         loadingIndicator = findViewById(R.id.loadingIndicator);
+        loadingOverlay = findViewById(R.id.loadingOverlay);
+        promptsRecyclerView = findViewById(R.id.promptsRecyclerView);
+        generatePlanButton = findViewById(R.id.generatePlanButton);
+        planCard           = findViewById(R.id.planCard);
+        planContent        = findViewById(R.id.planContent);
+        planCard.setVisibility(View.GONE);
 
-        // Start with progress bar visible
-        loadingIndicator.setVisibility(View.VISIBLE);
+        promptsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        setupPrompts();
 
-        // Increment the loading task counter for each task
-        loadingTasksRemaining = 3;
+        showLoading();
 
         // Start loading tasks
         updateQuoteImage();
-        fetchTodaysQuoteWithCache();
-        setupBlogsRecyclerView();
-        setupPodcastsRecyclerView();
-        loadCachedBlogs();
-        loadCachedPodcasts();
 
-        // Register the network receiver
-        networkReceiver = new NetworkReceiver(this);
-        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(networkReceiver, filter);
-        findViewById(R.id.profileIcon).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Start Budget Activity
-                Intent intent = new Intent(WellnessActivity.this, ProfileActivity.class);
-                startActivity(intent);
-            }
+        loadData();
+      
+        generatePlanButton.setOnClickListener(v -> {
+            PlanOptionsBottomSheet sheet = new PlanOptionsBottomSheet();
+            sheet.setListener((mood, time, thoughts) -> generateDailyPlan(mood, time, thoughts));
+            sheet.show(getSupportFragmentManager(), "PlanOptions");
         });
     }
     @Override
-    protected int getCurrentMenuItemId() {
-        return -1; // No selection
+    public void onNetworkConnected() {
+        Log.d("WellnessActivity", "Internet restored! Reloading data...");
+        runOnUiThread(() -> {
+            showLoading();
+            loadData();
+        });
     }
-
 
     @Override
-    public void onNetworkRestored() {
-        Log.d("WellnessActivity", "Network restored. Checking data...");
-        reloadDataIfNeeded();  // Reload only if data is not already cached
-    }
-
-    private void reloadDataIfNeeded() {
+    protected void onResume() {
+        super.onResume();
+        //registerReceiver(networkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
         int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 
-        boolean needsReload = false;
-
-        loadingIndicator.setVisibility(View.VISIBLE);
-
-        // Check if quote data needs to be reloaded
-        String cachedQuote = prefs.getString(KEY_QUOTE, null);
-        String cachedAuthor = prefs.getString(KEY_AUTHOR, null);
-        if (cachedQuote == null || cachedAuthor == null || lastFetchDate != todayDate) {
-            Log.d("WellnessActivity", "Reloading Quotes...");
-            fetchTodaysQuoteWithCache();
-            needsReload = true;
+        if (lastFetchDate != todayDate) {
+            Log.d(TAG, "Cache expired, fetching new data...");
+            loadData();  // Only load new data if cache is outdated
         } else {
-            Log.d("WellnessActivity", "Quotes are already cached.");
-        }
-
-        // Check if blog data needs to be reloaded
-        String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
-        if (cachedBlogsJson == null || lastFetchDate != todayDate) {
-            Log.d("WellnessActivity", "Reloading Blogs...");
+            Log.d(TAG, "Using cached data...");
             loadCachedBlogs();
-            needsReload = true;
-        } else {
-            Log.d("WellnessActivity", "Blogs are already cached.");
-        }
-
-        // Check if podcast data needs to be reloaded
-        String cachedPodcastsJson = prefs.getString(PREFS_PODCASTS, null);
-        if (cachedPodcastsJson == null || lastFetchDate != todayDate) {
-            Log.d("WellnessActivity", "Reloading Podcasts...");
             loadCachedPodcasts();
-            needsReload = true;
-        } else {
-            Log.d("WellnessActivity", "Podcasts are already cached.");
-        }
+            fetchTodaysQuoteWithCache();
+            // If cache is empty, fetch new data
+            if (blogs.isEmpty()) {
+                Log.d(TAG, "Cached blogs empty, fetching new ones...");
+                fetchBlogsFromApi();
+            }
+            if (podcasts.isEmpty()) {
+                Log.d(TAG, "Cached podcasts empty, fetching new ones...");
+                fetchPodcastsFromApi();
+            }
+            loadCachedPlan();
 
-        // Hide placeholders if reload is required
-        if (needsReload) {
-            Toast.makeText(this, "Internet restored. Reloading data...", Toast.LENGTH_SHORT).show();
-            noBlogsImage.setVisibility(View.GONE);
-            noPodcastsImage.setVisibility(View.GONE);
-            noBlogsText.setVisibility(View.GONE);
-            noPodcastsText.setVisibility(View.GONE);
-        } else {
-            Log.d("WellnessActivity", "No reload required. Data is up-to-date.");
-            loadingIndicator.setVisibility(View.GONE); // Hide the loading indicator
+        }
+    }
+    private void loadCachedPlan() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int savedDate = prefs.getInt(KEY_PLAN_DATE, -1);
+        String cachedPlan = prefs.getString(KEY_PLAN_TEXT, null);
+        if (savedDate == Calendar.getInstance().get(Calendar.DAY_OF_YEAR) && cachedPlan != null) {
+            planContent.setText(cachedPlan);
+            planCard.setVisibility(View.VISIBLE);
         }
     }
 
+    private void generateDailyPlan(String mood, String time, String thoughts) {
+        showLoading();
+
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("You're a helpful and creative wellbeing coach. ");
+        promptBuilder.append("Create a unique, personalized wellness plan for a student feeling '")
+                .append(mood)
+                .append("' who has ")
+                .append(time)
+                .append(" available today.\n\n");
+
+        if (!thoughts.isEmpty()) {
+            promptBuilder.append("The student shared the following thoughts to guide you: \"")
+                    .append(thoughts)
+                    .append("\".\n\n");
+        }
+
+        promptBuilder.append("Avoid generic suggestions. Offer specific, refreshing and practical ideas. ");
+        promptBuilder.append("Include a mix of mental, physical, and emotional wellbeing tips. ");
+        promptBuilder.append("Make the plan realistic and engaging. Use an encouraging tone. ");
+        promptBuilder.append("Make it different each time — think creatively.\n");
+
+        AIPromptRequest request = new AIPromptRequest(promptBuilder.toString());
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://updatedservice-621971573276.us-central1.run.app/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        AIService service = retrofit.create(AIService.class);
+        service.getAIResponse(request).enqueue(new Callback<AIResponse>() {
+            @Override
+            public void onResponse(Call<AIResponse> call, Response<AIResponse> response) {
+                hideLoading();
+                if (response.isSuccessful() && response.body() != null) {
+                    String plan = response.body().getResponse();
+                    planContent.setText(plan);
+                    planCard.setVisibility(View.VISIBLE);
+                    savePlanToCache(plan);
+                } else {
+                    Toast.makeText(WellnessActivity.this, "Failed to generate plan", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AIResponse> call, Throwable t) {
+                hideLoading();
+                Toast.makeText(WellnessActivity.this, "Error generating plan", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+    private void savePlanToCache(String plan) {
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .edit()
+                .putString(KEY_PLAN_TEXT, plan)
+                .putInt(KEY_PLAN_DATE, Calendar.getInstance().get(Calendar.DAY_OF_YEAR))
+                .apply();
+    }
+
+    private void hideLoading() {
+        loadingIndicator.setVisibility(View.GONE);
+        loadingOverlay.setVisibility(View.GONE);
+    }
+
+    private void loadData() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
+        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+
+        boolean useCache = (lastFetchDate == todayDate);
+
+        // Reset the task counter
+        loadingTasksRemaining = 0;
+
+        // Load cached or fetch new
+        if (useCache) {
+            loadingTasksRemaining += 3;
+            loadCachedBlogs();
+            loadCachedPodcasts();
+            fetchTodaysQuoteWithCache();
+        } else {
+            loadingTasksRemaining += 3;
+            fetchBlogsFromApi();
+            fetchPodcastsFromApi();
+            fetchTodaysQuoteFromApi(prefs, todayDate);
+        }
+    }
+
+    private void showLoading() {
+        loadingIndicator.setVisibility(View.VISIBLE);
+        loadingOverlay.setVisibility(View.VISIBLE);
+    }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(networkReceiver);
+    protected int getCurrentMenuItemId() {
+        return -1; // No selection
     }
 
     private void updateQuoteImage() {
@@ -193,11 +287,9 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String cachedQuote = prefs.getString(KEY_QUOTE, null);
         String cachedAuthor = prefs.getString(KEY_AUTHOR, null);
-        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
-
         int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 
-        if (cachedQuote != null && cachedAuthor != null && lastFetchDate == todayDate) {
+        if (cachedQuote != null && cachedAuthor != null) {
             quoteText.setText(cachedQuote);
             quoteAuthor.setText(cachedAuthor);
             taskCompleted();
@@ -243,61 +335,21 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             }
         });
     }
-
-    private void setupPodcastsRecyclerView() {
-        podcastRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        podcastAdapter = new PodcastAdapter(this, podcasts);
-        podcastRecyclerView.setAdapter(podcastAdapter);
-    }
-
-    private void loadCachedPodcasts() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String cachedPodcastsJson = prefs.getString(PREFS_PODCASTS, null);
-        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
-        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
-
-        if (cachedPodcastsJson != null && lastFetchDate == todayDate) {
-            podcasts.clear();
-            podcasts.addAll(PodcastSearchResponse.fromJsonList(cachedPodcastsJson));
-
-            if (podcasts.size() > MAX_PODCASTS) {
-                podcasts.subList(MAX_PODCASTS, podcasts.size()).clear();
-            }
-
-            podcastAdapter.notifyDataSetChanged();
-           noPodcastsImage.setVisibility(View.GONE);
-           noPodcastsText.setVisibility(View.GONE);
-            taskCompleted();
-        } else {
-            fetchPodcastsFromApi(prefs, todayDate);
-        }
-    }
-
-    private void fetchPodcastsFromApi(SharedPreferences prefs, int todayDate) {
-        PodcastsApi api = RetrofitClient.getRetrofitInstance(
-                this,
-                "https://listen-api.listennotes.com/api/v2/",
-                "X-ListenAPI-Key",
-                getResources().getString(R.string.podcast_api_key)
-        ).create(PodcastsApi.class);
-
-        api.searchPodcasts("wellness", "episode", 10, 30, 1, 1).enqueue(new Callback<PodcastSearchResponse>() {
+    private void fetchPodcastsFromApi() {
+        loadingTasksRemaining++;
+        Call<List<PodcastsResponse>> podcastsCall = apiService.getPodcastsData(wellness_api_key);
+        podcastsCall.enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<PodcastSearchResponse> call, Response<PodcastSearchResponse> response) {
+            public void onResponse(Call<List<PodcastsResponse>> call, Response<List<PodcastsResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    podcasts.clear();
-                    podcasts.addAll(response.body().getPodcasts());
-
-                    if (podcasts.size() > MAX_PODCASTS) {
-                        podcasts.subList(MAX_PODCASTS, podcasts.size()).clear();
+                    podcasts = new ArrayList<>(response.body());
+                    if (podcasts.size() > 4) {
+                        podcasts = podcasts.subList(0, 4);
                     }
-
-                    podcastAdapter.notifyDataSetChanged();
-                    savePodcastsToCache(podcasts, todayDate);
-
-                    // Hide placeholders when data is fetched
-                    noPodcastsImage.setVisibility(View.GONE);
-                    noPodcastsText.setVisibility(View.GONE);
+                    Log.d(TAG, "Podcast: " + podcasts);
+                    savePodcastsToCache(podcasts);
+                    setupPodcastsRecyclerView(podcasts);
+                    hideNoPodcastsAvailable();
                 } else {
                     // Show placeholders if the response is empty or invalid
                     showNoPodcastsAvailable();
@@ -306,202 +358,260 @@ public class WellnessActivity extends BaseActivity implements NetworkReceiver.Ne
             }
 
             @Override
-            public void onFailure(Call<PodcastSearchResponse> call, Throwable t) {
-                Log.e("WellnessActivity", "Error fetching podcasts", t);
+            public void onFailure(Call<List<PodcastsResponse>> call, Throwable t) {
+                Log.e(TAG, "API call failed: " + t.getMessage());
                 showNoPodcastsAvailable();
                 taskCompleted();
             }
         });
     }
-
-
-
-    private void savePodcastsToCache(List<Podcast> podcasts, int todayDate) {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PREFS_PODCASTS, PodcastSearchResponse.toJsonList(podcasts));
-        editor.putInt(KEY_LAST_FETCH, todayDate);
-        editor.apply();
+    private void hideNoPodcastsAvailable() {
+        noPodcastsImage.setVisibility(View.GONE);
+        noPodcastsText.setVisibility(View.GONE);
     }
-
-    private void showNoPodcastsAvailable() {
-        if (podcasts.isEmpty()) {
-            noPodcastsImage.setVisibility(View.VISIBLE);
-            noPodcastsText.setVisibility(View.VISIBLE);
-            taskCompleted();
-        }
-    }
-
-    private void setupBlogsRecyclerView() {
-        blogRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        blogAdapter = new BlogAdapter(this, blogs);
-        blogRecyclerView.setAdapter(blogAdapter);
-    }
-
-    private void loadCachedBlogs() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
-        int lastFetchDate = prefs.getInt(KEY_LAST_FETCH, -1);
-        int todayDate = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
-
-        if (cachedBlogsJson != null && lastFetchDate == todayDate) {
-            blogs.clear();
-            blogs.addAll(BlogResponse.fromJsonList(cachedBlogsJson));
-
-            if (blogs.size() > MAX_BLOGS) {
-                blogs.subList(MAX_BLOGS, blogs.size()).clear();
-            }
-
-            blogAdapter.notifyDataSetChanged();
-            noBlogsImage.setVisibility(View.GONE);
-            noBlogsText.setVisibility(View.GONE);
-            taskCompleted();
-        } else {
-            blogs.clear();
-            fetchBlogsFromApi(prefs, todayDate);
-        }
-    }
-
-    private void fetchBlogsFromApi(SharedPreferences prefs, int todayDate) {
-        BlogsApi api = RetrofitClient.getRetrofitInstance(
-                this,
-                "https://medium2.p.rapidapi.com/",
-                "x-rapidapi-key",
-                getResources().getString(R.string.blog_api_key)
-        ).create(BlogsApi.class);
-
-        String[] tags = {"self-improvement", "meditation", "wellness"};
-        for (String tag : tags) {
-            if (blogs.size() >= MAX_BLOGS) break; // Stop if enough blogs are fetched
-            loadingTasksRemaining++; // Increment task count for each tag fetch
-            api.getRecommendedFeed(tag, 1).enqueue(new Callback<RecommendedFeedResponse>() {
-                @Override
-                public void onResponse(Call<RecommendedFeedResponse> call, Response<RecommendedFeedResponse> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        List<String> recommendedFeed = response.body().getRecommendedFeed();
-
-                        if (!recommendedFeed.isEmpty()) {
-                            String firstArticleId = recommendedFeed.get(0);
-                            fetchArticleDetails(api, firstArticleId, tag, prefs, todayDate);
-                        } else {
-                            // Show placeholders if no articles are found for the tag
-                            showNoBlogsAvailable();
-                            taskCompleted();
-                        }
-                    } else {
-                        showNoBlogsAvailable();
-                        taskCompleted();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<RecommendedFeedResponse> call, Throwable t) {
-                    showNoBlogsAvailable();
-                    taskCompleted();
-                }
-            });
-        }
-        // After successfully fetching blogs
+    private void hideNoBlogsAvailable() {
         noBlogsImage.setVisibility(View.GONE);
         noBlogsText.setVisibility(View.GONE);
     }
-
-
-    private void fetchArticleDetails(BlogsApi api, String articleId, String tag, SharedPreferences prefs, int todayDate) {
-        if (blogs.size() >= MAX_BLOGS) return;
+    private void fetchBlogsFromApi(){
         loadingTasksRemaining++;
-        api.getArticleInfo(articleId).enqueue(new Callback<ArticleDetails>() {
+        Call<List<Blogs_Response>> blogsCall = apiService.getBlogsData(wellness_api_key);
+        blogsCall.enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<ArticleDetails> call, Response<ArticleDetails> response) {
+            public void onResponse(Call<List<Blogs_Response>> call, Response<List<Blogs_Response>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    ArticleDetails article = response.body();
-                    fetchUserInfo(api, article.getAuthor(), userFullName -> {
-                        addArticleToRecyclerView(article, tag, userFullName);
-
-                        if (blogs.size() == MAX_BLOGS) {
-                            saveBlogsToCache(blogs, todayDate);
-                        }
-                        taskCompleted();
-                    });
+                    blogs = new ArrayList<>(response.body());
+                    if (blogs.size() > 4) {
+                        blogs = blogs.subList(0, 4);
+                    }
+                    Log.d(TAG, "Blogs: " + blogs);
+                    saveBlogsToCache(blogs);
+                    preloadBlogImages(blogs);
+                    setupBlogsRecyclerView(blogs);
+                    hideNoBlogsAvailable();
                 } else {
+                    Log.e(TAG, "Failed to get blogs");
                     showNoBlogsAvailable();
-                    taskCompleted();
                 }
+                taskCompleted();
             }
 
             @Override
-            public void onFailure(Call<ArticleDetails> call, Throwable t) {
+            public void onFailure(Call<List<Blogs_Response>> call, Throwable t) {
+                Log.e(TAG, "API call failed: " + t.getMessage());
                 showNoBlogsAvailable();
                 taskCompleted();
             }
         });
     }
 
-    private void fetchUserInfo(BlogsApi api, String userId, OnUserFullNameFetched callback) {
-        api.getUserInfo(userId).enqueue(new Callback<UserInfo>() {
-            @Override
-            public void onResponse(Call<UserInfo> call, Response<UserInfo> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String fullName = response.body().getFullName();
-                    callback.onFetched(fullName != null ? fullName : "Unknown Author");
-                } else {
-                    callback.onFetched("Unknown Author");
-                }
-                taskCompleted();
-            }
 
-            @Override
-            public void onFailure(Call<UserInfo> call, Throwable t) {
-                callback.onFetched("Unknown Author");
-                taskCompleted();
-            }
-        });
-    }
-
-    private void addArticleToRecyclerView(ArticleDetails article, String tag, String authorFullName) {
-        if (blogs.size() >= MAX_BLOGS) return;
-        // Check if the blog already exists in the list
-        for (BlogResponse existingBlog : blogs) {
-            if (existingBlog.getTitle().equals(article.getTitle()) &&
-                    existingBlog.getAuthor().equals(authorFullName)) {
-                return; // Don't add duplicates
-            }
+    private void showNoPodcastsAvailable() {
+        if (podcastAdapter == null || podcastAdapter.getItemCount() == 0) {
+            noPodcastsImage.setVisibility(View.VISIBLE);
+            noPodcastsText.setVisibility(View.VISIBLE);
         }
-
-
-        BlogResponse blog = new BlogResponse(
-                article.getTitle(),
-                authorFullName,
-                tag,
-                article.getUrl(),
-                article.getImageUrl()
-        );
-
-        blogs.add(blog);
-        blogAdapter.notifyDataSetChanged();
-        noBlogsImage.setVisibility(View.GONE);
     }
-
-    private void saveBlogsToCache(List<BlogResponse> blogs, int todayDate) {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PREFS_BLOGS, BlogResponse.toJsonList(blogs));
-        editor.putInt(KEY_LAST_FETCH, todayDate);
-        editor.apply();
-    }
-
     private void showNoBlogsAvailable() {
-        if (blogs.isEmpty()) {
+        if (blogAdapter == null || blogAdapter.getItemCount() == 0) {
             noBlogsImage.setVisibility(View.VISIBLE);
             noBlogsText.setVisibility(View.VISIBLE);
-            taskCompleted();
         }
+    }
+
+    private void setupPodcastsRecyclerView(List<PodcastsResponse> podcastsList) {
+        if (podcastAdapter == null) {
+            podcastRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            podcastAdapter = new PodcastAdapter(this, podcastsList);
+            podcastRecyclerView.setAdapter(podcastAdapter);
+        } else {
+            podcastAdapter.updateData(podcastsList);
+        }
+    }
+    private void setupBlogsRecyclerView(List<Blogs_Response> blogsList) {
+        if (blogAdapter == null) {
+            blogRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            blogAdapter = new BlogAdapter(this, blogsList);
+            blogRecyclerView.setAdapter(blogAdapter);
+        } else {
+            blogAdapter.updateData(blogsList);
+        }
+    }
+
+    private void loadCachedPodcasts() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String cachedPodcastsJson = prefs.getString(PREFS_PODCASTS, null);
+
+        if (cachedPodcastsJson != null) {
+            List<PodcastsResponse> cachedPodcasts = PodcastsResponse.fromJsonList(cachedPodcastsJson);
+
+            if (cachedPodcasts.size() > MAX_PODCASTS) {
+                cachedPodcasts = cachedPodcasts.subList(0, MAX_PODCASTS);
+            }
+
+            Log.d(TAG, "Loaded Podcasts from Cache: " + cachedPodcasts);
+
+            if (!cachedPodcasts.isEmpty()) {
+                if (podcastAdapter == null) {
+                    setupPodcastsRecyclerView(cachedPodcasts);
+                } else {
+                    podcastAdapter.updateData(cachedPodcasts);
+                }
+                hideNoPodcastsAvailable();
+            } else {
+                showNoPodcastsAvailable();
+            }
+        } else {
+            showNoPodcastsAvailable();
+        }
+        taskCompleted();
+    }
+
+
+
+
+    private void loadCachedBlogs() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String cachedBlogsJson = prefs.getString(PREFS_BLOGS, null);
+
+
+        if (cachedBlogsJson != null) {
+            List<Blogs_Response> cachedBlogs = Blogs_Response.fromJsonList(cachedBlogsJson);
+
+            if (cachedBlogs.size() > MAX_BLOGS) {
+                cachedBlogs = cachedBlogs.subList(0, MAX_BLOGS);
+            }
+
+            Log.d(TAG, "Loaded Blogs from Cache: " + cachedBlogs);
+            if (!cachedBlogs.isEmpty()) {
+                if (blogAdapter == null) {
+                    preloadBlogImages(cachedBlogs);
+                    setupBlogsRecyclerView(cachedBlogs);
+                } else {
+                    blogAdapter.updateData(cachedBlogs);
+                }
+                hideNoBlogsAvailable();
+            } else {
+                showNoBlogsAvailable();
+            }
+        } else {
+            showNoBlogsAvailable();
+        }
+        taskCompleted();
+    }
+    private void preloadBlogImages(List<Blogs_Response> blogList) {
+        for (Blogs_Response blog : blogList) {
+            Glide.with(this)
+                    .load(blog.getImage())
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .preload();
+        }
+    }
+
+    private void savePodcastsToCache(List<PodcastsResponse> podcasts) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        String podcastsJson = PodcastsResponse.toJsonList(podcasts);
+        editor.putString(PREFS_PODCASTS, podcastsJson);
+        editor.putInt(KEY_LAST_FETCH, Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
+
+        editor.apply();
+        Log.d(TAG, "Saved Podcasts to Cache: " + podcastsJson);
+    }
+    private void saveBlogsToCache(List<Blogs_Response> blogs) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        String blogsJson = Blogs_Response.toJsonList(blogs);
+        editor.putString(PREFS_BLOGS, blogsJson);
+        editor.putInt(KEY_LAST_FETCH, Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
+
+        editor.apply();
+        Log.d(TAG, "Saved Blogs to Cache: " + blogsJson);
     }
 
     private synchronized void taskCompleted() {
         loadingTasksRemaining--;
         if (loadingTasksRemaining <= 0) {
             loadingIndicator.setVisibility(View.GONE);
+            loadingOverlay.setVisibility(View.GONE);
+
+            if (blogs.isEmpty()) showNoBlogsAvailable(); else hideNoBlogsAvailable();
+            if (podcasts.isEmpty()) showNoPodcastsAvailable(); else hideNoPodcastsAvailable();
         }
     }
+
+    private void setupPrompts() {
+        displayPromptsList = Arrays.asList(
+                "How can I manage stress effectively?",
+                "Give me tips for staying motivated in my studies",
+                "Suggest a quick mindfulness exercise",
+                "How do I improve my sleep habits?",
+                "Recommend a healthy daily routine for students"
+        );
+
+        actualPromptsList = Arrays.asList(
+                "Provide simple and effective stress management techniques that students can use daily to stay mentally healthy.",
+                "Give motivation strategies and study techniques that can help students stay consistent and avoid burnout.",
+                "Suggest a short mindfulness or breathing exercise that students can do to relax and refocus their minds.",
+                "Explain practical steps to improve sleep quality, especially for students struggling with irregular sleep patterns.",
+                "Describe an ideal daily routine for students that balances academics, self-care, and physical well-being."
+        );
+
+        promptsAdapter = new AIPromptsAdapter(displayPromptsList, actualPromptsList, this::showPopup);
+        promptsRecyclerView.setAdapter(promptsAdapter);
+    }
+
+    private void showPopup(String displayPrompt, String actualPrompt) {
+        // Disable prompt clicking to prevent multiple selections
+        promptsRecyclerView.setEnabled(false);
+        loadingOverlay.setVisibility(View.VISIBLE);
+        // Show ProgressBar when fetching AI response
+        loadingIndicator.setVisibility(View.VISIBLE);
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://updatedservice-621971573276.us-central1.run.app/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        AIService aiService = retrofit.create(AIService.class);
+        AIPromptRequest request = new AIPromptRequest(actualPrompt);
+
+        aiService.getAIResponse(request).enqueue(new Callback<AIResponse>() {
+            @Override
+            public void onResponse(Call<AIResponse> call, Response<AIResponse> response) {
+
+                // Hide ProgressBar once response is received
+                loadingIndicator.setVisibility(View.GONE);
+                loadingOverlay.setVisibility(View.GONE); // Re-enable interactions
+                if (response.isSuccessful() && response.body() != null) {
+                    String aiResponse = response.body().getResponse();
+                    AIContentDialog dialog = AIContentDialog.newInstance(displayPrompt, aiResponse);
+                    // Show dialog and re-enable clicks only after it's dismissed
+                    dialog.show(getSupportFragmentManager(), "AIContentDialog");
+                    getSupportFragmentManager().executePendingTransactions();
+
+                    dialog.getDialog().setOnDismissListener(dialogInterface -> {
+                        promptsRecyclerView.setEnabled(true); // Re-enable clicks after dialog closes
+                    });
+                } else {
+                    // Hide ProgressBar in case of failure
+                    loadingIndicator.setVisibility(View.GONE);
+                    loadingOverlay.setVisibility(View.GONE);
+                    promptsRecyclerView.setEnabled(true);
+                    Toast.makeText(WellnessActivity.this, "Failed to get AI response", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AIResponse> call, Throwable t) {
+                // Hide ProgressBar in case of failure
+                loadingIndicator.setVisibility(View.GONE);
+                loadingOverlay.setVisibility(View.GONE);
+                promptsRecyclerView.setEnabled(true);
+                Toast.makeText(WellnessActivity.this, "Error connecting to AI server", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 }

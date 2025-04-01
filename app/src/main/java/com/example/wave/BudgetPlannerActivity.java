@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -54,17 +56,24 @@ public class BudgetPlannerActivity extends BaseActivity {
     private RecyclerView expensesRecyclerView, promptsRecyclerView;
     private ExpenseAdapter expenseAdapter;
     private List<Expense> expenseList;
-    private PromptsAdapter promptsAdapter;
+    private ProgressBar loadingIndicator;
+    private View loadingOverlay;
+    private AIPromptsAdapter promptsAdapter;
     private List<String> displayPromptsList;
     private List<String> actualPromptsList;
     private double totalBudget = 0;
     private double amountSpent = 0;
     private String userId;
+    private TextView aiSuggestionContent;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget_planner);
+
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
 
         // Firestore instance
         db = FirebaseFirestore.getInstance();
@@ -86,6 +95,8 @@ public class BudgetPlannerActivity extends BaseActivity {
         addExpenseButton = findViewById(R.id.addExpenseButton);
         editBudgetButton = findViewById(R.id.editBudgetButton);
         expensesRecyclerView = findViewById(R.id.expensesRecyclerView);
+        loadingIndicator = findViewById(R.id.loadingIndicator);
+        loadingOverlay = findViewById(R.id.loadingOverlay);
         promptsRecyclerView = findViewById(R.id.promptsRecyclerView);
 
 
@@ -97,6 +108,7 @@ public class BudgetPlannerActivity extends BaseActivity {
 
         promptsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         setupPrompts();
+        aiSuggestionContent = findViewById(R.id.aiSuggestionContent);
 
         // Always initialize expense categories, even before budget
         initializeExpenseCategories();
@@ -206,7 +218,6 @@ public class BudgetPlannerActivity extends BaseActivity {
 
         budgetRef.addSnapshotListener((documentSnapshot, e) -> {
             if (e != null) {
-                Toast.makeText(this, "Error loading budget!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -342,11 +353,132 @@ public class BudgetPlannerActivity extends BaseActivity {
         totalBudgetValue.setText("€" + String.format("%.2f", totalBudget));
 
         updateButtonStates(totalBudget, amountSpent, progress);
+        fetchAISuggestions();
     }
     @Override
     protected int getCurrentMenuItemId() {
         return -1; // No selection
     }
+    private void fetchAISuggestions() {
+        if (totalBudget <= 0) {
+            aiSuggestionContent.setText("Set a budget first to get tailored tips.");
+            return;
+        }
+
+        DocumentReference budgetDocRef = db.collection("users")
+                .document(userId)
+                .collection("budget")
+                .document("data");
+
+        CollectionReference expensesRef = budgetDocRef.collection("expenses");
+
+        expensesRef.get().addOnSuccessListener(expenseSnapshot -> {
+                    Map<String, Double> categorySpending = new HashMap<>();
+                    double totalSpent = 0;
+
+                    for (QueryDocumentSnapshot doc : expenseSnapshot) {
+                        String category = doc.getId(); // Using document ID as category
+                        double amount = doc.getDouble("amount") != null ? doc.getDouble("amount") : 0;
+                        categorySpending.put(category, amount);
+                        totalSpent += amount;
+                    }
+
+                    double remainingBudget = totalBudget - totalSpent;
+
+                    StringBuilder breakdown = new StringBuilder();
+                    for (Map.Entry<String, Double> entry : categorySpending.entrySet()) {
+                        String category = entry.getKey();
+                        double spent = entry.getValue();
+                        double percentOfTotal = (spent / totalBudget) * 100;
+
+                        breakdown.append(category)
+                                .append(": €").append(String.format("%.2f", spent))
+                                .append(" (").append(String.format("%.1f", percentOfTotal)).append("% of budget)")
+                                .append("; ");
+                    }
+
+                    String prompt = String.format(
+                            "I need SPECIFIC and PERSONALIZED budget suggestions for this exact situation:\n\n" +
+                                    "Weekly budget: €%.2f\n" +
+                                    "Total spent so far: €%.2f (%.1f%% of budget)\n" +
+                                    "Remaining budget: €%.2f (%.1f%% of budget)\n\n" +
+                                    "Category breakdown:\n%s\n\n" +
+                                    "Based ONLY on these exact numbers and categories, provide 3 SPECIFIC suggestions that:\n" +
+                                    "1. Directly reference actual amounts and categories from the data\n" +
+                                    "2. Include specific euro amounts and percentages in the recommendations\n" +
+                                    "3. Suggest concrete actions for the remaining €%.2f\n\n" +
+                                    "AVOID generic advice. Each suggestion must mention specific categories and amounts from the data.",
+                            totalBudget,
+                            totalSpent,
+                            (totalSpent / totalBudget) * 100,
+                            remainingBudget,
+                            (remainingBudget / totalBudget) * 100,
+                            breakdown.toString().trim(),
+                            remainingBudget
+                    );
+
+                    callAIService(prompt);
+                })
+                .addOnFailureListener(e ->
+                        aiSuggestionContent.setText("Failed to load expenses for AI suggestions.")
+                );
+    }
+
+    private void callAIService(String prompt) {
+        aiSuggestionContent.setText("Creating personalized suggestions...");
+
+        Log.d("BudgetAI", "Sending prompt: " + prompt);
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://updatedservice-621971573276.us-central1.run.app/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        AIService aiService = retrofit.create(AIService.class);
+        aiService.getAIResponse(new AIPromptRequest(prompt)).enqueue(new Callback<AIResponse>() {
+            @Override
+            public void onResponse(Call<AIResponse> call, Response<AIResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String aiResponse = response.body().getResponse().trim()
+                            .replaceAll("^\\d+\\.\\s*", "")
+                            .replaceAll("(?i)Suggestion \\d+:\\s*", "")
+                            .replaceAll("(?m)^", "")
+                            .trim();
+
+                    String[] suggestions = response.body().getResponse().trim().split("\\n\\n");
+                    StringBuilder formattedResponse = new StringBuilder();
+                    int max = Math.min(suggestions.length, 3);
+
+                    for (int i = 0; i < max; i++) {
+                        String clean = suggestions[i]
+                                .replaceAll("(?i)^(Suggestion\\s*\\d+:\\s*|\\d+\\.\\s*)", "")
+                                .trim();
+
+                        formattedResponse
+                                .append(i + 1)
+                                .append(". ")
+                                .append(clean);
+
+                        if (i < max - 1) {
+                            formattedResponse.append("\n\n");
+                        }
+                    }
+
+                    aiSuggestionContent.setText(formattedResponse.toString());
+
+                } else {
+                    aiSuggestionContent.setText("Unable to load suggestions right now.");
+                }
+            }
+            @Override
+            public void onFailure(Call<AIResponse> call, Throwable t) {
+                aiSuggestionContent.setText("Error fetching suggestions.");
+                Log.e("BudgetAI", "AI call failed", t);
+            }
+        });
+    }
+
+
 
     private void setupPrompts() {
         displayPromptsList = Arrays.asList(
@@ -365,152 +497,60 @@ public class BudgetPlannerActivity extends BaseActivity {
                 "Describe a structured approach for long-term financial stability, including investments, savings, and financial discipline."
         );
 
-        promptsAdapter = new PromptsAdapter(displayPromptsList, actualPromptsList, this::showPopup);
+        promptsAdapter = new AIPromptsAdapter(displayPromptsList, actualPromptsList, this::showPopup);
         promptsRecyclerView.setAdapter(promptsAdapter);
     }
     private void showPopup(String displayPrompt, String actualPrompt) {
+        // Disable prompt clicking to prevent multiple selections
+        promptsRecyclerView.setEnabled(false);
+        addExpenseButton.setVisibility(View.GONE);
+        loadingOverlay.setVisibility(View.VISIBLE);
+        // Show ProgressBar when fetching AI response
+        loadingIndicator.setVisibility(View.VISIBLE);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://updatedservice-621971573276.us-central1.run.app/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        SchoolTasksFragment.AIService aiService = retrofit.create(SchoolTasksFragment.AIService.class);
-        SchoolTasksFragment.AIPromptRequest request = new SchoolTasksFragment.AIPromptRequest(actualPrompt);
+       AIService aiService = retrofit.create(AIService.class);
+     AIPromptRequest request = new AIPromptRequest(actualPrompt);
 
-        aiService.getAIResponse(request).enqueue(new Callback<SchoolTasksFragment.AIResponse>() {
+        aiService.getAIResponse(request).enqueue(new Callback<AIResponse>() {
             @Override
-            public void onResponse(Call<SchoolTasksFragment.AIResponse> call, Response<SchoolTasksFragment.AIResponse> response) {
+            public void onResponse(Call<AIResponse> call, Response<AIResponse> response) {
+                // Hide ProgressBar once response is received
+                loadingIndicator.setVisibility(View.GONE);
+                loadingOverlay.setVisibility(View.GONE); // Re-enable interactions
+                addExpenseButton.setVisibility(View.VISIBLE); // Show FAB again
                 if (response.isSuccessful() && response.body() != null) {
                     String aiResponse = response.body().getResponse();
-                    SchoolTasksFragment.AIContentDialog dialog = SchoolTasksFragment.AIContentDialog.newInstance(displayPrompt, aiResponse);
+                  AIContentDialog dialog = AIContentDialog.newInstance(displayPrompt, aiResponse);
+                    // Show dialog and re-enable clicks only after it's dismissed
                     dialog.show(getSupportFragmentManager(), "AIContentDialog");
+                    getSupportFragmentManager().executePendingTransactions();
+
+                    dialog.getDialog().setOnDismissListener(dialogInterface -> {
+                        promptsRecyclerView.setEnabled(true); // Re-enable clicks after dialog closes
+                    });
                 } else {
+                    // Hide ProgressBar in case of failure
+                    loadingIndicator.setVisibility(View.GONE);
+                    loadingOverlay.setVisibility(View.GONE);
+                    promptsRecyclerView.setEnabled(true);
+                    addExpenseButton.setVisibility(View.VISIBLE); // Show FAB again
                     Toast.makeText(BudgetPlannerActivity.this, "Failed to get AI response", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<SchoolTasksFragment.AIResponse> call, Throwable t) {
+            public void onFailure(Call<AIResponse> call, Throwable t) {
+                // Hide ProgressBar in case of failure
+                loadingIndicator.setVisibility(View.GONE);
+                loadingOverlay.setVisibility(View.GONE);
+                promptsRecyclerView.setEnabled(true);
+                addExpenseButton.setVisibility(View.VISIBLE); // Show FAB again
                 Toast.makeText(BudgetPlannerActivity.this, "Error connecting to AI server", Toast.LENGTH_SHORT).show();
             }
         });
     }
-
-    // Prompts RecyclerView Adapter
-    public static class PromptsAdapter extends RecyclerView.Adapter<SchoolTasksFragment.PromptsAdapter.ViewHolder> {
-        private final List<String> displayPrompts;
-        private final List<String> actualPrompts;
-        private final SchoolTasksFragment.PromptsAdapter.OnPromptClickListener listener;
-
-        public PromptsAdapter(List<String> displayPrompts, List<String> actualPrompts, SchoolTasksFragment.PromptsAdapter.OnPromptClickListener listener) {
-            if (displayPrompts.size() != actualPrompts.size()) {
-                throw new IllegalArgumentException("Both lists must have the same number of items.");
-            }
-            this.displayPrompts = displayPrompts;
-            this.actualPrompts = actualPrompts;
-            this.listener = listener;
-        }
-
-        @NonNull
-        @Override
-        public SchoolTasksFragment.PromptsAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_ai_prompt, parent, false);
-            return new SchoolTasksFragment.PromptsAdapter.ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull SchoolTasksFragment.PromptsAdapter.ViewHolder holder, int position) {
-            String displayText = displayPrompts.get(position);
-            holder.promptText.setText(displayText);
-            holder.itemView.setOnClickListener(v -> listener.onClick(displayPrompts.get(position), actualPrompts.get(position)));
-        }
-
-        @Override
-        public int getItemCount() {
-            return displayPrompts.size();
-        }
-
-        static class ViewHolder extends RecyclerView.ViewHolder {
-            TextView promptText;
-
-            public ViewHolder(@NonNull View itemView) {
-                super(itemView);
-                promptText = itemView.findViewById(R.id.promptText);
-            }
-        }
-
-        public interface OnPromptClickListener {
-            void onClick(String displayPrompt, String actualPrompt);
-        }
-    }
-
-    // AIContentDialog Fragment
-    public static class AIContentDialog extends DialogFragment {
-        private static final String TITLE_KEY = "title";
-        private static final String CONTENT_KEY = "content";
-
-        public static SchoolTasksFragment.AIContentDialog newInstance(String title, String content) {
-            SchoolTasksFragment.AIContentDialog dialog = new SchoolTasksFragment.AIContentDialog();
-            Bundle args = new Bundle();
-            args.putString(TITLE_KEY, title);
-            args.putString(CONTENT_KEY, content);
-            dialog.setArguments(args);
-            return dialog;
-        }
-
-        @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            View view = inflater.inflate(R.layout.dialog_ai_content, container, false);
-
-            TextView titleView = view.findViewById(R.id.dialogTitle);
-            TextView contentView = view.findViewById(R.id.dialogContent);
-            View closeButton = view.findViewById(R.id.dialogCloseButton);
-
-            assert getArguments() != null;
-            titleView.setText(getArguments().getString(TITLE_KEY));
-            contentView.setText(getArguments().getString(CONTENT_KEY));
-            ScrollingMovementMethod scrollable = new ScrollingMovementMethod();
-            contentView.setMovementMethod(scrollable);
-
-
-            closeButton.setOnClickListener(v -> dismiss());
-            return view;
-        }
-    }
-
-    // --- AI API Models and Interface ---
-
-    public static class AIPromptRequest {
-        private String prompt;
-
-        public AIPromptRequest(String prompt) {
-            this.prompt = prompt;
-        }
-
-        public String getPrompt() {
-            return prompt;
-        }
-
-        public void setPrompt(String prompt) {
-            this.prompt = prompt;
-        }
-    }
-
-    public static class AIResponse {
-        private String response;
-
-        public String getResponse() {
-            return response;
-        }
-
-        public void setResponse(String response) {
-            this.response = response;
-        }
-    }
-
-    public interface AIService {
-        @POST("run-prompt")
-        Call<SchoolTasksFragment.AIResponse> getAIResponse(@Body SchoolTasksFragment.AIPromptRequest request);
-    }
-
 }

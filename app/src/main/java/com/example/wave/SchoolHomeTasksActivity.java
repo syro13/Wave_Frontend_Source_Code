@@ -1,5 +1,6 @@
 package com.example.wave;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -21,10 +22,18 @@ public class SchoolHomeTasksActivity extends BaseActivity implements TaskComplet
         // Set up bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         setupBottomNavigation(bottomNavigationView);
+        // Check if activity was opened with a flag to load HomeTasksFragment
+        boolean showHomeTasks = getIntent().getBooleanExtra("showHomeTasks", false);
 
-        // Load the SchoolTasksFragment by default
+        // Load the correct fragment
         if (savedInstanceState == null) {
-            loadFragment(new SchoolTasksFragment());
+            if (showHomeTasks) {
+                loadFragment(new HomeTasksFragment());
+                isSchoolTasksActive = false;
+            } else {
+                loadFragment(new SchoolTasksFragment());
+                isSchoolTasksActive = true;
+            }
         }
     }
 

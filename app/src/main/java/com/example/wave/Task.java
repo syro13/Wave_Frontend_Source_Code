@@ -19,7 +19,6 @@ public class Task implements Parcelable {
     private String month;
     private String priority;
     private String category;
-    private boolean remind;
     private int year;
     private String fullDate;
     private int stability;
@@ -41,7 +40,7 @@ public class Task implements Parcelable {
 
     // Full constructor
     public Task(String id, String title, String time, String date, String month,
-                String priority, String category, boolean remind, int year,
+                String priority, String category, int year,
                 int stability, long tasktimestamp, String fullDate, boolean completed,  RepeatOption repeatOption) {
         this.id = id;
         this.title = title;
@@ -50,7 +49,6 @@ public class Task implements Parcelable {
         this.month = month;
         this.priority = priority;
         this.category = category;
-        this.remind = remind;
         this.year = year;
         this.stability = stability;
         this.tasktimestamp = tasktimestamp;
@@ -69,7 +67,6 @@ public class Task implements Parcelable {
         month = in.readString();
         priority = in.readString();
         category = in.readString();
-        remind = in.readByte() != 0;
         year = in.readInt();
         fullDate = in.readString();
         stability = in.readInt();
@@ -87,7 +84,6 @@ public class Task implements Parcelable {
         dest.writeString(month);
         dest.writeString(priority);
         dest.writeString(category);
-        dest.writeByte((byte) (remind ? 1 : 0));
         dest.writeInt(year);
         dest.writeString(fullDate);
         dest.writeInt(stability);
@@ -134,9 +130,6 @@ public class Task implements Parcelable {
 
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
-
-    public boolean isRemind() { return remind; }
-    public void setRemind(boolean remind) { this.remind = remind; }
 
     public int getYear() { return year; }
     public void setYear(int year) { this.year = year; }
@@ -196,8 +189,7 @@ public class Task implements Parcelable {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
         Task task = (Task) obj;
-        return remind == task.remind &&
-                year == task.year &&
+        return year == task.year &&
                 stability == task.stability &&
                 tasktimestamp == task.tasktimestamp &&
                 Objects.equals(title, task.title) &&
@@ -213,6 +205,6 @@ public class Task implements Parcelable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(title, time, date, month, priority, category, remind, year, stability, tasktimestamp, fullDate, repeatOption);
+        return Objects.hash(title, time, date, month, priority, category, year, stability, tasktimestamp, fullDate, repeatOption);
     }
 }

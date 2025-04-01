@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="?android:windowBackground">
 
     <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
@@ -36,15 +36,18 @@
                     app:layout_constraintTop_toTopOf="parent"
                     android:layout_margin="16dp" />
 
-                <ImageView
+                <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/profileIcon"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_profile_placeholder"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/profile_image"
                     android:contentDescription="Profile Icon"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="16dp"
+                    app:shapeAppearanceOverlay="@style/CircularImageView"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    android:layout_margin="16dp" />
+                    app:layout_constraintTop_toTopOf="parent" />
+
 
                 <TextView
                     android:id="@+id/wellnessTitle"
@@ -77,7 +80,7 @@
                     android:textStyle="normal"
                     android:textSize="24sp"
                     android:layout_marginStart="16dp"
-                    android:textColor="@android:color/black" />
+                    android:textColor="?attr/colorOnSurface"/>
 
                 <ImageView
                     android:id="@+id/quoteIcon"
@@ -85,7 +88,8 @@
                     android:layout_height="30dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginBottom="8dp"
-                    android:src="@drawable/quote_icon" />
+                    android:src="@drawable/quote_icon"
+                    app:tint="?attr/colorOnSurface"/>
             </LinearLayout>
 
             <!-- Today's Quote Section -->
@@ -169,7 +173,7 @@
                 android:textStyle="normal"
                 android:textSize="24sp"
                 android:layout_marginStart="16dp"
-                android:textColor="@android:color/black" />
+                android:textColor="?attr/colorOnSurface" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/podcastRecyclerView"
@@ -212,7 +216,7 @@
                 android:textStyle="normal"
                 android:textSize="24sp"
                 android:layout_marginStart="16dp"
-                android:textColor="@android:color/black" />
+                android:textColor="?attr/colorOnSurface" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/blogRecyclerView"
@@ -221,7 +225,6 @@
                 android:layout_marginTop="2dp"
                 android:layout_margin="15dp"
                 android:orientation="horizontal" />
-
             <!-- No Blogs Placeholder -->
             <ImageView
                 android:id="@+id/noBlogsImage"
@@ -244,6 +247,69 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="8dp"
                 android:visibility="gone" />
+            <!-- AI Prompts Section -->
+                <TextView
+                    android:id="@+id/PromptsTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Quick Prompts"
+                    android:fontFamily="@font/archivo_medium"
+                    android:textStyle="normal"
+                    android:textSize="24sp"
+                    android:layout_marginStart="16dp"
+                    android:textColor="?attr/colorOnSurface" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/promptsRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_margin="15dp"
+                    android:orientation="horizontal"/>
+            <TextView
+                android:id="@+id/planTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Daily Wellness Plan"
+                android:fontFamily="@font/archivo_medium"
+                android:textSize="24sp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:textColor="?attr/colorOnSurface" />
+
+            <Button
+                android:id="@+id/generatePlanButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Generate My Daily Wellness Plan"
+                android:layout_margin="16dp"
+                android:padding="12dp"
+                android:textColor="@color/dark_blue"
+                android:backgroundTint="@color/light_blue" />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/planCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                android:layout_margin="16dp"
+                android:visibility="gone">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/card_background">
+                <TextView
+                    android:id="@+id/planContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Your personalized wellness plan will appear here."
+                    android:textSize="16sp"
+                    android:padding="16dp"
+                    android:textColor="@android:color/black" />
+                </FrameLayout>
+            </androidx.cardview.widget.CardView>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
     <!-- Loading Indicator -->
@@ -252,9 +318,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:indeterminateTint="@color/dark_blue"
         android:visibility="gone" />
-
+    <!-- Full-Screen Click-Blocking Overlay -->
+    <View
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true" />
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
@@ -266,4 +339,6 @@
         app:labelVisibilityMode="labeled"
         app:itemIconTint="@color/black"
         app:itemTextColor="@color/black" />
+    <include layout="@layout/no_internet_overlay" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

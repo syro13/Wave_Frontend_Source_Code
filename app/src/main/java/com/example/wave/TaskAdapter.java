@@ -90,17 +90,27 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         // Overdue check for non-completed tasks
         if (!task.isCompleted()) {
             try {
-                int day = Integer.parseInt(task.getDate());
-                int month = getMonthIndex(task.getMonth());
-                int year = task.getYear();
+                java.time.LocalDate dueDate;
+                // If task.getDate() contains a slash, assume it’s in "d/M/yyyy" format.
+                if (task.getDate().contains("/")) {
+                    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+                    dueDate = java.time.LocalDate.parse(task.getDate(), dateFormatter);
+                } else {
+                    // Otherwise, use the individual day, month, and year.
+                    int day = Integer.parseInt(task.getDate());
+                    int month = getMonthIndex(task.getMonth());
+                    int year = task.getYear();
+                    dueDate = java.time.LocalDate.of(year, month, day);
+                }
 
-                // Switch to 24-hour parsing
+                // Parse the time string (assumed to be in "HH:mm" format)
                 DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
                 java.time.LocalTime dueTime = java.time.LocalTime.parse(task.getTime(), timeFormatter);
-                java.time.LocalDate dueDate = java.time.LocalDate.of(year, month, day);
+
+                // Combine date and time into a LocalDateTime object.
                 java.time.LocalDateTime dueDateTime = java.time.LocalDateTime.of(dueDate, dueTime);
 
-                // Mark overdue if it's before the current time
+                // Mark overdue if dueDateTime is before the current time.
                 if (dueDateTime.isBefore(java.time.LocalDateTime.now())) {
                     holder.overdueTagContainer.setVisibility(View.VISIBLE);
                     holder.taskCard.setStrokeColor(ContextCompat.getColor(context, R.color.red));
@@ -113,6 +123,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         } else {
             holder.overdueTagContainer.setVisibility(View.GONE);
         }
+
+
 
 
         // Category styling
@@ -275,6 +287,22 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public int getItemCount() {
         return taskList.size();
     }
+
+    public void updateTaskInList(Task updatedTask) {
+        int position = -1;
+        for (int i = 0; i < taskList.size(); i++) {
+            if (taskList.get(i).getId().equals(updatedTask.getId())) {
+                position = i;
+                break;
+            }
+        }
+
+        if (position != -1) {
+            taskList.set(position, updatedTask);
+            notifyItemChanged(position);  // ✅ Instantly refresh UI
+        }
+    }
+
 
     public static class TaskViewHolder extends RecyclerView.ViewHolder {
         MaterialCardView taskCard;

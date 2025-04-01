@@ -1,6 +1,7 @@
 package com.example.wave;
 
 import static android.content.Context.MODE_PRIVATE;
+import static androidx.test.internal.runner.junit4.statement.UiThreadStatement.runOnUiThread;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -8,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -48,29 +50,31 @@ import java.util.Set;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
 
-public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.SaveGroceryItemsCallback, TaskCompletionListener {
+public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.SaveGroceryItemsCallback, TaskCompletionListener{
     private NetworkReceiver networkReceiver;
     private static final String GroceryListPREFS_NAME = "GroceryListPrefs";
     private static final String GROCERY_LIST_KEY = "grocery_list";
     private Dialog dialog;
-    private ArrayList<GroceryItem> groceryItems; // Grocery list items
+    private ArrayList<GroceryItem> groceryItems;
     private GroceryItemAdapter adapter;
     private static final int MAX_BLOGS = 4;
     private static final String PREFS_NAME = "HomeTasksPrefs";
-    private RecyclerView  promptsRecyclerView;
+    private RecyclerView promptsRecyclerView;
     private List<Task> completedTaskList;
-
+    private ProgressBar loadingIndicator;
+    private View noInternetOverlay;
+    private View loadingOverlay;
+    private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private ListenerRegistration homeTasksListener;
+    private AIPromptsAdapter promptsAdapter;
     private List<String> displayPromptsList;
     private List<String> actualPromptsList;
-    private PromptsAdapter promptsAdapter;
-    private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private ListenerRegistration homeTasksListener; // For real-time updates
+
 
     @Nullable
     @Override
@@ -80,35 +84,40 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
         TextView schoolTasksButton = view.findViewById(R.id.SchoolTasksButton);
         TextView homeTasksButton = view.findViewById(R.id.homeTasksButton);
 
+        BaseActivity baseActivity = (BaseActivity) requireActivity();
+        baseActivity.setNoInternetOverlay(view.findViewById(R.id.noInternetOverlay));
+        baseActivity.configureNoInternetOverlay();
+        loadingIndicator = view.findViewById(R.id.loadingIndicator);
+        loadingOverlay = view.findViewById(R.id.loadingOverlay);
+
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        requireContext().registerReceiver(networkReceiver, filter);
+
+        checkInitialInternetStatus();
 
         completedTaskList = new ArrayList<>();
-        // RecyclerView setup for AI prompts
         promptsRecyclerView = view.findViewById(R.id.promptsRecyclerView);
         promptsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-
-        displayPromptsList = Arrays.asList(
-                "Suggest a quick cleaning tip",
-                "How can I stay organized in my space?",
-                "Give me advice on balancing chores with studying",
-                "How to make cleaning less stressful?",
-                "Share a tip for keeping my home clean and tidy"
-        );
-        // Detailed prompt text for the API call:
-        actualPromptsList = Arrays.asList(
-                "As a home care expert, provide a quick cleaning tip that can be implemented in under 5 minutes. Limit the response to a maximum of 200 words.",
-                "Provide a comprehensive yet succinct strategy for staying organized at home, including time management and space optimization tips. Limit your answer to 200 words.",
-                "Develop advice for balancing household chores with other responsibilities in a realistic manner. Limit your response to 200 words.",
-                "Outline practical ways to reduce the stress associated with cleaning, including simple methods for quick fixes. Limit your answer to 200 words.",
-                "Share an effective tip for maintaining a clean home environment that is easy to follow and implement. Limit the answer to 200 words."
-        );
-
-        promptsAdapter = new PromptsAdapter(displayPromptsList, actualPromptsList, this::showPopup);
-        promptsRecyclerView.setAdapter(promptsAdapter);
+        setupPrompts();
 
         setActiveButton(homeTasksButton, schoolTasksButton);
 
-        // Handle School Tasks button click
+        Button openHouseBreakdown = view.findViewById(R.id.btnOpenSmartBreakdown);
+        openHouseBreakdown.setOnClickListener(v -> {
+            HouseBreakdownBottomSheet sheet = new HouseBreakdownBottomSheet();
+            sheet.setListener(result -> {
+                TextView tv = getView().findViewById(R.id.textBreakdownResult);
+                tv.setText(result);
+                CardView cardHouseBreakdown = getView().findViewById(R.id.cardBreakdownResult);
+                cardHouseBreakdown.setVisibility(View.VISIBLE);
+
+                requireContext().getSharedPreferences("HouseBreakdownPrefs", MODE_PRIVATE)
+                        .edit().putString("houseBreakdownText", result).apply();
+            });
+            sheet.show(getParentFragmentManager(), "HouseBreakdown");
+        });
+
+
         schoolTasksButton.setOnClickListener(v -> {
             setActiveButton(schoolTasksButton, homeTasksButton);
             if (getActivity() instanceof SchoolHomeTasksActivity) {
@@ -121,9 +130,55 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
             Intent intent = new Intent(requireContext(), ProfileActivity.class);
             startActivity(intent);
         });
+
         setupNotesCard(view);
         listenForCompletedTaskUpdates();
+
+        CardView calendarFromTasksButton = view.findViewById(R.id.CalendarFromTasksButton);
+        if (calendarFromTasksButton != null) {
+            calendarFromTasksButton.setOnClickListener(v -> {
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.home_school_tasks_container, new HomeCalendarFragment())
+                        .addToBackStack(null)
+                        .commit();
+            });
+        }
+
         return view;
+    }
+
+    private void checkInitialInternetStatus() {
+        ConnectivityManager cm = (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+        if (!isConnected) {
+            showNoInternetUI();
+        } else {
+            hideNoInternetUI();
+        }
+    }
+
+
+    private void showNoInternetUI() {
+        if (noInternetOverlay != null) {
+            noInternetOverlay.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideNoInternetUI() {
+        if (noInternetOverlay != null) {
+            noInternetOverlay.setVisibility(View.GONE);
+        }
+    }
+
+    private void showLoading() {
+        if (loadingIndicator != null) loadingIndicator.setVisibility(View.VISIBLE);
+        if (loadingOverlay != null) loadingOverlay.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoading() {
+        if (loadingIndicator != null) loadingIndicator.setVisibility(View.GONE);
+        if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
     }
 
     public HomeTasksFragment() {
@@ -217,136 +272,76 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
         }
     }
 
+    private void setupPrompts() {
+        displayPromptsList = Arrays.asList(
+                "How can I stay on top of daily chores?",
+                "What's a quick way to organize my room?",
+                "Give me tips for staying motivated with housework",
+                "How do I manage my time between chores and rest?",
+                "Suggest a productive daily home routine"
+        );
+
+        actualPromptsList = Arrays.asList(
+                "Provide effective strategies to help students consistently stay on top of their daily household chores.",
+                "Share quick and practical steps students can take to keep their rooms tidy and organized.",
+                "Give motivation techniques that can help students stay consistent with home responsibilities like cleaning and laundry.",
+                "Explain how students can manage their time efficiently to balance housework and relaxation without burnout.",
+                "Describe a realistic and balanced daily home routine for students that includes time for cleaning, rest, and productivity."
+        );
+
+        promptsAdapter = new AIPromptsAdapter(displayPromptsList, actualPromptsList, this::showPopup);
+        promptsRecyclerView.setAdapter(promptsAdapter);
+    }
 
     private void showPopup(String displayPrompt, String actualPrompt) {
+        // Disable prompt clicking to prevent multiple selections
+        promptsRecyclerView.setEnabled(false);
+        loadingOverlay.setVisibility(View.VISIBLE);
+        // Show ProgressBar when fetching AI response
+        loadingIndicator.setVisibility(View.VISIBLE);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://updatedservice-621971573276.us-central1.run.app/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
+
         AIService aiService = retrofit.create(AIService.class);
         AIPromptRequest request = new AIPromptRequest(actualPrompt);
+
         aiService.getAIResponse(request).enqueue(new Callback<AIResponse>() {
             @Override
             public void onResponse(Call<AIResponse> call, Response<AIResponse> response) {
+
+                // Hide ProgressBar once response is received
+                loadingIndicator.setVisibility(View.GONE);
+                loadingOverlay.setVisibility(View.GONE); // Re-enable interactions
                 if (response.isSuccessful() && response.body() != null) {
                     String aiResponse = response.body().getResponse();
                     AIContentDialog dialog = AIContentDialog.newInstance(displayPrompt, aiResponse);
+                    // Show dialog and re-enable clicks only after it's dismissed
                     dialog.show(getParentFragmentManager(), "AIContentDialog");
+                    requireActivity().getSupportFragmentManager().executePendingTransactions();
+
+                    dialog.getDialog().setOnDismissListener(dialogInterface -> {
+                        promptsRecyclerView.setEnabled(true); // Re-enable clicks after dialog closes
+                    });
                 } else {
-                    Toast.makeText(getContext(), "Failed to get AI response", Toast.LENGTH_SHORT).show();
+                    // Hide ProgressBar in case of failure
+                    loadingIndicator.setVisibility(View.GONE);
+                    loadingOverlay.setVisibility(View.GONE);
+                    promptsRecyclerView.setEnabled(true);
+
                 }
             }
+
             @Override
             public void onFailure(Call<AIResponse> call, Throwable t) {
-                Toast.makeText(getContext(), "Error connecting to AI server", Toast.LENGTH_SHORT).show();
+                // Hide ProgressBar in case of failure
+                loadingIndicator.setVisibility(View.GONE);
+                loadingOverlay.setVisibility(View.GONE);
+                promptsRecyclerView.setEnabled(true);
             }
         });
     }
-
-    public static class PromptsAdapter extends RecyclerView.Adapter<PromptsAdapter.ViewHolder> {
-        private final List<String> displayPrompts;
-        private final List<String> actualPrompts;
-        private final OnPromptClickListener listener;
-
-        public PromptsAdapter(List<String> displayPrompts, List<String> actualPrompts, OnPromptClickListener listener) {
-            if (displayPrompts.size() != actualPrompts.size()) {
-                throw new IllegalArgumentException("Both lists must have the same number of items.");
-            }
-            this.displayPrompts = displayPrompts;
-            this.actualPrompts = actualPrompts;
-            this.listener = listener;
-        }
-
-        @NonNull
-        @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_ai_prompt, parent, false);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            String displayText = displayPrompts.get(position);
-            holder.promptText.setText(displayText);
-            holder.itemView.setOnClickListener(v ->
-                    listener.onClick(displayPrompts.get(position), actualPrompts.get(position)));
-        }
-
-        @Override
-        public int getItemCount() {
-            return displayPrompts.size();
-        }
-
-        static class ViewHolder extends RecyclerView.ViewHolder {
-            TextView promptText;
-            public ViewHolder(@NonNull View itemView) {
-                super(itemView);
-                promptText = itemView.findViewById(R.id.promptText);
-            }
-        }
-
-        public interface OnPromptClickListener {
-            void onClick(String displayPrompt, String actualPrompt);
-        }
-    }
-
-    // AIContentDialog Fragment to display the prompt and the AI response.
-    public static class AIContentDialog extends DialogFragment {
-        private static final String TITLE_KEY = "title";
-        private static final String CONTENT_KEY = "content";
-
-        public static AIContentDialog newInstance(String title, String content) {
-            AIContentDialog dialog = new AIContentDialog();
-            Bundle args = new Bundle();
-            args.putString(TITLE_KEY, title);
-            args.putString(CONTENT_KEY, content);
-            dialog.setArguments(args);
-            return dialog;
-        }
-
-        @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            View view = inflater.inflate(R.layout.dialog_ai_content, container, false);
-            TextView titleView = view.findViewById(R.id.dialogTitle);
-            TextView contentView = view.findViewById(R.id.dialogContent);
-            View closeButton = view.findViewById(R.id.dialogCloseButton);
-            assert getArguments() != null;
-            titleView.setText(getArguments().getString(TITLE_KEY));
-            contentView.setText(getArguments().getString(CONTENT_KEY));
-            closeButton.setOnClickListener(v -> dismiss());
-            return view;
-        }
-    }
-
-    // --- AI API Models and Interface ---
-    public static class AIPromptRequest {
-        private String prompt;
-        public AIPromptRequest(String prompt) {
-            this.prompt = prompt;
-        }
-        public String getPrompt() {
-            return prompt;
-        }
-        public void setPrompt(String prompt) {
-            this.prompt = prompt;
-        }
-    }
-
-    public static class AIResponse {
-        private String response;
-        public String getResponse() {
-            return response;
-        }
-        public void setResponse(String response) {
-            this.response = response;
-        }
-    }
-
-    public interface AIService {
-        @POST("run-prompt")
-        Call<AIResponse> getAIResponse(@Body AIPromptRequest request);
-    }
-
     public void listenForCompletedTaskUpdates() {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()

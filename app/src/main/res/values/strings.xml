@@ -15,7 +15,7 @@
     <string name="description">Description</string>
     <string name="title">Title</string>
     <string name="budget_smarter_study_better_live_healthier">Budget Smarter. Study Better. Live Healthier.</string>
-    <string name="email_or_username">Email or Username</string>
+    <string name="email_or_username">Email</string>
     <string name="password">Password</string>
     <string name="default_web_client_id">621971573276-14q3ib2mrr0d1ccg5epdsu3n0rpdjtu1.apps.googleusercontent.com</string>
     <string name="Home">Home</string>
@@ -64,6 +64,10 @@
     <string name="select_time">Select Time</string>
     <string name="today">TODAY</string>
     <string name="expand_or_collapse">Expand or Collapse</string>
+    <string name="wellnessCard">Wellness</string>
+    <string name="onboarding_animation" />
+    <string name="notes_card">Notes</string>
+    <string name="back_arrow" />
     <!-- Month-Year Array -->
         <string-array name="month_year_array">
             <item>January 2025</item>
@@ -88,6 +92,17 @@
         <item>Repeat every Friday</item>
         <item>Repeat every Saturday</item>
         <item>Repeat every Sunday</item>
+    </string-array>
+    <string-array name="time_options">
+        <item>1 hour</item>
+        <item>2 hours</item>
+        <item>3 hours</item>
+        <item>4 hours</item>
+        <item>5 hours</item>
+        <item>6 hours</item>
+        <item>8 hours</item>
+        <item>10 hours</item>
+        <item>12 hours</item>
     </string-array>
     </resources>
 

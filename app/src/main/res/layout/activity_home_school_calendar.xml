@@ -8,7 +8,6 @@
     tools:context=".SchoolHomeCalendarActivity">
 
     <!-- Fragment Container -->
-
     <FrameLayout
         android:id="@+id/home_school_calendar_container"
         android:layout_width="0dp"
@@ -27,12 +26,13 @@
         android:layout_margin="16dp"
         android:contentDescription="@string/add_task"
         app:srcCompat="@drawable/ic_add"
-        android:background="@drawable/fab_transparent_bg"
+        app:backgroundTint="@color/medium_blue"
         android:elevation="25dp"
         android:scaleType="center"
         app:tint="@android:color/white"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
         app:layout_constraintEnd_toEndOf="parent" />
+
 
 
     <!-- Bottom Navigation View -->

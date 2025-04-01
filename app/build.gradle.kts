@@ -41,6 +41,19 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    packaging {
+        resources {
+            excludes.addAll(
+                listOf(
+                    "META-INF/NOTICE.md",
+                    "META-INF/LICENSE.md",
+                    "META-INF/LICENSE",
+                    "META-INF/NOTICE",
+                    "META-INF/DEPENDENCIES"
+                )
+            )
+        }
+    }
 }
 
 dependencies {
@@ -63,6 +76,7 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.ext.junit)
+    testImplementation(libs.junit.jupiter)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation(libs.core.ktx)
@@ -100,12 +114,15 @@ dependencies {
     implementation (libs.converter.gson)
     implementation (libs.material.v1120)
     implementation("com.google.protobuf:protobuf-javalite:3.25.1")
+    implementation ("com.google.firebase:firebase-storage:20.3.0")
+    implementation ("com.sun.mail:android-mail:1.6.7")
+    implementation ("com.sun.mail:android-activation:1.6.7")
 }
 
 configurations.all {
     resolutionStrategy.eachDependency {
         if (requested.group == "com.google.protobuf" && requested.name == "protobuf-lite") {
-            useTarget("com.google.protobuf:protobuf-javalite:3.25.1") // ✅ Correct syntax
+            useTarget("com.google.protobuf:protobuf-javalite:3.25.1") // Correct syntax
         }
     }
 }

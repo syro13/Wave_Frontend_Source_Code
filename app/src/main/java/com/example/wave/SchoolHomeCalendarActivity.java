@@ -223,12 +223,17 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
         MaterialButton mediumPriorityButton = dialogView.findViewById(R.id.mediumPriorityButton);
         MaterialButton lowPriorityButton = dialogView.findViewById(R.id.lowPriorityButton);
         EditText selectDateInput = dialogView.findViewById(R.id.selectDate);
+        ImageView calendarIcon = dialogView.findViewById(R.id.calendarIcon);
         EditText selectTimeInput = dialogView.findViewById(R.id.selectTime);
-        SwitchMaterial remindSwitch = dialogView.findViewById(R.id.remindSwitch);
+        ImageView timeIcon = dialogView.findViewById(R.id.timeIcon);
         View createTaskButton = dialogView.findViewById(R.id.createTaskButton);
 
         // Initialize the Spinner from the dialog layout
         Spinner repeatSpinner = dialogView.findViewById(R.id.repeatSpinner); // Use dialogView
+        calendarIcon.setOnClickListener(v -> showDatePicker(selectDateInput));
+        selectDateInput.setOnClickListener(v -> showDatePicker(selectDateInput));
+        timeIcon.setOnClickListener(v -> showTimePicker(selectTimeInput));
+        selectTimeInput.setOnClickListener(v -> showTimePicker(selectTimeInput));
 
         // Populate the Spinner with repeat options
         ArrayAdapter<CharSequence> repeatAdapter = ArrayAdapter.createFromResource(
@@ -279,52 +284,52 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
             schoolButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.transparent)));
         });
 
-        // Handle task priority selection
         highPriorityButton.setOnClickListener(v -> {
             taskPriority[0] = "High";
 
-            // Apply blue border
-            highPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.blue)));
+            // Apply blue border and force redraw
+            highPriorityButton.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.blue)));
             highPriorityButton.setStrokeWidth(4);
-            highPriorityButton.invalidate(); // Ensure UI updates immediately
+            highPriorityButton.refreshDrawableState(); // ✅ Forces UI to refresh
 
-            // Reset other buttons (removes blue border)
-            mediumPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.default_stroke)));
-            lowPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.default_stroke)));
+            // Reset other buttons
+            resetButtonStroke(mediumPriorityButton);
+            resetButtonStroke(lowPriorityButton);
         });
 
         mediumPriorityButton.setOnClickListener(v -> {
             taskPriority[0] = "Medium";
 
-            // Apply blue border
-            mediumPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.blue)));
+            // Apply blue border and force redraw
+            mediumPriorityButton.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.blue)));
             mediumPriorityButton.setStrokeWidth(4);
-            mediumPriorityButton.invalidate();
+            mediumPriorityButton.refreshDrawableState(); // ✅ Forces UI to refresh
 
             // Reset other buttons
-            highPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.default_stroke)));
-            lowPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.default_stroke)));
+            resetButtonStroke(highPriorityButton);
+            resetButtonStroke(lowPriorityButton);
         });
 
         lowPriorityButton.setOnClickListener(v -> {
             taskPriority[0] = "Low";
 
-            // Apply blue border
-            lowPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.blue)));
+            // Apply blue border and force redraw
+            lowPriorityButton.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.blue)));
             lowPriorityButton.setStrokeWidth(4);
-            lowPriorityButton.invalidate();
+            lowPriorityButton.refreshDrawableState(); // ✅ Forces UI to refresh
 
             // Reset other buttons
-            highPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.default_stroke)));
-            mediumPriorityButton.setStrokeColor(ColorStateList.valueOf(getResources().getColor(R.color.default_stroke)));
+            resetButtonStroke(highPriorityButton);
+            resetButtonStroke(mediumPriorityButton);
         });
+
 
         // Handle task creation
         createTaskButton.setOnClickListener(v -> {
             String taskTitle = taskTitleInput.getText().toString();
             String taskDate = selectDateInput.getText().toString();
             String taskTime = selectTimeInput.getText().toString();
-            boolean remind = remindSwitch.isChecked();
+
 
             // Get the selected repeat option from the Spinner
             String repeatOptionString = repeatSpinner.getSelectedItem().toString();
@@ -338,7 +343,6 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
                             taskPriority[0],
                             taskDate,
                             taskTime,
-                            remind,
                             taskType[0],
                             repeatOptionString // Pass the selected repeat option
                     );
@@ -348,7 +352,6 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
                             taskPriority[0],
                             taskDate,
                             taskTime,
-                            remind,
                             taskType[0],
                             repeatOptionString // Pass the selected repeat option
                     );
@@ -358,7 +361,6 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
                             taskPriority[0],
                             taskDate,
                             taskTime,
-                            remind,
                             taskType[0],
                             repeatOptionString // Pass the selected repeat option
                     );
@@ -373,6 +375,12 @@ public class SchoolHomeCalendarActivity extends BaseActivity implements TaskComp
         });
 
         dialog.show();
+    }
+
+    private void resetButtonStroke(MaterialButton button) {
+        button.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.transparent))); // Remove border
+        button.setStrokeWidth(2); // Keep minimal stroke to allow dynamic change
+        button.refreshDrawableState(); // ✅ Forces UI to refresh
     }
 
 

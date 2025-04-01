@@ -8,6 +8,7 @@ coreKtx = "1.15.0"
 desugar_jdk_libs = "2.1.4"
 firebaseBom = "33.6.0"
 firebaseFirestore = "25.1.2"
+firebaseMessaging = "24.1.0"
 fragmentKtx = "1.8.5"
 googleMaterial = "1.12.0"
 junit = "4.13.2"
@@ -30,8 +31,10 @@ fragmentTesting = "1.8.5"
 activity = "1.9.3"
 espressoContrib = "3.6.1"
 espresso = "3.6.1"
+junitJupiter = "5.8.1"
 protobuf = "3.25.1"
-facebook-login = "13.0.1"
+facebook-login = "16.3.0"
+
 
 [libraries]
 appcompat-v170 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
@@ -42,7 +45,7 @@ core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
-firebase-firestore = { module = "com.google.firebase:firebase-firestore", version.ref = "firebaseFirestore" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging", version.ref = "firebaseMessaging" }
 fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -57,14 +60,16 @@ material-v1120 = { module = "com.google.android.material:material", version.ref 
 material-v190 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 play-services-auth-v2070 = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuthVersion" }
-protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobufJavalite" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espresso" }
 fragment-testing = { group = "androidx.fragment", name = "fragment-testing", version.ref = "fragmentTesting" }
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
-facebook-login = { module = "com.facebook.android:facebook-login", version.ref = "facebook-login" }
 espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espressoContrib" }
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
+facebook-login = { module = "com.facebook.android:facebook-login", version.ref = "facebook-login" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

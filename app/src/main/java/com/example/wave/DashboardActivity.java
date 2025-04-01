@@ -22,6 +22,7 @@ import com.bumptech.glide.load.model.GlideUrl;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.security.ProviderInstaller;
+import com.example.wave.utils.UserUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -58,28 +59,19 @@ public class DashboardActivity extends BaseActivity implements
     private FirebaseAuth auth;
     private FirebaseAuth.AuthStateListener authListener;
 
-    private final ActivityResultLauncher<Intent> editTaskLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Task updatedTask = result.getData().getParcelableExtra("updatedTask");
-                    int position = result.getData().getIntExtra("position", -1);
-                    if (updatedTask != null && position != -1 && position < taskList.size()) {
-                        taskList.set(position, updatedTask);
-                        taskAdapter.notifyItemChanged(position);
-                    }
-                }
-            });
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        // Retrieve the current user once.
+        setNoInternetOverlay(findViewById(R.id.noInternetOverlay));
+        configureNoInternetOverlay();
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             refreshAuthToken(user);
         }
+
         auth = FirebaseAuth.getInstance();
         authListener = firebaseAuth -> {
             FirebaseUser currentUser = firebaseAuth.getCurrentUser();
@@ -91,11 +83,13 @@ public class DashboardActivity extends BaseActivity implements
                 finish();
             }
         };
+
         try {
             ProviderInstaller.installIfNeeded(getApplicationContext());
         } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
             Log.e("SSL", "Provider installation failed", e);
         }
+
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .connectionSpecs(Collections.singletonList(
                         new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
@@ -106,24 +100,22 @@ public class DashboardActivity extends BaseActivity implements
 
         Glide.get(this).getRegistry().replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory((okhttp3.Call.Factory) okHttpClient));
 
-        // Set up bottom navigation.
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         setupBottomNavigation(bottomNavigationView);
 
-        // Set up greeting and card click.
         TextView greetingTextView = findViewById(R.id.greetingText);
         CardView schoolTasksCard = findViewById(R.id.schoolTasksCard);
         schoolTasksCard.setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, SchoolTasksFragment.class);
             startActivity(intent);
         });
+
         if (user != null) {
             String displayName = user.getDisplayName();
             greetingTextView.setText(displayName != null && !displayName.isEmpty()
                     ? "Hello " + displayName + "!" : "Hello User!");
         }
 
-        // Initialize task list, adapter, and RecyclerView.
         taskList = new ArrayList<>();
         taskAdapter = new TaskAdapter(taskList, this, this, this, this, editTaskLauncher);
         taskRecyclerView = findViewById(R.id.taskRecyclerView);
@@ -132,12 +124,15 @@ public class DashboardActivity extends BaseActivity implements
         SnapHelper snapHelper = new LinearSnapHelper();
         snapHelper.attachToRecyclerView(taskRecyclerView);
 
-        // Load dashboard UI components.
         loadCurrentDate();
-        loadWeatherIcon();
 
-        // Set up click listeners for other dashboard cards.
-        findViewById(R.id.homeTasksCard).setOnClickListener(v ->
+        findViewById(R.id.homeTasksCard).setOnClickListener(v -> {
+            Intent intent = new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class);
+            intent.putExtra("showHomeTasks", true);
+            startActivity(intent);
+        });
+
+        findViewById(R.id.schoolTasksCard).setOnClickListener(v ->
                 startActivity(new Intent(DashboardActivity.this, SchoolHomeTasksActivity.class)));
         findViewById(R.id.wellnessTasksCard).setOnClickListener(v ->
                 startActivity(new Intent(DashboardActivity.this, WellnessActivity.class)));
@@ -145,73 +140,121 @@ public class DashboardActivity extends BaseActivity implements
                 startActivity(new Intent(DashboardActivity.this, BudgetPlannerActivity.class)));
         findViewById(R.id.profileIcon).setOnClickListener(v ->
                 startActivity(new Intent(DashboardActivity.this, ProfileActivity.class)));
+
+        loadDashboardTasks();
     }
+
     @Override
     protected int getCurrentMenuItemId() {
         return R.id.nav_index;
     }
 
     @Override
-    public void onTaskEdited(Task updatedTask, int position) {
-        if (position >= 0 && position < taskList.size()) {
-            taskList.set(position, updatedTask);
-            taskAdapter.notifyItemChanged(position);
-        }
+    public void onTaskEdited(Task task, int position) {
+        Intent intent = new Intent(this, EditTasksActivity.class);
+        intent.putExtra("task", task);
+        intent.putExtra("position", position);
+        editTaskLauncher.launch(intent);
     }
 
     @Override
     public void onTaskDeleted(Task task) {
-        // Handle any UI updates needed after task deletion.
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Delete Task")
+                .setMessage("Are you sure you want to delete \"" + task.getTitle() + "\"?")
+                .setPositiveButton("Yes", (dialog, which) -> deleteTask(task))
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void deleteTask(Task task) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot delete task");
+            Toast.makeText(this, "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String category = task.getCategory();
+        String taskCollection;
+        String archiveCollection;
+
+        if ("School".equals(category) || "Both".equals(category)) {
+            taskCollection = "schooltasks";
+            archiveCollection = "cancelledSchoolTasks";
+        } else {
+            taskCollection = "housetasks";
+            archiveCollection = "cancelledHomeTasks";
+        }
+
+        db.collection("users")
+                .document(userId)
+                .collection(archiveCollection)
+                .document(task.getId())
+                .set(task)
+                .addOnSuccessListener(aVoid -> {
+                    db.collection("users")
+                            .document(userId)
+                            .collection(taskCollection)
+                            .document(task.getId())
+                            .delete()
+                            .addOnSuccessListener(aVoid2 -> {
+                                Log.d("Firestore", "Task archived and deleted: " + task.getTitle());
+                                loadDashboardTasks();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("Firestore", "Error deleting task", e);
+                                Toast.makeText(DashboardActivity.this, "Error deleting task", Toast.LENGTH_SHORT).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "Error archiving task", e);
+                    Toast.makeText(DashboardActivity.this, "Error archiving task", Toast.LENGTH_SHORT).show();
+                });
     }
 
     @Override
     public void onTaskCompleted(Task task) {
-        // Handle any UI updates needed after task completion.
+        loadDashboardTasks();
     }
 
-    private void loadWeatherIcon() {
-        ImageView weatherIcon = findViewById(R.id.weatherIcon);
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.openweathermap.org/data/2.5/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        WeatherApi weatherApi = retrofit.create(WeatherApi.class);
-
-        // Replace "YOUR_API_KEY_HERE" with your actual API key.
-        Call<WeatherResponse> call = weatherApi.getCurrentWeather("Dublin", "42035aa61a1c72229ac148f2a197c138", "metric");
-
-        call.enqueue(new Callback<WeatherResponse>() {
-            @Override
-            public void onResponse(Call<WeatherResponse> call, Response<WeatherResponse> response) {
-                if (response.isSuccessful() && response.body() != null
-                        && response.body().weather != null
-                        && response.body().weather.length > 0) {
-                    // Access the icon code from the weather array
-                    String iconCode = response.body().weather[0].icon;
-                    String iconUrl = "https://openweathermap.org/img/wn/" + iconCode + "@2x.png";
-
-                    Glide.with(DashboardActivity.this)
-                            .load(iconUrl)
-                            .placeholder(R.drawable.ic_placeholder_weather)
-                            .into(weatherIcon);
-                } else {
-                    weatherIcon.setImageResource(R.drawable.ic_placeholder_weather);
+    private final ActivityResultLauncher<Intent> editTaskLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Task updatedTask = result.getData().getParcelableExtra("updatedTask");
+                    if (updatedTask != null) {
+                        Log.d("DashboardActivity", "Received updatedTask: " + updatedTask.getTitle());
+                    }
+                    loadDashboardTasks();
                 }
-            }
+            });
 
-            @Override
-            public void onFailure(Call<WeatherResponse> call, Throwable t) {
-                Log.e("Weather", "Failed to fetch weather data", t);
-                weatherIcon.setImageResource(R.drawable.ic_placeholder_weather);
-            }
-        });
+    private void updateTaskInFirestore(Task updatedTask, int position) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (userId == null) {
+            Log.e("Firestore", "User not logged in, cannot update task");
+            Toast.makeText(this, "User not authenticated!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String collection = updatedTask.getCategory().equals("Home") ? "housetasks" : "schooltasks";
+
+        db.collection("users")
+                .document(userId)
+                .collection(collection)
+                .document(updatedTask.getId())
+                .set(updatedTask)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Firestore", "Task successfully updated: " + updatedTask.getTitle());
+                    loadDashboardTasks();
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Error updating task", e));
     }
 
-    /**
-     * Refreshes the Firebase Auth Token.
-     */
     private void refreshAuthToken(FirebaseUser user) {
         user.getIdToken(true).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -229,10 +272,10 @@ public class DashboardActivity extends BaseActivity implements
         currentDate.setText(dateFormat.format(new Date()));
     }
 
-
     private void loadDashboardTasks() {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
-                ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
         if (userId == null) return;
 
         List<Task> dashboardTasks = new ArrayList<>();
@@ -242,6 +285,7 @@ public class DashboardActivity extends BaseActivity implements
                 .whereEqualTo("completed", false)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
+                    dashboardTasks.clear();
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         Task task = doc.toObject(Task.class);
                         if (isTaskForToday(task)) {
@@ -260,8 +304,13 @@ public class DashboardActivity extends BaseActivity implements
                                         dashboardTasks.add(task);
                                     }
                                 }
-                                taskAdapter.updateTasks(dashboardTasks);
+                                taskList.clear();
+                                taskList.addAll(dashboardTasks);
                                 taskAdapter.notifyDataSetChanged();
+
+                                TextView tasksDueTodayTitle = findViewById(R.id.tasksDueTodayTitle);
+                                tasksDueTodayTitle.setText(dashboardTasks.isEmpty() ? "No Tasks for Today" : "Tasks for Today");
+
                                 ImageView emptyTasksImage = findViewById(R.id.emptyTasksImage);
                                 if (emptyTasksImage != null) {
                                     emptyTasksImage.setVisibility(dashboardTasks.isEmpty() ? View.VISIBLE : View.GONE);

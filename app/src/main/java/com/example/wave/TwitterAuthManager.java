@@ -2,6 +2,9 @@ package com.example.wave;
 
 import android.app.Activity;
 import android.content.Context;
+import android.webkit.CookieManager;
+import android.webkit.WebStorage;
+import android.webkit.WebView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -41,8 +44,20 @@ public class TwitterAuthManager{
         this.provider = OAuthProvider.newBuilder("twitter.com");
         this.callback = callback;
     }
+    private void clearSessionData() {
+        // Clear WebView cookies to prevent OAuth session issues
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.removeAllCookies(null);
+        cookieManager.flush();
 
+        // Clear WebView storage
+        WebStorage.getInstance().deleteAllData();
+
+        // Sign out from Firebase to clear cached credentials
+        firebaseAuth.signOut();
+    }
     public void signIn() {
+        clearSessionData();
         firebaseAuth
                 .startActivityForSignInWithProvider(activity, provider.build())
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
@@ -80,6 +95,7 @@ public class TwitterAuthManager{
     }
     void signOut(){
         firebaseAuth.signOut();
+        clearSessionData();
     }
     interface Callback{
         void updateUI(FirebaseUser user);

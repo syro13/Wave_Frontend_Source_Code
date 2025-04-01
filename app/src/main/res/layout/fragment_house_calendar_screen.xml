@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".HomeCalendarFragment"
-    android:background="@color/white">
+    android:background="?android:windowBackground">
 
     <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
@@ -25,7 +25,7 @@
                 android:id="@+id/schoolHeaderBackground"
                 android:layout_width="match_parent"
                 android:layout_height="180dp"
-                android:background="@drawable/header_dashboard">
+                android:background="@drawable/header_pages">
 
                 <!-- Header Content -->
                 <ImageView
@@ -39,16 +39,17 @@
                     android:layout_alignParentStart="true"
                     android:layout_alignParentTop="true" />
 
-                <ImageView
+                <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/profileIcon"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_profile_placeholder"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/profile_image"
                     android:contentDescription="Profile Icon"
                     android:layout_marginEnd="16dp"
                     android:layout_marginTop="16dp"
                     android:layout_alignParentEnd="true"
-                    android:layout_alignParentTop="true" />
+                    android:layout_alignParentTop="true"
+                    app:shapeAppearanceOverlay="@style/CircularImageView"/>
 
                 <TextView
                     android:id="@+id/greetingText"
@@ -70,7 +71,7 @@
                 android:orientation="vertical"
                 android:padding="16dp"
                 android:gravity="center"
-                android:background="#FFFFFF">
+                android:background="?android:windowBackground">
 
                 <LinearLayout
                     android:id="@+id/tasksToggleContainer"
@@ -149,15 +150,6 @@
                         android:layout_alignParentStart="true"
                         android:layout_marginTop="4dp" />
 
-                    <!-- Expansion Icon -->
-                    <ImageView
-                        android:id="@+id/expandCollapseIcon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_expand_more"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:contentDescription="@string/expand_or_collapse" />
                 </RelativeLayout>
 
                 <!-- Divider -->
@@ -177,59 +169,121 @@
 
                     <!-- Month and Year Dropdown (Styled to Look Like Text) -->
                     <!-- Month and Navigation Section -->
+
+                    <!-- Month and Navigation Section -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp"
                         android:gravity="center_vertical"
-                        android:paddingVertical="8dp">
-
-                        <!-- Month and Year Dropdown (Styled to Look Like Text) -->
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-
-                            <Spinner
-                                android:id="@+id/monthYearDropdown"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@android:color/transparent"
-                                android:popupBackground="@color/white"
-                                android:dropDownWidth="wrap_content"
-                                android:textAlignment="viewStart"
-                                android:spinnerMode="dropdown"/>
-
-                        </LinearLayout>
-
-                        <!-- Pushes the arrows to the end -->
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"/>
+                        android:orientation="horizontal">
 
                         <!-- Previous Arrow -->
                         <ImageView
                             android:id="@+id/previousMonth"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_arrowleft"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="16dp"
                             android:contentDescription="Previous Month"
-                            app:tint="@color/black"
-                            android:layout_marginEnd="8dp"/>
+                            android:src="@drawable/ic_arrowleft" />
 
+                        <Spinner
+                            android:id="@+id/monthYearDropdown"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textColor="@color/black"
+                            android:spinnerMode="dropdown" /> <!-- Removes Default Arrow -->
                         <!-- Next Arrow -->
                         <ImageView
                             android:id="@+id/nextMonth"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_arrowright"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="16dp"
                             android:contentDescription="Next Month"
-                            app:tint="@color/black"/>
+                            android:src="@drawable/ic_arrowright" />
                     </LinearLayout>
+                    <!-- Days of the Week Header -->
                 </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/daysOfWeekHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:paddingBottom="4dp">
 
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="S"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="M"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="T"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="W"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="T"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="F"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="S"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+                </LinearLayout>
                 <!-- Calendar Grid -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/calendarRecyclerView"
@@ -247,7 +301,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#FFFFFF"
+                android:background="?android:windowBackground"
                 android:orientation="vertical"
                 android:padding="16dp">
 
@@ -256,7 +310,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Today"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="20sp" />
 
                 <ImageView
@@ -286,7 +340,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp"
-                android:background="#FFFFFF">
+                android:background="?android:windowBackground">
 
                 <TextView
                     android:id="@+id/tasksDueThisWeekTitle"
@@ -294,7 +348,7 @@
                     android:layout_height="wrap_content"
                     android:text="This Week"
                     android:textSize="20sp"
-                    android:textColor="@color/black" />
+                    android:textColor="?attr/colorOnSurface" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/weeklyTaskRecyclerView"

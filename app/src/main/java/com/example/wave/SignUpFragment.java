@@ -18,6 +18,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.airbnb.lottie.LottieAnimationView;
+import com.example.wave.utils.UserUtils;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -52,7 +54,15 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_sign_up, container, false);
+// Inject dynamic Lottie animation for theme
+        LottieAnimationView lottieView = view.findViewById(R.id.lottieAnimation);
+        int nightModeFlags = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
 
+        if (nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
+            lottieView.setAnimation(R.raw.login_signup_animation_dark); // dark theme animation
+        } else {
+            lottieView.setAnimation(R.raw.login_signup_animation); // default light theme animation
+        }
         // Initialize Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
 
@@ -126,6 +136,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                 .requestEmail()
                 .build();
         googleSignInClient = GoogleSignIn.getClient(requireContext(), gso);
+        googleSignInClient.signOut();
     }
 
     /**
@@ -170,11 +181,10 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            Toast.makeText(getContext(), "Facebook Sign-In Successful", Toast.LENGTH_SHORT).show();
-                            navigateToDashboard(user);
+                            UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
                         }
                     } else {
-                        Toast.makeText(getContext(), "Facebook Sign-In Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Facebook Sign-In Failed", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -182,26 +192,23 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
     @Override
     public void updateUI(FirebaseUser user) {
         if (user != null) {
-            Toast.makeText(getContext(), "Twitter Sign-In Successful: " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
-            navigateToDashboard(user);
+            UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
         } else {
             Toast.makeText(getContext(), "Twitter Sign-In Failed", Toast.LENGTH_SHORT).show();
         }
     }
-    /**
 
     /**
-     * Navigate to Dashboard after successful login.
+     *
+     * @param requestCode The integer request code originally supplied to
+     *                    startActivityForResult(), allowing you to identify who this
+     *                    result came from.
+     * @param resultCode The integer result code returned by the child activity
+     *                   through its setResult().
+     * @param data An Intent, which can return result data to the caller
+     *               (various data can be attached to Intent "extras").
+     *
      */
-    private void navigateToDashboard(FirebaseUser user) {
-        if (getActivity() != null && user != null) {
-            Intent intent = new Intent(getActivity(), DashboardActivity.class);
-            intent.putExtra("USER_NAME", user.getDisplayName());
-            getActivity().finish();
-            startActivity(intent);
-        }
-    }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
 
@@ -239,7 +246,6 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                             authenticateWithGoogle(account, false); // Sign-in flow
                         } else {
                             // User doesn't exist, treat it as a sign-up
-                            Toast.makeText(getContext(), "Creating new account...", Toast.LENGTH_SHORT).show();
                             authenticateWithGoogle(account, true); // Sign-up flow
                         }
                     } else {
@@ -262,23 +268,7 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             if (isSignUp) {
-                                // Handle additional sign-up logic (e.g., set display name)
-                                String displayName = account.getDisplayName();
-                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                        .setDisplayName(displayName)
-                                        .build();
-                                user.updateProfile(profileUpdates)
-                                        .addOnCompleteListener(updateTask -> {
-                                            if (updateTask.isSuccessful()) {
-                                                Toast.makeText(getContext(), "Sign-up successful!", Toast.LENGTH_SHORT).show();
-                                                navigateToDashboard(displayName);
-                                            } else {
-                                                Toast.makeText(getContext(), "Failed to update profile", Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
-                            } else {
-                                // Proceed directly to the dashboard for login
-                                navigateToDashboard(user.getDisplayName());
+                                UserUtils.saveUserData(requireContext(), user, user.getDisplayName());
                             }
                         }
                     } else {
@@ -286,19 +276,11 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
                     }
                 });
     }
-
-    private void navigateToDashboard(String displayName) {
-        if (getActivity() != null) {
-            Intent intent = new Intent(getActivity(), DashboardActivity.class);
-            intent.putExtra("USER_NAME", displayName);
-            startActivity(intent);
-            getActivity().finish();
-        } else {
-            Toast.makeText(getContext(), "Navigation failed: Context is unavailable.", Toast.LENGTH_SHORT).show();
-        }
+    private boolean isValidPassword(String password) {
+        // Minimum 12 characters, at least 1 uppercase, 1 lowercase, 1 digit, 1 special char
+        String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{12,100}$";
+        return password.matches(passwordRegex);
     }
-
-
 
     /**
      * Handles user sign-up with email and password.
@@ -334,39 +316,22 @@ public class SignUpFragment extends Fragment implements TwitterAuthManager.Callb
             confirmPasswordInput.setError("Passwords do not match");
             return;
         }
-
-        // Create user in Firebase
-        mAuth.createUserWithEmailAndPassword(email, password)
+        if (!isValidPassword(password)) {
+            passwordInput.setError("Password must be at least 12 characters, include uppercase, lowercase, number and special character");
+            return;
+        }
+         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            // Set the display name in Firebase Authentication
-                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                    .setDisplayName(name)
-                                    .build();
-
-                            user.updateProfile(profileUpdates)
-                                    .addOnCompleteListener(updateTask -> {
-                                        if (updateTask.isSuccessful()) {
-                                            Toast.makeText(getContext(), "Sign-In Successful!", Toast.LENGTH_SHORT).show();
-                                            // Navigate to Dashboard
-                                            Intent intent = new Intent(getActivity(), DashboardActivity.class);
-                                            intent.putExtra("USER_NAME", name);
-                                            startActivity(intent);
-                                            getActivity().finish();
-                                        } else {
-                                            Toast.makeText(getContext(), "Failed to set display name", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
+                            UserUtils.saveUserData(requireContext(), user, name);
                         }
                     } else {
-                        Toast.makeText(getContext(), "Sign-In Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Sign-Up Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
-
-
 
     /**
      * Updates the styles of the toggle buttons to show which one is active.
