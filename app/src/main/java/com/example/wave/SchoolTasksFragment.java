@@ -156,7 +156,11 @@ public class SchoolTasksFragment extends Fragment  {
                         .commit();
             });
         }
-
+        TextView btnReset = view.findViewById(R.id.btnResetCounters);
+        btnReset.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Task counters reset!", Toast.LENGTH_SHORT).show();
+            resetTaskCounters(); // You can define your reset logic here
+        });
         return view;
     }
 
@@ -193,6 +197,72 @@ public class SchoolTasksFragment extends Fragment  {
     private void hideLoading() {
         if (loadingIndicator != null) loadingIndicator.setVisibility(View.GONE);
         if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
+    }
+    private void resetTaskCounters() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        showLoading(); // Optional if you have a loading indicator
+
+        // Step 1: Reset completed school tasks
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .whereEqualTo("completed", true)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+                        db.collection("users")
+                                .document(userId)
+                                .collection("schooltasks")
+                                .document(doc.getId())
+                                .update("completed", false)
+                                .addOnFailureListener(e ->
+                                        Log.e("ResetSchoolTasks", "Failed to reset task: " + doc.getId(), e));
+                    }
+
+                    // Step 2: Delete cancelled school tasks
+                    db.collection("users")
+                            .document(userId)
+                            .collection("cancelledSchoolTasks")
+                            .get()
+                            .addOnSuccessListener(cancelledSnapshot -> {
+                                for (QueryDocumentSnapshot doc : cancelledSnapshot) {
+                                    db.collection("users")
+                                            .document(userId)
+                                            .collection("cancelledSchoolTasks")
+                                            .document(doc.getId())
+                                            .delete()
+                                            .addOnFailureListener(e ->
+                                                    Log.e("ResetSchoolTasks", "Failed to delete cancelled task: " + doc.getId(), e));
+                                }
+
+                                Toast.makeText(getContext(), "School task counters reset!", Toast.LENGTH_SHORT).show();
+
+                                // Step 3: Refresh UI counters
+                                updateCompletedTaskCount();
+                                updatePendingTasksCount();
+                                updateCancelledTasksCount();
+                                hideLoading();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("ResetSchoolTasks", "Failed to delete cancelled school tasks", e);
+                                Toast.makeText(getContext(), "Error resetting cancelled tasks", Toast.LENGTH_SHORT).show();
+                                hideLoading();
+                            });
+
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ResetSchoolTasks", "Failed to fetch completed school tasks", e);
+                    Toast.makeText(getContext(), "Error resetting completed tasks", Toast.LENGTH_SHORT).show();
+                    hideLoading();
+                });
     }
 
     private void setupSchoolNotesCard(View view) {
@@ -364,6 +434,27 @@ public class SchoolTasksFragment extends Fragment  {
             schoolTasksListener = null;
         }
     }
+    private void updateCompletedTaskCount() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (userId == null) return;
+
+        db.collection("users")
+                .document(userId)
+                .collection("schooltasks")
+                .whereEqualTo("completed", true)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int completedCount = queryDocumentSnapshots.size();
+                    // Assuming the completed tasks card's TextView has the ID "tasks_count"
+                    TextView tasksCountTextView = getView().findViewById(R.id.tasks_count);
+                    if (tasksCountTextView != null) {
+                        tasksCountTextView.setText(String.valueOf(completedCount));
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("SchoolTasksFragment", "Error fetching completed tasks", e));
+    }
+
     private void updatePendingTasksCount() {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()

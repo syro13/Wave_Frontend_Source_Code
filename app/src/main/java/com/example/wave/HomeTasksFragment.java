@@ -147,7 +147,6 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
         }
         TextView btnReset = view.findViewById(R.id.btnResetCounters);
         btnReset.setOnClickListener(v -> {
-            // TODO: Your logic to reset counters
             Toast.makeText(getContext(), "Task counters reset!", Toast.LENGTH_SHORT).show();
             resetTaskCounters(); // You can define your reset logic here
         });
