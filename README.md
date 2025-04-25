@@ -19,7 +19,7 @@
 ## 📺 Watch Wave in Action
 <div align="center">
   <a href="https://youtu.be/LY6wttN-gVk">
-    <img src="images/video-thumbnail.png" alt="Wave App Demo Video" width="600">
+   <img src="images/video-thumbnail.png" alt="Video" width="300"/> 
   </a>
   <p>Click the image above to watch our demo video</p>
 </div>
@@ -66,7 +66,7 @@ Wave is a comprehensive wellbeing application tailored for college students faci
 
 ## 🔄 Tech Stack
 <div align="center">
-  <img src="images/tech-stack-diagram.png" alt="Wave Tech Stack" width="700">
+  <img src="images/tech-stack.png" alt="Wave Tech Stack" width="700">
   <p><i>Our comprehensive technology architecture powering Wave</i></p>
 </div>
 
