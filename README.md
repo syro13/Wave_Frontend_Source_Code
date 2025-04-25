@@ -19,7 +19,7 @@
 ## 📺 Watch Wave in Action
 <div align="center">
   <a href="https://youtu.be/LY6wttN-gVk">
-   <img src="images/video-thumbnail.png" alt="Video" width="300"/> 
+   <img src="images/video-thumbnail.png" alt="Video" width="600"/> 
   </a>
   <p>Click the image above to watch our demo video</p>
 </div>
