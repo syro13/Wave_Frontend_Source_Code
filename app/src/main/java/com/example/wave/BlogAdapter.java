@@ -47,8 +47,9 @@ public class BlogAdapter extends RecyclerView.Adapter<BlogAdapter.BlogViewHolder
 
         // Bind blog data to the UI
         holder.title.setText(blog.getTitle());
-        holder.tag.setText(blog.getTag() != null ? blog.getTag() : "No Tag"); // Fallback if tag is null
+        holder.tag.setText(blog.getTag() != null ? blog.getTag() : "No Tag");
         holder.image.setVisibility(View.INVISIBLE);
+
         Glide.with(context)
                 .load(blog.getImage())
                 .transition(DrawableTransitionOptions.withCrossFade())
@@ -57,17 +58,25 @@ public class BlogAdapter extends RecyclerView.Adapter<BlogAdapter.BlogViewHolder
                 .listener(new RequestListener<Drawable>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                        holder.image.setVisibility(View.VISIBLE); // Fail-safe to show something
-                        return false; // Let Glide handle the error placeholder if any
+                        holder.image.setVisibility(View.VISIBLE);
+                        return false;
                     }
 
                     @Override
                     public boolean onResourceReady(@NonNull Drawable resource, Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
-                        holder.image.setVisibility(View.VISIBLE); // Show only when fully loaded
+                        holder.image.setVisibility(View.VISIBLE);
                         return false;
                     }
                 })
                 .into(holder.image);
+
+        // ✅ Add this to handle clicks
+        holder.itemView.setOnClickListener(v -> {
+            if (blog.getLink() != null && !blog.getLink().isEmpty()) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(blog.getLink()));
+                context.startActivity(intent);
+            }
+        });
     }
 
 
