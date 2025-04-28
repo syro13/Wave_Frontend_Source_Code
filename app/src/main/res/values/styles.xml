@@ -12,13 +12,14 @@
         <item name="android:background">@drawable/keypad_button</item>
         <item name="android:textColor">@color/blue</item>
         <item name="android:textSize">24sp</item>
-        <item name="android:layout_width">90dp</item>
-        <item name="android:layout_height">70dp</item>
-        <item name="android:layout_margin">4dp</item>
+        <item name="android:layout_width">0dp</item>  <!-- <<< changed -->
+        <item name="android:layout_height">wrap_content</item>  <!-- <<< changed -->
+        <item name="android:layout_margin">8dp</item> <!-- More margin for spacing -->
         <item name="android:gravity">center</item>
-        <item name="android:layout_columnWeight">1</item>
-        <item name="android:layout_rowWeight">1</item>
+        <item name="android:layout_columnWeight">1</item>  <!-- flex equally -->
+        <item name="android:layout_rowWeight">1</item>     <!-- flex equally -->
     </style>
+
     <style name="SubmitButtonStyle" parent="Widget.AppCompat.Button">
         <item name="android:background">@drawable/rounded_button_background_selector</item>
         <item name="android:textColor">@android:color/white</item>
