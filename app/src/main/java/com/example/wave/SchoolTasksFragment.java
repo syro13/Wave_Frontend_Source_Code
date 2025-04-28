@@ -269,41 +269,41 @@ public class SchoolTasksFragment extends Fragment  {
         CardView schoolNotesCard = view.findViewById(R.id.schoolNotesCard); // Ensure this ID exists in XML
         schoolNotesCard.setOnClickListener(v -> showSchoolNotesPopup());
     }
-
     private void showSchoolNotesPopup() {
         Dialog dialog = new Dialog(requireContext());
-        dialog.setContentView(R.layout.school_notes_popup); // Ensure this XML file exists
+        dialog.setContentView(R.layout.school_notes_popup);
 
         ImageView backArrow = dialog.findViewById(R.id.back_arrow);
         TextView title = dialog.findViewById(R.id.popup_title);
         EditText schoolNoteInput = dialog.findViewById(R.id.school_note_input);
         Button addSchoolNote = dialog.findViewById(R.id.add_school_note);
         ListView schoolNotesList = dialog.findViewById(R.id.school_notes_list);
+
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
-        lp.width  = (int) (getResources().getDisplayMetrics().widthPixels  * 0.95); // 95% of screen width
-        lp.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.80); // 80% of screen height
+        lp.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.95);
+        lp.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.80);
         dialog.getWindow().setAttributes(lp);
 
-        // Set title
         title.setText("Notes");
 
-        // Load saved notes
         ArrayList<String> schoolNotes = getSchoolNotes();
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, schoolNotes);
         schoolNotesList.setAdapter(adapter);
 
-        // Handle adding a note
         addSchoolNote.setOnClickListener(v -> {
             String newNote = schoolNoteInput.getText().toString().trim();
             if (!newNote.isEmpty()) {
-                schoolNotes.add("• " + newNote); // Add bullet point
+                schoolNotes.add("• " + newNote);
                 adapter.notifyDataSetChanged();
                 schoolNoteInput.setText("");
                 saveSchoolNotes(schoolNotes);
             }
         });
+
+        dialog.show();
     }
+
 
     interface OnFetchCompleteListener {
         void onFetchComplete(boolean success);
