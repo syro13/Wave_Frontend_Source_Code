@@ -605,17 +605,18 @@ public class SchoolCalendarFragment extends Fragment implements
                     taskId,
                     title,
                     time,
-                    repeatedDate, // Store full date string ("8/3/2025") instead of just the day.
-                    getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1),
+                    repeatedDate, // correct full date like "28/4/2025"
+                    getMonthYearList().get(Integer.parseInt(dateParts[1]) - 1), // month name
                     priority,
                     taskType,
                     year,
-                    0, // Default stability value
+                    0,
                     System.currentTimeMillis(),
-                    repeatedDate, // Full date string (if used elsewhere)
+                    repeatedDate, // full date
                     false,
                     repeatOption
             );
+
 
             // Save the task to the "schooltasks" collection for School tasks.
             db.collection("users")
