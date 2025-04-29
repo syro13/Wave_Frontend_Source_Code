@@ -134,29 +134,58 @@
                 android:padding="16dp"
                 android:background="?android:windowBackground">
 
-                <!-- Tasks Overview Section -->
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:weightSum="2">
 
+                    <!-- Left Section: Title + Icon -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/tasksDueTodayTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tasks Overview"
+                            android:textSize="20sp"
+                            android:textColor="?attr/colorOnSurface" />
+
+                        <ImageView
+                            android:id="@+id/tasksOverviewImage"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginStart="8dp"
+                            android:contentDescription="@string/tasks_icon"
+                            android:src="@drawable/ic_tasks_icon" />
+                    </LinearLayout>
+
+                    <!-- Right Section: Reset Button -->
                     <TextView
-                        android:id="@+id/tasksDueTodayTitle"
+                        android:id="@+id/btnResetCounters"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Tasks Overview"
-                        android:textSize="20sp"
-                        android:textColor="?attr/colorOnSurface" />
-
-                    <ImageView
-                        android:id="@+id/tasksOverviewImage"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginStart="8dp"
-                        android:contentDescription="@string/tasks_icon"
-                        android:src="@drawable/ic_tasks_icon" />
+                        android:layout_gravity="end"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="Reset Task Counter"
+                        android:textColor="@color/blue"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/archivo_medium"
+                        android:paddingEnd="8dp"
+                        android:clickable="true"
+                        android:focusable="true" />
                 </LinearLayout>
+
 
                 <!-- Stats Grid (Completed, Pending, Overdue, etc.) -->
                 <GridLayout

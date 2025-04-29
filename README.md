@@ -1,4 +1,3 @@
-
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
@@ -17,36 +16,44 @@
   </p>
 </div>
 
+## 📺 Watch Wave in Action
+<div align="center">
+  <a href="https://youtu.be/LY6wttN-gVk">
+   <img src="images/video-thumbnail.png" alt="Video" width="600"/> 
+  </a>
+  <p>Click the image above to watch our demo video</p>
+</div>
+
 <!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
+## 📑 Table of Contents
+<details open>
+  <summary>Click to expand/collapse</summary>
   <ol>
+    <li><a href="#-about-the-project">About The Project</a></li>
+    <li><a href="#-built-with">Built With</a></li>
+    <li><a href="#-tech-stack">Tech Stack</a></li>
     <li>
-      <a href="#about-the-project">About The Project</a>
+      <a href="#-getting-started">Getting Started</a>
       <ul>
-        <li><a href="#built-with">Built With</a></li>
+        <li><a href="#-prerequisites">Prerequisites</a></li>
+        <li><a href="#-installation">Installation</a></li>
       </ul>
     </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#modules-overview">Modules Overview</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#screenshots">Screenshots</a></li>
-    <li><a href="#testing">Testing</a></li>
-    <li><a href="#localization">Localization</a></li>
+    <li><a href="#-usage">Usage</a></li>
+    <li><a href="#-modules-overview">Modules Overview</a></li>
+    <li><a href="#-appearance-modes">Appearance Modes</a></li>
+    <li><a href="#-roadmap">Roadmap</a></li>
+    <li><a href="#-screenshots">Screenshots</a></li>
+    <li><a href="#-testing">Testing</a></li>
+    <li><a href="#-localization">Localization</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#feedback--suggestions">Feedback & Suggestions</a></li>
+    <li><a href="#-feedback--suggestions">Feedback & Suggestions</a></li>
   </ol>
 </details>
 
-
+## 📱 About The Project
+Wave is a comprehensive wellbeing application tailored for college students facing the challenges of academic life. Our app addresses key areas including task management, financial planning, and mental wellbeing through an intuitive, AI-enhanced interface.
 
 ## 🛠️ Built With
 
@@ -57,12 +64,12 @@
 * [![OpenAI](https://img.shields.io/badge/AI%20Powered%20By-OpenAI-412991?logo=openai&logoColor=white)](https://openai.com/)
 * [![Lottie](https://img.shields.io/badge/Animations-Lottie-FF4088?logo=lottie&logoColor=white)](https://airbnb.io/lottie/#/)
 
+## 🔄 Tech Stack
+<div align="center">
+  <img src="images/tech-stack.png" alt="Wave Tech Stack" width="700">
+  <p><i>Our comprehensive technology architecture powering Wave</i></p>
+</div>
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- GETTING STARTED -->
 ## 🚀 Getting Started
 
 Follow these steps to get a local copy of the **Wave** app up and running on your machine.
@@ -77,19 +84,14 @@ Make sure you have the following installed:
 - [OpenAI API Key](https://platform.openai.com/)
 - Internet connection (for API requests and Gradle sync)
 
----
-
 ### 🔧 Installation
 
 1. **Clone the repository**
 
 ```bash
 git clone https://github.com/your-username/Wave_Frontend_Source_Code.git
+```
 
-  ```
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- USAGE EXAMPLES -->
 ## 📱 Usage
 
 Wave is designed to support students in managing their day-to-day life with ease, balance, and wellbeing. Here are a few key features in action:
@@ -109,12 +111,11 @@ Track your daily and weekly expenses with a clean, user-friendly budgeting inter
 📌 Example:
 ```text
 Spent €20 so you have €160 left.
-→ AI Suggestion: “Try cooking at home more this week. Here’s a simple 3-day meal plan under €15.”
- ```
+→ AI Suggestion: "Try cooking at home more this week. Here's a simple 3-day meal plan under €15."
+```
 
 ### 🧾 Grocery & Notes
 Use the grocery list popup to quickly jot down and check off daily household items.
-
 
 ### 🔁 Calendar Sync
 View all your tasks in a calendar view to plan your week visually.
@@ -129,8 +130,6 @@ Wave connects to a custom-built Wellbeing API that offers blogs and podcasts to 
 * Study/life balance plans
 * Encouraging wellness 
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 ## 🧩 Modules Overview
 
 - `app/` - Contains the main Android app codebase
@@ -139,9 +138,22 @@ Wave connects to a custom-built Wellbeing API that offers blogs and podcasts to 
 - Firebase - Authentication, Firestore, and storage
 - OpenAI - Handles AI requests (for task and wellbeing suggestions)
 
-  <p align="right">(<a href="#readme-top">back to top</a>)</p>
+## 🌓 Appearance Modes
 
-<!-- ROADMAP -->
+Wave supports both light and dark modes to accommodate different preferences and reduce eye strain during night-time usage.
+
+<div align="center">
+  <img src="images/light-mode.png" alt="Light Mode" width="300"/> &nbsp;&nbsp;
+  <img src="images/dark-mode.png" alt="Dark Mode" width="300"/>
+  <p><i>Toggle between light and dark modes in the settings for optimal viewing comfort</i></p>
+</div>
+
+### Features:
+- **Automatic switching** based on system settings
+- **Manual override** in app settings
+- **Battery saving** benefits with dark mode
+- **Reduced eye strain** in low-light environments
+
 ## 🛣️ Roadmap
 
 - [x] Splash Screen + Launch Flow  
@@ -168,9 +180,6 @@ Wave connects to a custom-built Wellbeing API that offers blogs and podcasts to 
 
 See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known bugs).
 
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 ## 📸 Screenshots
 
 <div align="center">
@@ -182,8 +191,6 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
 
 > _More screenshots available in the `/images` folder._
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 ## 🧪 Testing
 
 Wave uses basic instrumentation tests for critical flows.
@@ -193,20 +200,15 @@ To run tests:
 ```bash
 ./gradlew test
 ```
+
 ## 🌍 Localization
 
 Wave is currently available in English. Future support for additional languages is in the roadmap!
 
-<!-- LICENSE -->
 ## License
 
 Distributed under the project_license. See `LICENSE.txt` for more information.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- CONTACT -->
 ## Contact
 
 * Hannah Abell - hannah@wave.ie
@@ -217,10 +219,6 @@ Distributed under the project_license. See `LICENSE.txt` for more information.
 
 Project Link: [https://github.com/syro13/Wave_Frontend_Source_Code](https://github.com/syro13/Wave_Frontend_Source_Code)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 ## 📢 Feedback & Suggestions
 
-We’re always looking to improve. Feel free to open an [issue](https://github.com/syro13/Wave_Frontend_Source_Code/issues) or submit a [pull request](https://github.com/syro13/Wave_Frontend_Source_Code/pulls)!
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+We're always looking to improve. Feel free to open an [issue](https://github.com/syro13/Wave_Frontend_Source_Code/issues) or submit a [pull request](https://github.com/syro13/Wave_Frontend_Source_Code/pulls)!

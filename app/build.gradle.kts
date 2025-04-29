@@ -61,6 +61,8 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.lottie)
+    implementation (libs.glide)
+    annotationProcessor (libs.compiler)
     implementation(libs.firebase.auth)
     implementation(libs.espresso.intents)
     implementation(libs.fragment.testing)

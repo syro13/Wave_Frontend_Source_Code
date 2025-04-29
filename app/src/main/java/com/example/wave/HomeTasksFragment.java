@@ -3,6 +3,8 @@ package com.example.wave;
 import static android.content.Context.MODE_PRIVATE;
 import static androidx.test.internal.runner.junit4.statement.UiThreadStatement.runOnUiThread;
 
+import static java.security.AccessController.getContext;
+
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -143,6 +145,11 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
                         .commit();
             });
         }
+        TextView btnReset = view.findViewById(R.id.btnResetCounters);
+        btnReset.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Task counters reset!", Toast.LENGTH_SHORT).show();
+            resetTaskCounters(); // You can define your reset logic here
+        });
 
         return view;
     }
@@ -189,6 +196,74 @@ public class HomeTasksFragment extends Fragment implements GroceryItemAdapter.Sa
         CardView notesCard = view.findViewById(R.id.groceryCard);
         notesCard.setOnClickListener(v -> showGroceryListPopup());
     }
+
+    private void resetTaskCounters() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        showLoading();
+
+        // Step 1: Reset completed tasks in housetasks
+        db.collection("users")
+                .document(userId)
+                .collection("housetasks")
+                .whereEqualTo("completed", true)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+                        db.collection("users")
+                                .document(userId)
+                                .collection("housetasks")
+                                .document(doc.getId())
+                                .update("completed", false)
+                                .addOnFailureListener(e -> Log.e("ResetCounter", "Failed to reset task: " + doc.getId(), e));
+                    }
+
+                    // Step 2: Delete all cancelled tasks
+                    db.collection("users")
+                            .document(userId)
+                            .collection("cancelledHomeTasks")
+                            .get()
+                            .addOnSuccessListener(cancelledSnapshot -> {
+                                for (QueryDocumentSnapshot doc : cancelledSnapshot) {
+                                    db.collection("users")
+                                            .document(userId)
+                                            .collection("cancelledHomeTasks")
+                                            .document(doc.getId())
+                                            .delete()
+                                            .addOnFailureListener(e ->
+                                                    Log.e("ResetCounter", "Failed to delete cancelled task: " + doc.getId(), e));
+                                }
+
+                                Toast.makeText(getContext(), "Task counters reset successfully!", Toast.LENGTH_SHORT).show();
+
+                                // Step 3: Refresh all counters
+                                updateCompletedTaskCount();
+                                updatePendingTasksCount();
+                                updateCancelledTasksCount();
+
+                                hideLoading();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("ResetCounter", "Failed to delete cancelled tasks", e);
+                                Toast.makeText(getContext(), "Error resetting cancelled tasks", Toast.LENGTH_SHORT).show();
+                                hideLoading();
+                            });
+
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ResetCounter", "Failed to fetch completed tasks", e);
+                    Toast.makeText(getContext(), "Error resetting completed tasks", Toast.LENGTH_SHORT).show();
+                    hideLoading();
+                });
+    }
+
 
     private void showGroceryListPopup() {
         Dialog dialog = new Dialog(getContext());
