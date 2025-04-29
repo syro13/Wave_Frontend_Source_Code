@@ -168,22 +168,7 @@
                             android:src="@drawable/ic_tasks_icon" />
                     </LinearLayout>
 
-                    <!-- Right Section: Reset Button -->
-                    <TextView
-                        android:id="@+id/btnResetCounters"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:layout_weight="1"
-                        android:gravity="end"
-                        android:text="Reset Task Counter"
-                        android:textColor="@color/blue"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:fontFamily="@font/archivo_medium"
-                        android:paddingEnd="8dp"
-                        android:clickable="true"
-                        android:focusable="true" />
+
                 </LinearLayout>
 
 
@@ -411,6 +396,19 @@
                             </LinearLayout>
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
+                    <TextView
+                        android:id="@+id/btnResetCounters"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="16dp"
+                        android:text="Reset Task Counter"
+                        android:textColor="@color/blue"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/archivo_medium"
+                        android:clickable="true"
+                        android:focusable="true" />
                 </GridLayout>
 
                 <!-- "House Hub" Section -->
